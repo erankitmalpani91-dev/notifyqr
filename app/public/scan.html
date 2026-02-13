@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notify Vehicle Owner</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            background: #f1f5f9;
+            font-family: system-ui, -apple-system;
+        }
+
+        .card {
+            max-width: 440px;
+            margin: auto;
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 14px;
+        }
+
+        .lang {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+            .lang button {
+                padding: 6px 14px;
+                border-radius: 8px;
+                border: 1.5px solid #d1d5db;
+                background: #f9fafb;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+                .lang button.active {
+                    background: #2563eb;
+                    color: #fff;
+                    border-color: #2563eb;
+                }
+
+        /* Categories */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .category-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 16px;
+            border: 2px solid #e5e7eb;
+            background: #f9fafb;
+            cursor: pointer;
+        }
+
+            .category-card.active {
+                border-color: #2563eb;
+                background: #eff6ff;
+            }
+
+        .icon {
+            font-size: 22px;
+        }
+
+        .cat-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .issue {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid #d1d5db;
+            margin: 6px 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .issue.active {
+                background: #eff6ff;
+                border-color: #2563eb;
+                font-weight: 600;
+            }
+
+        button.main {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 14px;
+            cursor: pointer;
+        }
+
+            button.main:disabled {
+                background: #9ca3af;
+                cursor: not-allowed;
+            }
+
+        .status {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .waiting {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2 id="title">Notify Vehicle Owner</h2>
+        <div class="subtitle" id="subtitle">Select the issue related to this vehicle</div>
+
+        <div class="lang">
+            <button id="enBtn" class="active" onclick="setLang('en')">English</button>
+            <button id="hiBtn" onclick="setLang('hi')">हिंदी</button>
+        </div>
+
+        <div class="category-grid" id="categories"></div>
+        <div id="issues"></div>
+
+        <button class="main" id="notifyBtn" onclick="send()">Notify Owner</button>
+
+        <div id="waiting" class="status waiting">
+            ⏳ Waiting for owner response…
+        </div>
+
+        <div id="replyBox" class="status success"></div>
+    </div>
+
+    <script>
+        const stickerId = new URLSearchParams(window.location.search).get("id");
+        let lang = "en";
+        let openCategory = null;
+        let selectedIssue = "";
+        let pollingStarted = false;
+
+        const data = {
+            en: {
+                title: "Notify Vehicle Owner",
+                subtitle: "Select the issue related to this vehicle",
+                notify: "Notify Owner",
+                waiting: "⏳ Waiting for owner response…",
+                replyPrefix: "🚗 Owner response:",
+                categories: {
+                    Parking: { icon: "🚗", name: "Parking", issues: ["Blocking my car", "No-parking zone", "Double parked", "Wrong side parking"] },
+                    Blocking: { icon: "🚧", name: "Blocking", issues: ["Blocking gate", "Blocking exit", "Blocking fire access"] },
+                    Emergency: { icon: "🚨", name: "Emergency", issues: ["Accident nearby", "Vehicle damaged", "Alarm ringing"] },
+                    Safety: { icon: "🔐", name: "Safety", issues: ["Lights left ON", "Door / boot open", "Child or pet locked inside"] }
+                }
+            },
+            hi: {
+                title: "वाहन मालिक को सूचित करें",
+                subtitle: "कृपया समस्या चुनें",
+                notify: "मालिक को सूचित करें",
+                waiting: "⏳ मालिक के जवाब की प्रतीक्षा हो रही है…",
+                replyPrefix: "🚗 मालिक का जवाब:",
+                categories: {
+                    Parking: { icon: "🚗", name: "पार्किंग", issues: ["मेरी कार रोक रहा है", "नो पार्किंग", "डबल पार्किंग", "गलत साइड पार्किंग"] },
+                    Blocking: { icon: "🚧", name: "रास्ता अवरुद्ध", issues: ["गेट रोक रहा है", "निकास रोक रहा है", "आपात रास्ता बंद"] },
+                    Emergency: { icon: "🚨", name: "आपात स्थिति", issues: ["दुर्घटना", "वाहन क्षतिग्रस्त", "अलार्म बज रहा है"] },
+                    Safety: { icon: "🔐", name: "सुरक्षा", issues: ["लाइट चालू है", "दरवाज़ा खुला", "बच्चा अंदर"] }
+                }
+            }
+        };
+
+        function render() {
+            document.getElementById("title").innerText = data[lang].title;
+            document.getElementById("subtitle").innerText = data[lang].subtitle;
+            document.getElementById("notifyBtn").innerText = data[lang].notify;
+            document.getElementById("waiting").innerText = data[lang].waiting;
+
+            const catBox = document.getElementById("categories");
+            const issuesBox = document.getElementById("issues");
+            catBox.innerHTML = "";
+            issuesBox.innerHTML = "";
+
+            Object.keys(data[lang].categories).forEach(key => {
+                const c = data[lang].categories[key];
+                const div = document.createElement("div");
+                div.className = "category-card" + (openCategory === key ? " active" : "");
+                div.innerHTML = `<div class="icon">${c.icon}</div><div class="cat-title">${c.name}</div>`;
+                div.onclick = () => toggleCategory(key);
+                catBox.appendChild(div);
+            });
+
+            if (openCategory) {
+                data[lang].categories[openCategory].issues.forEach(issue => {
+                    const i = document.createElement("div");
+                    i.className = "issue";
+                    i.innerText = issue;
+                    i.onclick = () => {
+                        document.querySelectorAll(".issue").forEach(x => x.classList.remove("active"));
+                        i.classList.add("active");
+                        selectedIssue = issue;
+                    };
+                    issuesBox.appendChild(i);
+                });
+            }
+        }
+
+        function toggleCategory(key) {
+            openCategory = openCategory === key ? null : key;
+            selectedIssue = "";
+            render();
+        }
+
+        function setLang(l) {
+            lang = l;
+            document.getElementById("enBtn").classList.toggle("active", l === "en");
+            document.getElementById("hiBtn").classList.toggle("active", l === "hi");
+            openCategory = null;
+            selectedIssue = "";
+            render();
+        }
+
+        function send() {
+            if (!selectedIssue) return alert("Please select an issue");
+
+            document.getElementById("notifyBtn").disabled = true;
+            document.getElementById("waiting").style.display = "block";
+
+            fetch("/notify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    stickerId,
+                    category: openCategory,
+                    reason: selectedIssue,
+                    lang
+                })
+            }).then(() => {
+                if (!pollingStarted) {
+                    pollingStarted = true;
+                    startPolling();
+                }
+            });
+        }
+
+        function startPolling() {
+            setInterval(() => {
+                fetch(`/check-reply?id=${stickerId}`)
+                    .then(r => r.json())
+                    .then(dataReply => {
+                        if (dataReply.reply) {
+                            document.getElementById("waiting").style.display = "none";
+                            const box = document.getElementById("replyBox");
+                            box.innerText = `${data[lang].replyPrefix} ${dataReply.reply}`;
+                            box.style.display = "block";
+                        }
+                    });
+            }, 2000);
+        }
+
+        render();
+    </script>
+
+</body>
+</html>

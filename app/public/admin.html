@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>NotifyQR Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- LOGIN -->
+        <div id="loginBox" class="card">
+            <h2>🔐 Admin Login</h2>
+            <input id="username" placeholder="Username">
+            <input id="password" type="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <p id="loginError" class="error"></p>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="card hidden">
+            <h2>📊 NotifyQR Admin Dashboard</h2>
+
+            <button class="logout" onclick="logout()">Logout</button>
+
+            <h3>Issue Single Sticker</h3>
+            <div class="row">
+                <input id="singleId" placeholder="NQR-IND-TEST-0001">
+                <button onclick="issueSingle()">Issue</button>
+            </div>
+
+            <h3>Issue Bulk Stickers</h3>
+            <div class="row">
+                <input id="prefix" placeholder="NQR-IND-TEST">
+                <input id="from" type="number" placeholder="From">
+                <input id="to" type="number" placeholder="To">
+                <button onclick="issueBulk()">Issue Batch</button>
+            </div>
+
+            <h3>Analytics</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sticker</th>
+                        <th>Total Scans</th>
+                        <th>Emergencies</th>
+                        <th>Last Scan</th>
+                    </tr>
+                </thead>
+                <tbody id="analyticsBody"></tbody>
+            </table>
+
+            <h3>Controls</h3>
+            <label>
+                <input type="checkbox" id="killWhatsapp">
+                Disable WhatsApp Notifications
+            </label><br>
+            <label>
+                <input type="checkbox" id="killEmergency">
+                Disable Emergency Escalation
+            </label>
+        </div>
+
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

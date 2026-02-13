@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activate Your QR Sticker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f1f5f9;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: #fff;
+            padding: 28px 24px;
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin: 0 0 12px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .desc {
+            text-align: center;
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        .field {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #111;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border-radius: 14px;
+            border: 1.6px solid #d1d5db;
+            outline: none;
+            background: #fff;
+        }
+
+            input::placeholder {
+                color: #9ca3af;
+            }
+
+            input:focus, select:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            }
+
+        .phone-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .country {
+            width: 34%;
+        }
+
+        .number {
+            width: 66%;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+            button:active {
+                transform: scale(0.99);
+            }
+
+        .success {
+            margin-top: 22px;
+            padding: 16px;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+            font-size: 15px;
+        }
+
+        .note {
+            text-align: center;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Activate Your QR Sticker</h2>
+
+        <div class="desc">
+            Link your QR sticker to your WhatsApp number so people can contact you if needed.
+        </div>
+
+        <div class="field">
+            <label for="stickerId">Sticker ID</label>
+            <input id="stickerId" placeholder="NQR-IND-XXXX-0001" />
+        </div>
+
+        <div class="field">
+            <label>WhatsApp Number</label>
+            <div class="phone-row">
+                <select id="country" class="country">
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+971">🇦🇪 +971</option>
+                </select>
+
+                <input id="phone"
+                       class="number"
+                       placeholder="Mobile number"
+                       maxlength="15" />
+            </div>
+        </div>
+
+        <button onclick="register()">Activate Sticker</button>
+
+        <div id="success" class="success">
+            ✅ Sticker activated successfully!
+        </div>
+
+        <div class="note">
+            Your phone number is never shared with others
+        </div>
+    </div>
+
+    <script>
+        function register() {
+            const stickerId = document.getElementById("stickerId").value.trim();
+            const country = document.getElementById("country").value;
+            const phone = document.getElementById("phone").value.replace(/\D/g, "");
+
+            if (!stickerId || phone.length < 6) {
+                alert("Please enter valid details");
+                return;
+            }
+
+            fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    stickerId,
+                    phone: country + phone
+                })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        document.getElementById("success").style.display = "block";
+                    } else {
+                        alert(res.message || "Activation failed");
+                    }
+                });
+        }
+    </script>
+
+</body>
+</html>

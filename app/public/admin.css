@@ -1,0 +1,63 @@
+body {
+    font-family: system-ui, -apple-system;
+    background: #f1f5f9;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+input {
+    padding: 10px;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+button {
+    padding: 10px 14px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.logout {
+    float: right;
+    background: #dc2626;
+}
+
+.row {
+    margin-bottom: 14px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 13px;
+}
+
+.error {
+    color: #dc2626;
+    font-size: 13px;
+}
