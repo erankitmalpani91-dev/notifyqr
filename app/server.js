@@ -226,7 +226,8 @@ app.get("/check-reply", (req, res) => {
 /* -------------------- QR GENERATOR -------------------- */
 app.get("/generate-qr/:id", async (req, res) => {
     const stickerId = req.params.id.trim();
-    const url = `http://localhost:${PORT}/scan.html?id=${stickerId}`;
+    const url = `https://reachoutowner.com/app/scan.html?id=${stickerId}`;
+
 
     try {
         const qr = await QRCode.toDataURL(url);

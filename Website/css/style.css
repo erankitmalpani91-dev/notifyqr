@@ -291,3 +291,98 @@ section {
         font-weight: 600;
         opacity: 0.8;
     }
+/* ================= HERO ================= */
+
+.hero {
+    position: relative;
+    height: 85vh;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    color: #fff;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 40%, rgba(46,91,255,0.25), transparent 60%);
+}
+
+.hero-content {
+    position: relative;
+    max-width: 700px;
+}
+
+.hero h1 {
+    font-size: 34px;
+    line-height: 1.2;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+    .hero h1 span {
+        color: #2e5bff;
+    }
+
+.hero p {
+    font-size: 16px;
+    opacity: 0.85;
+    margin-bottom: 28px;
+}
+
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.btn-primary {
+    background: #2e5bff;
+    color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(46,91,255,0.4);
+    }
+
+.btn-outline {
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 500;
+}
+@media (min-width: 768px) {
+
+    .hero {
+        height: 90vh;
+        padding: 0 60px;
+    }
+
+        .hero h1 {
+            font-size: 60px;
+        }
+
+        .hero p {
+            font-size: 20px;
+        }
+
+    .hero-buttons {
+        flex-direction: row;
+        gap: 20px;
+    }
+
+    .btn-primary, .btn-outline {
+        padding: 16px 28px;
+    }
+}
