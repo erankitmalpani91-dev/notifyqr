@@ -11,8 +11,8 @@ const PORT = process.env.PORT || 3000;
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // REQUIRED for Twilio
-app.use("/", express.static("website"));
-app.use("/app", express.static("public"));
+app.use("/", express.static(path.join(__dirname, "../../Website")));
+app.use("/app", express.static(path.join(__dirname)));
 
 
 app.use(
