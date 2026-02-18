@@ -13,15 +13,14 @@
     <!-- NAVBAR -->
     <header class="navbar" id="navbar">
         <div class="brand">
-            <img src="logo.png" alt="ReachOutOwner Logo" class="logo-img">
+            <img src="assets/images/reachoutowner_logo.png" alt="ReachOutOwner Logo" class="logo-img">
             <span class="brand-name">ReachOutOwner</span>
         </div>
 
         <nav class="nav-links">
-            <a href="#usecases">Use Cases</a>
-            <a href="#technology">Technology</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#contact">Contact</a>
+            <a href="#assets-section">Use Cases</a>
+            <a href="#pricing-section">Pricing</a>
+            <a href="#footer">Contact</a>
 
             <div class="login-dropdown">
                 <button class="user-btn">
@@ -43,7 +42,7 @@
 
 
     <!-- HERO -->
-    <section class="hero">
+    <section id="hero" class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <h1>
@@ -57,21 +56,18 @@
             </p>
 
             <div class="hero-buttons">
-                <a href="#pricing" class="btn-primary">Activate Your Secure QR</a>
-                <a href="#usecases" class="btn-outline">See How It Works</a>
+                <a href="#pricing-section" class="btn-primary">View Plans</a>
+                <a href="#how-section" class="btn-outline">See How It Works</a>
             </div>
 
         </div>
     </section>
 
 
-    <!-- PROBLEM -->
-    <section class="reach-section">
+    <!-- When Someone Reaches You -->
+    <section id="reach-section" class="reach-section">
         <h2>When Someone Needs to <span>Reach You</span>…</h2>
-
-
         <div class="reach-grid">
-
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">🚗</div>
@@ -156,7 +152,7 @@
         </div>
     </section>
 
-    <!----Alert----->
+    <!----Alert Message----->
     <section class="qr-notice">
         <div class="notice-wrapper">
             <div class="notice-icon">
@@ -187,8 +183,8 @@
 
 
 
-    <!-- USE CASES -->
-    <section class="assets-section">
+    <!-- Built for real world assets -->
+    <section id="assets-section" class="assets-section">
 
         <div class="assets-wrapper">
 
@@ -249,190 +245,296 @@
 
 
 
-    <!-- TECHNOLOGY -->
-    <section class="how-section">
-        <h2>How ReachOutOwner Works</h2>
-        <p class="how-sub">Simple. Private. Instant.</p>
+    <!-- How reach out owner works -->
+    <section id="how-section" class="how-section">
+        <div class="container">
+            <h2>How ReachOutOwner Works</h2>
 
-        <div class="how-steps">
+            <div class="how-steps">
 
-            <div class="how-step">
-                <div class="step-circle">1</div>
-                <h4>Someone Scans Your QR</h4>
-                <p>Your QR is scanned from vehicle, building or asset.</p>
-            </div>
+                <div class="how-step">
+                    <div class="step-circle">1</div>
+                    <h4>Scan QR</h4>
+                    <p>Someone scans your QR on vehicle or asset.</p>
+                </div>
 
-            <div class="how-step">
-                <div class="step-circle">2</div>
-                <h4>You Get Instant Alerts</h4>
-                <p>You receive a WhatsApp message and a missed call alert.</p>
-            </div>
+                <div class="how-step">
+                    <div class="step-circle">2</div>
+                    <h4>Instant Alert</h4>
+                    <p>You receive WhatsApp and missed call alert.</p>
+                </div>
 
-            <div class="how-step">
-                <div class="step-circle">3</div>
-                <h4>Reply Securely</h4>
-                <p>Respond instantly without revealing your phone number.</p>
-            </div>
+                <div class="how-step">
+                    <div class="step-circle">3</div>
+                    <h4>Reply Securely</h4>
+                    <p>Respond without exposing your number.</p>
+                </div>
 
-        </div>
-    </section>
-
-
-    <!-- SOCIAL PROOF -->
-    <section class="stats">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <h1>3,200+</h1>
-                <p>QR Tags Deployed</p>
-            </div>
-            <div class="stat-box">
-                <h1>1,140+</h1>
-                <p>Successful Returns</p>
-            </div>
-            <div class="stat-box">
-                <h1>0</h1>
-                <p>Numbers Exposed</p>
-            </div>
-            <div class="stat-box">
-                <h1>24/7</h1>
-                <p>Live Routing</p>
             </div>
         </div>
     </section>
+
+
 
 
     <!-- PRICING -->
-    <section class="pricing" id="pricing">
-        <h2>Simple Plans. No Drama.</h2>
+    <section id="pricing-section" class="pricing-section">
+        <div class="pricing-container">
+            <h2>Simple Plans. No Drama.</h2>
+            <p>Choose the plan that fits your assets. Physical QR shipped to your address, digital QR activated instantly.</p>
 
-        <div class="pricing-grid">
+            <div class="pricing-cards">
 
-            <div class="price-card">
-                <h3>Starter</h3>
-                <h1>₹199</h1>
-                <p>One-time QR</p>
-                <ul>
-                    <li>WhatsApp Alerts</li>
-                    <li>Secure Activation</li>
-                    <li>Pan India Shipping</li>
-                </ul>
-                <button>Buy Now</button>
+                <!-- Essential Plan -->
+                <div class="pricing-card">
+                    <h3>Essential</h3>
+                    <p class="price">₹299 <span>/year</span></p>
+                    <ul>
+                        <li>1 QR (Standard sticker)</li>
+                        <li>WhatsApp + Missed Call Alerts</li>
+                        <li>Dashboard Access</li>
+                        <li>Renewal ₹199/year</li>
+                    </ul>
+                    <div class="addons-note">
+                        <span>Metallic Upgrade +₹249</span>
+                    </div>
+                    <button class="pricing-btn">Activate Now</button>
+                </div>
+
+                <!-- Plus Plan -->
+                <div class="pricing-card popular">
+                    <h3>Plus</h3>
+                    <p class="price">₹499 <span>/year</span></p>
+                    <ul>
+                        <li>Up to 3 QR</li>
+                        <li>WhatsApp + Missed Call Alerts</li>
+                        <li>Multiple Phone Numbers (max 3)</li>
+                        <li>Asset Grouping & Custom Labels</li>
+                        <li>Dashboard Access</li>
+                        <li>Renewal ₹249/year</li>
+                    </ul>
+                    <div class="addons-note">
+                        <span>Extra QR +₹99</span>
+                        <span>Extra Phone +₹49</span>
+                        <span>Metallic Upgrade +₹249</span>
+                    </div>
+                    <button class="pricing-btn">Upgrade Protection</button>
+                </div>
+
+                <!-- Bulk Purchase -->
+                <div class="pricing-card">
+                    <h3>Bulk Purchase</h3>
+                    <p class="price">Custom</p>
+                    <ul>
+                        <li>For fleets, institutions, or bulk orders</li>
+                        <li>Custom pricing</li>
+                        <li>Dedicated support for dispatch & setup</li>
+                    </ul>
+
+                    <button class="pricing-btn" onclick="openSalesModal()">Contact Sales</button>
+                </div>
+
             </div>
-
-            <div class="price-card highlight">
-                <h3>Secure+</h3>
-                <h1>₹299 / year</h1>
-                <p>Advanced Privacy</p>
-                <ul>
-                    <li>Call Masking</li>
-                    <li>Scan History</li>
-                    <li>Priority Routing</li>
-                </ul>
-                <button>Upgrade</button>
-            </div>
-
-            <div class="price-card">
-                <h3>Enterprise</h3>
-                <h1>Custom</h1>
-                <p>Bulk Asset Management</p>
-                <ul>
-                    <li>Dashboard Access</li>
-                    <li>API Integration</li>
-                    <li>Dedicated Support</li>
-                </ul>
-                <button>Contact Sales</button>
-            </div>
-
         </div>
     </section>
+
 
     <!-- TESTIMONIALS -->
-    <section class="testimonials">
-        <h2>Trusted by Owners Across India</h2>
+    <section class="testimonials-section">
+        <div class="testimonials-container">
 
-        <div class="testimonial-grid">
-            <div class="testimonial-card">
-                <p>
-                    "My car was blocking someone at 11PM.
-                    They scanned and I got WhatsApp instantly. No public number needed."
-                </p>
-                <span>— Rohan S, Mumbai</span>
+            <!-- LEFT SIDE -->
+            <div class="testimonials-left">
+                <h2>Trusted by Owners Across India</h2>
+                <p>Real stories from people who stayed reachable without exposing their personal number.</p>
             </div>
 
-            <div class="testimonial-card">
-                <p>
-                    "We deployed 120 QR tags across our rental properties.
-                    Works clean. Tenants love it."
-                </p>
-                <span>— Property Manager, Bangalore</span>
+            <!-- RIGHT SIDE -->
+            <div class="testimonials-right">
+                <div class="testimonial-track">
+
+                    <div class="testimonial-card">
+                        <h4>Surya Prakash, Jaipur</h4>
+                        <p>"My car caught fire in a crowded market area. Police were able to contact me immediately through the Safety QR on my vehicle, preventing further damage and ensuring my safety."</p>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <h4>Pooja, Delhi</h4>
+                        <p>"I got my expensive bag back after losing it in a café. The person who found it scanned the Bag Safety QR, and I received a photo and call within minutes—true peace of mind!"</p>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <h4>Rajat, Gujarat</h4>
+                        <p>"Feels safe knowing I stay reachable without sharing my number. Nek Insaan truly gives confidence to every owner."</p>
+                    </div>
+
+                </div>
+
+                <!-- Arrows aligned to right side -->
+                <div class="testimonial-arrows">
+                    <button id="prevBtn">←</button>
+                    <button id="nextBtn">→</button>
+                </div>
             </div>
 
-            <div class="testimonial-card">
-                <p>
-                    "Feels like digital infrastructure, not just a sticker."
-                </p>
-                <span>— Logistics Fleet Owner</span>
+        </div>
+    </section>
+
+
+    <!-- CTA SECTION -->
+    <section id="cta" class="section-cta">
+        <div class="container">
+            <div class="cta-flex">
+
+                <div class="cta-text">
+                    <h2>Ready to Secure Your Assets?</h2>
+                    <p>
+                        Deploy your QR protection today. Instant activation.
+                        Physical sticker delivered to your doorstep.
+                    </p>
+                </div>
+
+                <div class="cta-actions">
+                    <a href="#pricing-section" class="btn btn-outline">View Plans</a>
+                    <button class="btn btn-outline" onclick="openSalesModal()">Contact Sales</button>
+
+                </div>
+
             </div>
         </div>
     </section>
 
 
-    <!-- CTA BLOCK -->
-    <section class="cta">
-        <h2>Ready to Secure Your Assets?</h2>
-        <p>Deploy your privacy QR today.</p>
-        <a href="#pricing" class="btn-primary">Get Started</a>
-    </section>
+
+
+
+
+
 
     <!-- FOOTER -->
-    <footer class="footer" id="contact">
-        <p>© 2026 ReachOutOwner | Privacy Contact Infrastructure</p>
+    <footer id="footer" class="footer">
+        <div class="container footer-grid">
+
+            <!-- Brand Column -->
+            <div class="footer-col">
+                <h3>ReachOutOwner</h3>
+                <p>
+                    QR-based safety infrastructure for vehicles, homes,
+                    and real-world assets. Stay reachable. Stay private.
+                </p>
+            </div>
+
+            <!-- Product Column -->
+            <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#how-section">How It Works</a></li>
+                    <li><a href="#pricing-section">Pricing</a></li>
+                    <li><a href="#">Bulk Orders</a></li>
+
+                </ul>
+            </div>
+
+            <!-- Support Column -->
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li>Email: support@reachoutowner.com</li>
+                    <li>Customer Care: +91 9166605152</li>
+
+                </ul>
+            </div>
+
+            <!-- Legal Column -->
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="terms.html">Terms & Conditions</a></li>
+                    <li><a href="refund.html">Refund Policy</a></li>
+                    <li><a href="shipping.html">Shipping Policy</a></li>
+                    <li><a href="data-deletion.html">Data Deletion Policy</a></li>
+                    <li><a href="cookies.html">Cookie Policy</a></li>
+                </ul>
+            </div>
+
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>
+                © 2026 ReachOutOwner. All Rights Reserved.
+            </p>
+        </div>
     </footer>
 
-    <script>
-        window.addEventListener("scroll", function () {
-            const navbar = document.querySelector(".navbar");
-            navbar.classList.toggle("scrolled", window.scrollY > 40);
-        });
-    </script>
+    <!-- CONTACT SALES MODAL -->
+    <div id="salesModal" class="sales-modal">
+        <div class="sales-container">
 
-    <script>
-        const cards = document.querySelectorAll(".reach-card");
+            <!-- Header -->
+            <div class="sales-top">
+                <h2>Bulk & Enterprise Enquiry</h2>
+                <span class="close-btn" onclick="closeSalesModal()">×</span>
+            </div>
 
-        cards.forEach(card => {
-            card.addEventListener("click", function () {
+            <!-- Form -->
+            <form id="salesForm" class="sales-form">
 
-                if (this.classList.contains("active")) {
-                    this.classList.remove("active");
-                    return;
-                }
+                <input type="text"
+                       id="contactName"
+                       placeholder="Your Name *"
+                       required>
 
-                cards.forEach(c => c.classList.remove("active"));
-                this.classList.add("active");
+                <input type="tel"
+                       id="contactPhone"
+                       placeholder="Mobile Number *"
+                       pattern="[0-9]{10}"
+                       maxlength="10"
+                       required>
 
-            });
-        });
-    </script>
+                <input type="email"
+                       id="contactEmail"
+                       placeholder="Email Address *"
+                       required>
+
+                <input type="text"
+                       id="companyName"
+                       placeholder="Company Name (Optional)">
+
+                <textarea id="contactMessage"
+                          placeholder="Your Message *"
+                          required></textarea>
+
+                <!-- Buttons -->
+                <div class="sales-buttons">
+                    <button type="submit" class="btn-submit">
+                        Submit
+                    </button>
 
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+                    <button type="button"
+                            class="btn-whatsapp"
+                            onclick="connectWhatsApp()">
 
-            const howSection = document.querySelector(".how-section");
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                             alt="WhatsApp"
+                             class="wa-icon">
 
-            window.addEventListener("scroll", () => {
-                const rect = howSection.getBoundingClientRect();
-
-                if (rect.top < window.innerHeight - 100) {
-                    howSection.classList.add("active");
-                }
-            });
-
-        });
-
-    </script>
+                        Connect on WhatsApp
+                    </button>
 
 
 
+
+
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
