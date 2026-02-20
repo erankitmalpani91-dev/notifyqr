@@ -213,6 +213,16 @@ async function connectWhatsApp() {
     }
 }
 
+/*toggle Menu*/
+
+function toggleMenu() {
+    document.getElementById("mobileMenu").classList.toggle("active");
+        document.querySelectorAll("#mobileMenu a").forEach(link => {
+            link.addEventListener("click", () => {
+                document.getElementById("mobileMenu").classList.remove("active");
+            });
+        });
+}
 
 
 

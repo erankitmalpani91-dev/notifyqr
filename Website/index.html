@@ -10,6 +10,24 @@
 
 <body>
 
+    <header class="mobile-header">
+        <div onclick="toggleMenu()">☰</div>
+        <div class="brand-center">
+            <img src="assets/images/reachoutowner_logo.png" height="36">
+            <span>ReachOutOwner</span>
+        </div>
+        <div class="user-icon">👤</div>
+    </header>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#how-section">How It Works</a>
+        <a href="#pricing-section">Pricing</a>
+        <a href="#assets-section">Use Cases</a>
+        <a href="#" onclick="openSalesModal()">Contact Sales</a>
+    </div>
+
+
+
     <!-- NAVBAR -->
     <header class="navbar" id="navbar">
         <div class="brand">
@@ -41,23 +59,24 @@
 
 
 
+
+
     <!-- HERO -->
     <section id="hero" class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <h1>
-                Protect What Matters<br>
+                Scan QR. Reach Owner Instantly. <br>
                 <span>Stay Reachable.Stay Private.</span>
             </h1>
 
             <p>
-                Instant QR-based connection for vehicles, families and assets —
-                without exposing your personal number.
+                QR based connection for vehicles, families, and assets — without exposing your personal number.
             </p>
 
             <div class="hero-buttons">
                 <a href="#pricing-section" class="btn-primary">View Plans</a>
-                <a href="#how-section" class="btn-outline">See How It Works</a>
+                <a href="#how-section" class="btn-outline">How It Works</a>
             </div>
 
         </div>
@@ -155,11 +174,10 @@
     <!----Alert Message----->
     <section class="qr-notice">
         <div class="notice-wrapper">
-            <div class="notice-icon">
-                🛡️
-            </div>
+            <div class="notice-icon">🛡️</div>
 
-            <div class="notice-text">
+            <!-- Desktop Text -->
+            <div class="notice-text  desktop-text">
                 <h3>
                     This QR is built exclusively for <span>safety communication</span>.
                 </h3>
@@ -168,7 +186,7 @@
                 </p>
             </div>
 
-            <div class="notice-text hindi">
+            <div class="notice-text hindi desktop-text">
                 <h3>
                     यह QR केवल <span>सुरक्षा संचार</span> के लिए बनाया गया है —
                 </h3>
@@ -177,6 +195,17 @@
 
                 </p>
             </div>
+
+            <!-- Mobile Text (Hinglish) -->
+            <div class="notice-text mobile-text">
+                <h3>
+                    Yeh QR sirf <span>safety</span> ke liye hai.
+                </h3>
+                <p>
+                    Payment ke liye nahi.
+                </p>
+            </div>
+        </div>
         </div>
     </section>
 
@@ -405,6 +434,13 @@
     </section>
 
 
+    <div class="mobile-bottom-bar">
+        <div>📦</div>
+        <div>📞</div>
+        <div class="scan-btn">🔍</div>
+        <div>🛟</div>
+        <div>⚙️</div>
+    </div>
 
 
 
