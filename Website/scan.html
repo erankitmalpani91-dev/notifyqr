@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan QR Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="scanner-body">
+
+    <div class="scanner-header">
+        <button class="close-btn" onclick="closeScanner()">✕</button>
+        <h2>Scan QR Code</h2>
+        <button onclick="toggleFlash()" id="flashBtn" class="flash-btn">⚡</button>
+    </div>
+
+    <div class="scanner-container">
+        <video id="preview"></video>
+        <div class="scan-box"></div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="js/scan.js"></script>
+
+</body>
+</html>
