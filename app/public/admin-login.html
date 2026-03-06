@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login | ReachOutOwner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/app/admin.css">
+</head>
+<body class="login-body">
+
+    <div class="login-card fade-in">
+
+        <img src="/assets/images/reachoutowner_logo.png" class="brand-logo logo-animate">
+
+        <h1>ReachOutOwner</h1>
+        <p>Admin Control Panel</p>
+
+        <input id="username" placeholder="Username">
+        <input id="password" type="password" placeholder="Password">
+
+        <div class="login-options">
+            <label for="rememberMe">
+                <input type="checkbox" id="rememberMe" />
+                Remember me
+            </label>
+            <a href="#" onclick="forgotPassword()">Forgot password?</a>
+        </div>
+
+        <button onclick="login()">Login</button>
+
+        <p id="loginError"></p>
+
+    </div>
+
+    <script>
+        function login() {
+            fetch("/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: username.value,
+                    password: password.value,
+                    remember: rememberMe.checked
+                })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) {
+                        loginError.innerText = "Invalid credentials";
+                        return;
+                    }
+
+                    window.location = "/admin/dashboard";
+                })
+                .catch(() => {
+                    loginError.innerText = "Server error";
+                });
+        }
+
+        function forgotPassword() {
+            alert("Password reset flow will be implemented soon.");
+        }
+    </script>
+
+</body>
+</html>

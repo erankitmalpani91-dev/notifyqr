@@ -17,8 +17,10 @@ function startScanner() {
             html5QrCode.start(
                 cameraId,
                 {
-                    fps: 10,
-                    qrbox: 250
+                    fps: 15,
+                    qrbox: { width: 220, height: 220 },
+                    aspectRatio: 1.0,
+                    disableFlip: false
                 },
                 qrCodeMessage => {
 

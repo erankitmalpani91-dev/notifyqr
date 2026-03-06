@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard | ReachOutOwner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/app/admin.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="/assets/images/reachoutowner_logo.png" class="sidebar-logo">
+                <h2>ReachOutOwner</h2>
+                <small>Admin Panel</small>
+            </div>
+
+            <nav>
+                <button onclick="showTab('overview')" class="nav-btn active">Overview</button>
+                <button onclick="showTab('inventory')" class="nav-btn">QR Inventory</button>
+                <button onclick="showTab('owners')" class="nav-btn">Owners</button>
+                <button onclick="showTab('revenue')" class="nav-btn">Revenue</button>
+                <button onclick="showTab('settings')" class="nav-btn">Settings</button>
+            </nav>
+
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="dashboard-main">
+
+            <!-- OVERVIEW -->
+            <section id="overview" class="tab-section">
+                <h1>Overview</h1>
+                <div class="kpi-grid">
+                    <div class="kpi-card"><h4>Total QRs</h4><p>0</p></div>
+                    <div class="kpi-card"><h4>Active</h4><p>0</p></div>
+                    <div class="kpi-card"><h4>Expired</h4><p>0</p></div>
+                    <div class="kpi-card"><h4>Scans Today</h4><p>0</p></div>
+                    <div class="kpi-card"><h4>Revenue</h4><p>₹0</p></div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <canvas id="scanChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <canvas id="subscriptionChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Live Scan Feed</h3>
+                    <ul id="scanFeed"></ul>
+                </div>
+            </section>
+
+            <!-- INVENTORY -->
+            <section id="inventory" class="tab-section hidden">
+                <h1>QR Inventory</h1>
+                <div class="card">
+
+                    <h3>Generate QR Batch</h3>
+
+                    <input id="qrPrefix" placeholder="Prefix e.g CAR">
+                    <input id="qrCount" type="number" min="1" placeholder="How many QRs">
+
+                    <button onclick="generateQR()">Generate</button>
+
+                </div>
+
+                <div class="card">
+                    <input placeholder="Search QR ID">
+                    <button>Search</button>
+                </div>
+                <div class="card">
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>QR ID</th>
+                                    <th>Status</th>
+                                    <th>Owner</th>
+                                    <th>Last Scan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="qrTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button onclick="prevPage()">Prev</button>
+                        <span id="pageNumber">1</span>
+                        <button onclick="nextPage()">Next</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OWNERS -->
+            <section id="owners" class="tab-section hidden">
+                <h1>Owners</h1>
+
+                <div class="card">
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <input placeholder="Search owner email">
+                        <select>
+                            <option>All Clients</option>
+                            <option>Corporate A</option>
+                            <option>Corporate B</option>
+                        </select>
+                        <button>Search</button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:20px;">
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Total QRs</th>
+                                    <th>Active</th>
+                                    <th>Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>demo@owner.com</td>
+                                    <td>3</td>
+                                    <td>3</td>
+                                    <td>Premium</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+            </section>
+
+
+            <!-- REVENUE -->
+            <section id="revenue" class="tab-section hidden">
+                <h1>Revenue</h1>
+                <div class="card">Revenue insights coming soon</div>
+            </section>
+
+            <!-- SETTINGS -->
+            <section id="settings" class="tab-section hidden">
+                <h1>Settings</h1>
+                <div class="card">Platform settings</div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/app/admin.js"></script>
+
+</body>
+</html>

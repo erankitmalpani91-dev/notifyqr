@@ -50,8 +50,8 @@
                 </button>
 
                 <div class="dropdown-menu">
-                    <a href="/app/owner.html">Owner Login</a>
-                    <a href="/app/admin.html">Admin Login</a>
+                    <a href="/owner/login">Owner Login</a>
+                    <a href="/admin/login">Admin Login</a>
                 </div>
             </div>
         </nav>
@@ -309,8 +309,8 @@
     <!-- PRICING -->
     <section id="pricing-section" class="pricing-section">
         <div class="pricing-container">
-            <h2>Simple Plans. Instant Protection.</h2>
-            <p>Select a plan based on your needs. Physical QR stickers delivered to your address. Digital protection activated immediately.</p>
+            <h2>Simple Plans. Real Protection.</h2>
+            <p>Choose how many assets you want to protect. Every plan includes full access to alerts and dashboard controls.</p>
 
             <div class="pricing-cards">
 
@@ -319,15 +319,17 @@
                     <h3>Essential</h3>
                     <p class="price">₹299 <span>/year</span></p>
                     <ul>
-                        <li>1 QR (Standard sticker)</li>
+                        <li>1 QR Slot</li>
                         <li>WhatsApp + Missed Call Alerts</li>
-                        <li>Dashboard Access</li>
+                        <li>Primary & Secondary Phone Support</li>
+                        <li>Scan Tracking Dashboard</li>
                         <li>Renewal ₹199/year</li>
                     </ul>
                     <div class="addons-note">
+                        <span>Extra QR Slot +₹99</span>
                         <span>Metallic Upgrade +₹249</span>
                     </div>
-                    <button class="pricing-btn">Activate Now</button>
+                    <button class="pricing-btn" onclick="buyPlan('299')">Activate Protection</button>
                 </div>
 
                 <!-- Plus Plan -->
@@ -335,31 +337,29 @@
                     <h3>Plus</h3>
                     <p class="price">₹499 <span>/year</span></p>
                     <ul>
-                        <li>Up to 3 QR</li>
+                        <li>3 QR Slots Included</li>
                         <li>WhatsApp + Missed Call Alerts</li>
-                        <li>Multiple Phone Numbers (max 3)</li>
-                        <li>Asset Grouping & Custom Labels</li>
-                        <li>Dashboard Access</li>
+                        <li>Primary & Secondary Phone Support</li>
+                        <li>Scan Tracking Dashboard</li>
                         <li>Renewal ₹249/year</li>
                     </ul>
                     <div class="addons-note">
-                        <span>Extra QR +₹99</span>
-                        <span>Extra Phone +₹49</span>
+                        <span>Extra QR Slot +₹99</span>
                         <span>Metallic Upgrade +₹249</span>
                     </div>
-                    <button class="pricing-btn">Upgrade Protection</button>
+                    <button class="pricing-btn" onclick="buyPlan('499')">Upgrade Protection</button>
                 </div>
 
                 <!-- Bulk Purchase -->
                 <div class="pricing-card">
-                    <h3>Bulk Purchase</h3>
+                    <h3>Bulk</h3>
                     <p class="price">Custom</p>
                     <ul>
-                        <li>For fleets, institutions, or bulk orders</li>
-                        <li>Custom pricing</li>
-                        <li>Dedicated support for dispatch & setup</li>
+                        <li>10+ QR Slots</li>
+                        <li>Fleet & Institutional Use</li>
+                        <li>Centralized Management</li>
+                        <li>Dedicated Support</li>
                     </ul>
-
                     <button class="pricing-btn" onclick="openSalesModal()">Contact Sales</button>
                 </div>
 
@@ -435,7 +435,7 @@
 
 
     <!-- Scan QR Scanner -->
-    
+
 
     <div class="mobile-bottom-bar">
         <div class="bottom-item center-scan">

@@ -1,31 +1,38 @@
-const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
-const twilio = require("twilio");
-const QRCode = require("qrcode");
-const session = require("express-session");
-const path = require("path");
 require("dotenv").config();
-const contactRoutes = require("./routes/contact.routes");
+
+const express = require("express");
+const path = require("path");
+const session = require("express-session");
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // REQUIRED for Twilio
-app.use("/api", contactRoutes);
-app.use("/", express.static(path.join(__dirname, "../Website")));
-app.use("/app", express.static(path.join(__dirname, "public")));
-
-
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
     session({
-        secret: "notifyqr-admin-secret",
+        secret: "notifyqr-secret",
         resave: false,
         saveUninitialized: false
     })
 );
 
+/* -------------------- ROUTES -------------------- */
+app.use("/admin", require("./routes/admin.routes"));
+app.use("/auth", require("./routes/auth.routes"));
+app.use("/order", require("./routes/order.routes"));
+app.use("/payment", require("./routes/payment.routes"));
+app.use("/renewal", require("./routes/renewal.routes"));
+app.use("/subscription", require("./routes/subscription.routes"));
+app.use("/secure", require("./routes/qr.secure.routes"));
+app.use("/", require("./routes/qr.routes"));
+
+/* -------------------- STATIC FILES -------------------- */
+app.use("/app", express.static(path.join(__dirname, "public")));
+app.use("/", express.static(path.join(__dirname, "../Website")));
 
 /* -------------------- START SERVER -------------------- */
 app.listen(PORT, () => {
