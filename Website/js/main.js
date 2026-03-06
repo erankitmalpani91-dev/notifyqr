@@ -224,6 +224,63 @@ function toggleMenu() {
         });
 }
 
+/* =========================
+   PLAN PURCHASE (RAZORPAY)
+========================= */
+
+async function buyPlan(planAmount) {
+
+    try {
+
+        const response = await fetch("/order/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                amount: planAmount
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.order_id) {
+            alert("Unable to start payment.");
+            return;
+        }
+
+        const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: "INR",
+            name: "ReachOutOwner",
+            description: "QR Safety Protection Plan",
+            order_id: data.order_id,
+
+            handler: function (response) {
+
+                // Redirect after successful payment
+                window.location.href =
+                    "/payment/success?payment_id=" +
+                    response.razorpay_payment_id;
+
+            },
+
+            theme: {
+                color: "#111"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+    } catch (error) {
+
+        console.error("Checkout error:", error);
+        alert("Payment system error. Please try again.");
+
+    }
+}
 
 
 

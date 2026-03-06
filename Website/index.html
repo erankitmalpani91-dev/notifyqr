@@ -9,7 +9,7 @@
 </head>
 
 <body>
-
+    <!-- Mobile Menu -->
     <header class="mobile-header">
         <div onclick="toggleMenu()">☰</div>
         <div class="brand-center">
@@ -23,6 +23,7 @@
         <a href="#how-section">How It Works</a>
         <a href="#pricing-section">Pricing</a>
         <a href="#assets-section">Use Cases</a>
+        <a href="/owner/login">Owner Login</a>
         <a href="#" onclick="openSalesModal()">Contact Sales</a>
     </div>
 
@@ -51,7 +52,7 @@
 
                 <div class="dropdown-menu">
                     <a href="/owner/login">Owner Login</a>
-                    <a href="/admin/login">Admin Login</a>
+
                 </div>
             </div>
         </nav>
@@ -319,15 +320,15 @@
                     <h3>Essential</h3>
                     <p class="price">₹299 <span>/year</span></p>
                     <ul>
-                        <li>1 QR Slot</li>
+                        <li>1 QR Sticker</li>
                         <li>WhatsApp + Missed Call Alerts</li>
-                        <li>Primary & Secondary Phone Support</li>
-                        <li>Scan Tracking Dashboard</li>
+                        <li>Add 2 Phone Numbers (Primary + Secondary)</li>
+                        <li>User Dashboard</li>
                         <li>Renewal ₹199/year</li>
                     </ul>
                     <div class="addons-note">
-                        <span>Extra QR Slot +₹99</span>
-                        <span>Metallic Upgrade +₹249</span>
+                        <span>Extra QR Sticker +₹99</span>
+                        <span>Metallic QR Sticker +₹249</span>
                     </div>
                     <button class="pricing-btn" onclick="buyPlan('299')">Activate Protection</button>
                 </div>
@@ -337,15 +338,15 @@
                     <h3>Plus</h3>
                     <p class="price">₹499 <span>/year</span></p>
                     <ul>
-                        <li>3 QR Slots Included</li>
+                        <li>3 QR Sticker</li>
                         <li>WhatsApp + Missed Call Alerts</li>
-                        <li>Primary & Secondary Phone Support</li>
-                        <li>Scan Tracking Dashboard</li>
+                        <li>Add 2 Phone Numbers (Primary + Secondary)</li>
+                        <li>User Dashboard</li>
                         <li>Renewal ₹249/year</li>
                     </ul>
                     <div class="addons-note">
-                        <span>Extra QR Slot +₹99</span>
-                        <span>Metallic Upgrade +₹249</span>
+                        <span>Extra QR Sticker +₹99</span>
+                        <span>Metallic QR Sticker +₹249</span>
                     </div>
                     <button class="pricing-btn" onclick="buyPlan('499')">Upgrade Protection</button>
                 </div>
@@ -583,6 +584,8 @@
         </div>
     </div>
 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="js/main.js"></script>
+
 </body>
 </html>
