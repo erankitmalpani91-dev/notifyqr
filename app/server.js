@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const session = require("express-session");
+const paymentRoutes = require("./routes/payment.routes");
 
 
 const app = express();
@@ -29,10 +30,13 @@ app.use("/renewal", require("./routes/renewal.routes"));
 app.use("/subscription", require("./routes/subscription.routes"));
 app.use("/secure", require("./routes/qr.secure.routes"));
 app.use("/", require("./routes/qr.routes"));
+app.use("/payment", paymentRoutes);
 
 /* -------------------- STATIC FILES -------------------- */
 app.use("/app", express.static(path.join(__dirname, "public")));
 app.use("/", express.static(path.join(__dirname, "../Website")));
+app.use("/qrcodes", express.static(path.join(__dirname, "../storage/qrcodes")));
+
 
 /* -------------------- START SERVER -------------------- */
 app.listen(PORT, () => {

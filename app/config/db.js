@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS qr_codes (
 db.run(`
 CREATE TABLE IF NOT EXISTS orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
+  user_id INTEGER,
   plan_type TEXT NOT NULL,
   amount INTEGER NOT NULL,
   payment_status TEXT DEFAULT 'pending', -- pending, paid, failed

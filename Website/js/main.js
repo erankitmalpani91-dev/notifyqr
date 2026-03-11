@@ -271,6 +271,16 @@ async function buyPlan(planAmount) {
             }
         };
 
+        if (phone.length !== 10) {
+            alert("Enter valid mobile number");
+            return;
+        }
+
+        if (pincode.length !== 6) {
+            alert("Enter valid pincode");
+            return;
+        }
+
         const rzp = new Razorpay(options);
         rzp.open();
 

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Checkout | ReachOutOwner</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+
+        .checkout-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+            .checkout-container h2 {
+                margin-bottom: 20px;
+            }
+
+        .checkout-form input,
+        .checkout-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1f3cff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .plan-summary {
+            background: #f5f6fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .checkout-container {
+            max-width: 700px;
+            width: 92%;
+            margin: 40px auto;
+            padding: 24px;
+        }
+
+        @media (max-width:768px) {
+
+            .checkout-container {
+                padding: 18px;
+                margin: 20px auto;
+            }
+
+            .checkout-form input,
+            .checkout-form textarea {
+                font-size: 16px;
+                padding: 14px;
+            }
+
+            .checkout-btn {
+                font-size: 18px;
+                padding: 16px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="checkout-container">
+
+        <h2>Complete Your Protection</h2>
+
+        <div class="plan-summary">
+            <p><strong>Selected Plan:</strong> <span id="planName"></span></p>
+            <p><strong>Amount:</strong> ₹<span id="planPrice"></span></p>
+        </div>
+
+        <form id="checkoutForm" class="checkout-form">
+
+            <input type="text" id="name" placeholder="Full Name" required minlength="3">
+
+            <input type="text"
+                   id="phone"
+                   placeholder="Mobile Number"
+                   required
+                   pattern="[1-9][0-9]{9}"
+                   maxlength="10">
+
+            <input type="email" id="email" placeholder="Email Address" required>
+
+            <textarea id="address" placeholder="Shipping Address" required></textarea>
+
+            <input type="text" id="city" placeholder="City" required>
+
+            <input type="text" id="state" placeholder="State" required>
+
+            <input type="text" id="pincode" placeholder="Pincode" required pattern="[0-9]{6}">
+
+            <button type="submit" class="checkout-btn">
+                Proceed to Payment
+            </button>
+
+        </form>
+
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+    <script>
+        const phoneInput = document.getElementById("phone");
+        const pincodeInput = document.getElementById("pincode");
+        const emailInput = document.getElementById("email");
+
+        phoneInput.addEventListener("input", function () {
+            // Remove anything that's not a digit
+            this.value = this.value.replace(/\D/g, '');
+
+            // Prevent starting with 0
+            if (this.value.startsWith("0")) {
+                this.value = this.value.slice(1);
+            }
+
+            // Limit to 10 digits
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+        });
+
+        phoneInput.addEventListener("blur", function () {
+            if (!/^[1-9][0-9]{9}$/.test(this.value)) {
+                this.setCustomValidity("Enter a valid 10-digit mobile number (cannot start with 0)");
+                this.reportValidity();
+            } else {
+                this.setCustomValidity("");
+            }
+        });
+
+        pincodeInput.addEventListener("blur", function () {
+            if (!/^[0-9]{6}$/.test(this.value)) {
+                this.setCustomValidity("Enter a valid 6 digit pincode");
+                this.reportValidity();
+            } else {
+                this.setCustomValidity("");
+            }
+        });
+
+        emailInput.addEventListener("blur", function () {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailPattern.test(this.value)) {
+                this.setCustomValidity("Enter a valid email address");
+                this.reportValidity();
+            } else {
+                this.setCustomValidity("");
+            }
+        });
+const params = new URLSearchParams(window.location.search);
+const plan = params.get("plan");
+
+let price = 0;
+let planName = "";
+
+if(plan === "299"){
+price = 299;
+planName = "Essential Plan";
+}
+
+if(plan === "499"){
+price = 499;
+planName = "Plus Plan";
+}
+
+document.getElementById("planName").innerText = planName;
+document.getElementById("planPrice").innerText = price;
+
+
+document.getElementById("checkoutForm").addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+const name = document.getElementById("name").value;
+const phone = document.getElementById("phone").value;
+const email = document.getElementById("email").value;
+const address = document.getElementById("address").value;
+const city = document.getElementById("city").value;
+const state = document.getElementById("state").value;
+const pincode = document.getElementById("pincode").value;
+
+const response = await fetch("/order/create-order",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+planType:plan,
+name:name,
+phone:phone,
+email:email
+})
+});
+
+    const data = await response.json();
+    console.log("ORDER RESPONSE:", data);
+
+    if (!data.orderId) {
+        alert("Order creation failed");
+        return;
+    }
+
+const options = {
+
+key:data.key,
+amount:data.amount,
+currency:"INR",
+name:"ReachOutOwner",
+description:"QR Protection Plan",
+order_id:data.orderId,
+
+    handler: async function (response) {
+
+        try {
+
+            const verify = await fetch("/order/verify-payment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    phone: phone,
+                    email: email,
+                    name: name
+                })
+            });
+
+            const result = await verify.json();
+
+            if (result.success) {
+
+                window.location.href = "/payment-success.html";
+
+            } else {
+
+                alert("Payment verification failed");
+
+            }
+
+        } catch (err) {
+
+            console.error("Verification error:", err);
+
+            alert("Server error during payment verification");
+
+        }
+
+    }
+
+};
+
+const rzp = new Razorpay(options);
+rzp.open();
+
+});
+
+    </script>
+
+</body>
+</html>
