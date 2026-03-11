@@ -1,4 +1,5 @@
 node_modules/
 .env
 .vs/
-db.sqlite
+database/reachoutowner.sqlite
+storage/
