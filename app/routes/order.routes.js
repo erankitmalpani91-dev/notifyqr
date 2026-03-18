@@ -78,9 +78,7 @@ router.post("/create-order", async (req, res) => {
 
 router.post("/verify-payment", async (req, res) => {
 
-    // 🧪 STEP 2 — DEBUG LOG
     console.log("VERIFY PAYMENT STARTED");
-
 
     const {
         razorpay_order_id,
@@ -93,6 +91,7 @@ router.post("/verify-payment", async (req, res) => {
 
     try {
 
+        // ✅ VERIFY SIGNATURE
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(razorpay_order_id + "|" + razorpay_payment_id)
@@ -102,8 +101,7 @@ router.post("/verify-payment", async (req, res) => {
             return res.status(400).json({ error: "Invalid payment signature" });
         }
 
-      
-
+        // ✅ GET ORDER
         db.get(
             `SELECT * FROM orders WHERE payment_reference = ?`,
             [razorpay_order_id],
@@ -112,44 +110,35 @@ router.post("/verify-payment", async (req, res) => {
                 if (err) return res.status(500).json({ error: "Database error" });
                 if (!order) return res.status(400).json({ error: "Order not found" });
 
-                // 🧩 STEP — Handle Renewal Orders
+                // ✅ HANDLE RENEWAL FAST
                 if (order.transaction_type === "renewal") {
-                    const userId = order.user_id;
 
-                    // Extend subscription by 1 year
                     db.run(
-                        `
-                UPDATE users
-                SET subscription_expiry = DATE('now', '+1 year'),
-                    subscription_status = 'active'
-                WHERE id = ?
-                `,
-                        [userId]
+                        `UPDATE users
+                         SET subscription_expiry = DATE('now', '+1 year'),
+                             subscription_status = 'active'
+                         WHERE id = ?`,
+                        [order.user_id]
                     );
 
-                    // Activate all QR codes for this user
                     db.run(
-                        `
-                UPDATE qr_codes
-                SET status = 'active'
-                WHERE user_id = ?
-                `,
-                        [userId]
+                        `UPDATE qr_codes
+                         SET status = 'active'
+                         WHERE user_id = ?`,
+                        [order.user_id]
                     );
 
-                    // Mark order as paid
                     db.run(
-                        `
-                UPDATE orders
-                SET payment_status = 'paid'
-                WHERE payment_reference = ?
-                `,
+                        `UPDATE orders
+                         SET payment_status = 'paid'
+                         WHERE payment_reference = ?`,
                         [razorpay_order_id]
                     );
 
                     return res.json({ success: true, renewal: true });
                 }
 
+                // ✅ FIND USER
                 db.get(
                     `SELECT * FROM users WHERE phone = ?`,
                     [phone],
@@ -160,21 +149,9 @@ router.post("/verify-payment", async (req, res) => {
                         let userId;
                         let password;
 
-                        /* ---------------------------
-                           EXISTING USER
-                        --------------------------- */
-
                         if (user) {
-
                             userId = user.id;
-
-                        }
-
-                        /* ---------------------------
-                           NEW USER
-                        --------------------------- */
-
-                        else {
+                        } else {
 
                             password = Math.random().toString(36).slice(-8);
                             const hash = await bcrypt.hash(password, 10);
@@ -185,13 +162,8 @@ router.post("/verify-payment", async (req, res) => {
 
                                 db.run(
                                     `INSERT INTO users (name,email,password_hash,phone)
-                                    VALUES (?,?,?,?)`,
-                                    [
-                                        name,
-                                        uniqueEmail,
-                                        hash,
-                                        phone
-                                    ],
+                                     VALUES (?,?,?,?)`,
+                                    [name, uniqueEmail, hash, phone],
                                     function (err) {
                                         if (err) reject(err);
                                         resolve(this.lastID);
@@ -201,123 +173,84 @@ router.post("/verify-payment", async (req, res) => {
                             });
 
                             userId = result;
-
                         }
 
-                        /* ---------------------------
-                           ACTIVATE PLAN
-                        --------------------------- */
-
-                        await activateOrUpgrade(userId, order.plan_type);
-
-                        /* ---------------------------
-                           GENERATE QR
-                        --------------------------- */
-
-                        let totalQrs = 1;
-
-                        if (order.plan_type == "499") totalQrs = 3;
-                        if (order.plan_type == "299") totalQrs = 1;
-
-                        for (let i = 0; i < totalQrs; i++) {
-
-                            // 🧩 STEP 4 — PREVENT DUPLICATE QR CREATION
-                            let qrId;
-                            let exists = true;
-
-                            while (exists) {
-                                qrId = generateQrId();
-
-                                const existing = await new Promise((resolve) => {
-                                    db.get(
-                                        `SELECT qr_id FROM qr_codes WHERE qr_id=?`,
-                                        [qrId],
-                                        (err, row) => resolve(row)
-                                    );
-                                });
-
-                                if (!existing) exists = false;
-                            }
-
-                            const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
-                            const qrFolder = path.join(__dirname, "../../storage/qrcodes");
-
-                            if (!fs.existsSync(qrFolder)) {
-                                fs.mkdirSync(qrFolder, { recursive: true });
-                            }
-
-                            const qrPath = path.join(qrFolder, `${qrId}.png`);
-                            await QRCode.toFile(qrPath, qrUrl);
-
-                            db.run(
-                                `INSERT INTO qr_codes (qr_id, user_id, plan_type, status)
-                                 VALUES (?, ?, ?, 'inactive')`,
-                                [qrId, userId, order.plan_type]
-                            );
-                        }
-
-                        /* ---------------------------
-                           SEND WHATSAPP
-                        --------------------------- */
-                        let message;
-
-                        if (password) {
-
-                            message = `
-                        Welcome to ReachOutOwner
-
-                        Your protection plan is active.
-
-                        LOGIN DETAILS
-                        Mobile: ${phone}
-                        Password: ${password}
-
-                        Login:
-                        https://reachoutowner.com/login.html
-
-                        Your QR codes are available in your dashboard.
-
-                        Please change your password after login.
-                        `;
-
-                        } else {
-
-                            message = `
-                        Welcome to ReachOutOwner
-
-                        New QR codes have been added to your account.
-
-                        Login:
-                        https://reachoutowner.com/login.html
-
-                        `;
-                        }
-
-                        await sendWhatsApp(phone, message);
-
-                        await sendEmail(
-                            email,
-                            "ReachOutOwner Protection Activated",
-                            message
-                        );
-
-                        /* ---------------------------
-                           UPDATE ORDER
-                        --------------------------- */
-
-                        db.run(
-                            `
-                            UPDATE orders
-                            SET payment_status='paid',
-                            user_id=?
-                            WHERE payment_reference=?
-                            `,
-                            [userId, razorpay_order_id]
-                        );
-
-
-
+                        // 🚀🔥 CRITICAL FIX — SEND RESPONSE IMMEDIATELY
                         res.json({ success: true });
+
+                        // 🧠 BACKGROUND PROCESS STARTS HERE
+                        (async () => {
+
+                            try {
+
+                                // ✅ ACTIVATE PLAN
+                                await activateOrUpgrade(userId, order.plan_type);
+
+                                // ✅ GENERATE QR
+                                let totalQrs = order.plan_type == "499" ? 3 : 1;
+
+                                for (let i = 0; i < totalQrs; i++) {
+
+                                    let qrId;
+                                    let exists = true;
+
+                                    while (exists) {
+
+                                        qrId = generateQrId();
+
+                                        const existing = await new Promise((resolve) => {
+                                            db.get(
+                                                `SELECT qr_id FROM qr_codes WHERE qr_id=?`,
+                                                [qrId],
+                                                (err, row) => resolve(row)
+                                            );
+                                        });
+
+                                        if (!existing) exists = false;
+                                    }
+
+                                    const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
+                                    const qrFolder = path.join(__dirname, "../../storage/qrcodes");
+
+                                    if (!fs.existsSync(qrFolder)) {
+                                        fs.mkdirSync(qrFolder, { recursive: true });
+                                    }
+
+                                    const qrPath = path.join(qrFolder, `${qrId}.png`);
+                                    await QRCode.toFile(qrPath, qrUrl);
+
+                                    db.run(
+                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status)
+                                         VALUES (?, ?, ?, 'inactive')`,
+                                        [qrId, userId, order.plan_type]
+                                    );
+                                }
+
+                                // ✅ SEND MESSAGE
+                                let message;
+
+                                if (password) {
+                                    message = `Login Mobile: ${phone}\nPassword: ${password}`;
+                                } else {
+                                    message = `New QR codes added to your account`;
+                                }
+
+                                await sendWhatsApp(phone, message);
+                                await sendEmail(email, "ReachOutOwner Activated", message);
+
+                                // ✅ UPDATE ORDER
+                                db.run(
+                                    `UPDATE orders
+                                     SET payment_status='paid', user_id=?
+                                     WHERE payment_reference=?`,
+                                    [userId, razorpay_order_id]
+                                );
+
+                            } catch (err) {
+                                console.error("BACKGROUND ERROR:", err);
+                            }
+
+                        })();
 
                     }
                 );
