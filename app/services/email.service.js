@@ -9,14 +9,19 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendEmail(email, subject, message) {
+    try {
+        await transporter.sendMail({
+            from: "ReachOutOwner <reachoutowner@gmail.com>",
+            to: email,
+            subject,
+            html: `<pre style="font-family:Arial">${message}</pre>`
+        });
 
-    await transporter.sendMail({
-        from: "ReachOutOwner <support@reachoutowner.com>",
-        to: email,
-        subject,
-        html: `<pre style="font-family:Arial">${message}</pre>`
-    });
+        console.log("EMAIL SENT TO:", email);
 
+    } catch (err) {
+        console.log("EMAIL ERROR:", err);
+    }
 }
 
 module.exports = { sendEmail };

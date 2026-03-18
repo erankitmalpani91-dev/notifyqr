@@ -134,7 +134,14 @@
 
     </script>
 
-    
+    <script>
+        window.onload = () => {
+            const phone = localStorage.getItem("user_phone");
+            if (phone) {
+                document.getElementById("phone").value = phone;
+            }
+        };
+    </script>
 
 </body>
 </html>

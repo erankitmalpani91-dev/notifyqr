@@ -65,7 +65,19 @@ Go to Home
 
 </div>
 
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const phone = params.get("phone");
 
+    if (phone) {
+        localStorage.setItem("user_phone", phone);
+    }
+
+    // redirect to login after 3 sec
+    setTimeout(() => {
+        window.location.href = "/login.html";
+    }, 3000);
+</script>
 
 
 </body>
