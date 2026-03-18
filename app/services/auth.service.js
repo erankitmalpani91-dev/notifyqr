@@ -20,11 +20,11 @@ async function registerUser(name, email, password, phone) {
     });
 }
 
-async function loginUser(email, password) {
+async function loginUser(phone, password) {
 
     return new Promise((resolve, reject) => {
 
-        db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
+        db.get(`SELECT * FROM users WHERE phone = ?`, [phone], async (err, user) => {
 
             if (err) return reject(err);
             if (!user) return reject("User not found");

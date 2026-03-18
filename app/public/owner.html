@@ -1,83 +1,44 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Activate Your QR Sticker</title>
-    <link rel="stylesheet" href="css/app.css">
-    <link rel="stylesheet" href="css/app.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Portal</title>
+    <link rel="stylesheet" href="owner.css">
 </head>
+
 <body>
 
     <div class="card">
-        <h2>Activate Your QR Sticker</h2>
 
-        <div class="desc">
-            Link your QR sticker to your WhatsApp number so people can contact you if needed.
+        <!-- LOGIN SECTION -->
+
+        <div id="loginSection">
+
+            <h2>Owner Login</h2>
+
+            <input id="phone" placeholder="Enter Mobile Number">
+
+            <input id="password" type="password" placeholder="Enter Password">
+
+            <button onclick="login()">Login</button>
+
         </div>
 
-        <div class="field">
-            <label for="stickerId">Sticker ID</label>
-            <input id="stickerId" placeholder="NQR-IND-XXXX-0001" />
+
+        <!-- DASHBOARD SECTION -->
+
+        <div id="dashboardSection" style="display:none">
+
+            <h2>My QR Stickers</h2>
+
+            <div id="qrList"></div>
+
         </div>
 
-        <div class="field">
-            <label>WhatsApp Number</label>
-            <div class="phone-row">
-                <select id="country" class="country">
-                    <option value="+91">🇮🇳 +91</option>
-                    <option value="+1">🇺🇸 +1</option>
-                    <option value="+44">🇬🇧 +44</option>
-                    <option value="+971">🇦🇪 +971</option>
-                </select>
-
-                <input id="phone"
-                       class="number"
-                       placeholder="Mobile number"
-                       maxlength="15" />
-            </div>
-        </div>
-
-        <button onclick="register()">Activate Sticker</button>
-
-        <div id="success" class="success">
-            ✅ Sticker activated successfully!
-        </div>
-
-        <div class="note">
-            Your phone number is never shared with others
-        </div>
     </div>
 
-    <script>
-        function register() {
-            const stickerId = document.getElementById("stickerId").value.trim();
-            const country = document.getElementById("country").value;
-            const phone = document.getElementById("phone").value.replace(/\D/g, "");
-
-            if (!stickerId || phone.length < 6) {
-                alert("Please enter valid details");
-                return;
-            }
-
-            fetch("/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    stickerId,
-                    phone: country + phone
-                })
-            })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success) {
-                        document.getElementById("success").style.display = "block";
-                    } else {
-                        alert(res.message || "Activation failed");
-                    }
-                });
-        }
-    </script>
+    <script src="owner.js"></script>
 
 </body>
 </html>

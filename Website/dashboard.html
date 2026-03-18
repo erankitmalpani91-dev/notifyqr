@@ -2,55 +2,87 @@
 <html>
 <head>
     <title>Owner Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/dashboard.css">
 </head>
+
 <body>
 
-    <h2>My QR Codes</h2>
-    <div id="qrContainer"></div>
+    <!-- HEADER -->
+    <header class="topbar">
 
-    <script>
-const token = localStorage.getItem("token");
+        <div class="brand">
+            <img src="/assets/images/reachoutowner_logo.png" class="logo">
+            <span>ReachOutOwner</span>
+        </div>
 
-if (!token) {
-    window.location.href = "/login.html";
-}
+        <button onclick="logout()">Logout</button>
 
-fetch("/api/dashboard", {
-    headers: {
-        "Authorization": "Bearer " + token
-    }
-})
-.then(res => res.json())
-.then(data => {
+    </header>
 
-    const container = document.getElementById("qrContainer");
 
-    if (!data.qrs.length) {
-        container.innerHTML = "<p>No QR codes yet.</p>";
-        return;
-    }
+    <div class="container">
 
-    data.qrs.forEach(qr => {
-        const div = document.createElement("div");
-        div.innerHTML = `
-            <div style="border:1px solid #ddd;padding:15px;margin:15px 0;border-radius:8px;">
-                <h3>${qr.qr_id}</h3>
-                <p>Status: ${qr.status}</p>
-                <p>Plan: ${qr.plan_type}</p>
-                <p>Total Scans: ${qr.scan_count}</p>
-                <p>Last Scan: ${qr.last_scan || "Never"}</p>
-                <img src="/qrcodes/${qr.qr_id}.svg" width="120"/>
-                <br><br>
-                <a href="/qrcodes/${qr.qr_id}.svg" download>Download QR</a>
+        <!-- OWNER INFO -->
+        <div class="owner-card">
+            <h3>Owner Details</h3>
+
+            <div class="owner-grid">
+                <div><label>Name</label><span id="ownerName"></span></div>
+                <div><label>Mobile</label><span id="ownerMobile"></span></div>
+                <div><label>Email</label><span id="ownerEmail"></span></div>
+                <div><label>Plan</label><span id="planType"></span></div>
+                <div><label>QR Slots</label><span id="maxSlots"></span></div>
             </div>
-        `;
-        container.appendChild(div);
-    });
 
-});
-    </script>
+        </div>
+
+
+        <!-- QR SETUP -->
+        <h3>Setup QR Codes</h3>
+
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>S.N</th>
+                    <th>Plan</th>
+                    <th>QR ID</th>
+                    <th>Asset Type</th>
+                    <th>Primary No.</th>
+                    <th>Secondary No.</th>
+                    <th>Activate</th>
+                </tr>
+            </thead>
+
+            <tbody id="setupTable"></tbody>
+
+        </table>
+
+
+        <!-- ACTIVE QR -->
+        <h3>Active QR Codes</h3>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>S.N</th>
+                    <th>QR ID</th>
+                    <th>Asset</th>
+                    <th>Expiry</th>
+                    <th>Download</th>
+                    <th>Deactivate</th>
+                </tr>
+            </thead>
+
+            <tbody id="activeTable"></tbody>
+
+        </table>
+
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 </body>
 </html>

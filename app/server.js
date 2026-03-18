@@ -38,6 +38,10 @@ app.use("/payment", require("./routes/payment.routes"));
 app.use("/renewal", require("./routes/renewal.routes"));
 app.use("/subscription", require("./routes/subscription.routes"));
 app.use("/secure", require("./routes/qr.secure.routes"));
+app.use("/api/dashboard", require("./routes/dashboard.routes"));
+app.use("/api/assets", require("./routes/assets.routes"));
+app.use("/api/qr", require("./routes/qr.manage.routes"));
+app.use("/api/alerts", require("./routes/alert.routes"));
 app.use("/", require("./routes/qr.routes"));
 
 

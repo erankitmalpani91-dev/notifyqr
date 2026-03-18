@@ -208,4 +208,54 @@ router.post("/generate-qr", checkAdmin, (req, res) => {
 
 });
 
+// Admin Repair Panel
+
+router.get("/repair-users", async (req, res) => {
+
+    db.all(`SELECT id, plan_type, max_qr_slots FROM users`, [], (err, users) => {
+
+        if (err) return res.send("Error");
+
+        const generateQrId = require("../utils/qrGenerator");
+
+        users.forEach(user => {
+
+            db.all(
+                `SELECT COUNT(*) as count FROM qr_codes WHERE user_id=?`,
+                [user.id],
+                (err2, result) => {
+
+                    if (err2) return;
+
+                    const current = result.count;
+                    const required = user.max_qr_slots || 0;
+
+                    if (current < required) {
+
+                        const missing = required - current;
+
+                        for (let i = 0; i < missing; i++) {
+
+                            const qrId = generateQrId();
+
+                            db.run(
+                                `INSERT INTO qr_codes (qr_id, user_id, plan_type, status)
+                                 VALUES (?, ?, ?, 'inactive')`,
+                                [qrId, user.id, user.plan_type]
+                            );
+                        }
+
+                    }
+
+                }
+            );
+
+        });
+
+        res.send("Repair completed");
+
+    });
+
+});
+
 module.exports = router;

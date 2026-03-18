@@ -14,7 +14,7 @@ async function sendEmail(email, subject, message) {
         from: "ReachOutOwner <support@reachoutowner.com>",
         to: email,
         subject,
-        text: message
+        html: `<pre style="font-family:Arial">${message}</pre>`
     });
 
 }

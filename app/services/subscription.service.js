@@ -3,6 +3,8 @@ const db = require("../config/db");
 // Activate or Upgrade Plan
 function activateOrUpgrade(userId, planType) {
 
+    planType = String(planType);
+
     let maxSlots = 0;
     let amount = 0;
 

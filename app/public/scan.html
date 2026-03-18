@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notify Owner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f5f6fa;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: auto;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2f80ed;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 12px;
+            background: #2f80ed;
+            color: white;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+            .btn:active {
+                transform: scale(0.96);
+            }
+
+        .selected {
+            background: #1c5ed6;
+            transform: scale(1.05);
+        }
+
+        .notify-btn {
+            background: #27ae60;
+            margin-top: 12px;
+        }
+
+            .notify-btn:disabled {
+                background: #95a5a6;
+            }
+
+        .more {
+            text-align: center;
+            color: #2f80ed;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .timer {
+            text-align: center;
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <div class="logo">ReachOutOwner</div>
+        </div>
+
+        <div class="card">
+
+            <h2 id="title">Loading...</h2>
+
+            <div id="buttons"></div>
+
+            <div id="moreOptions" class="more" onclick="showMore()">+ More options</div>
+
+            <button class="btn notify-btn" onclick="notifyOwner()">Notify Owner</button>
+
+            <div id="timer" class="timer"></div>
+
+        </div>
+
+    </div>
+
+    <script src="/app/scan.js"></script>
+
+</body>
+</html>

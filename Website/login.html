@@ -1,41 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Login | ReachOutOwner</title>
+
+    <link rel="stylesheet" href="/css/login.css">
+
 </head>
+
 <body>
 
-    <h2>Owner Login</h2>
+    <div class="login-container">
 
-    <form id="loginForm">
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-    </form>
+        <div class="login-card">
+
+            <img src="/assets/images/reachoutowner_logo.png" class="logo">
+
+            <h1>Owner Login</h1>
+
+            <p class="subtitle">
+                Manage your QR stickers and protect your assets
+            </p>
+
+            <form id="loginForm">
+
+                <div class="input-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="phone" inputmode="numeric" pattern="[0-9]*" placeholder="Enter mobile number" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Login
+                </button>
+
+            </form>
+
+            <p class="help">
+                <a href="javascript:forgotPassword()">Forgot Password?</a> .
+                <a href="javascript:void(0)" onclick="contactSupport()">Contact Support</a>
+            </p>
+
+        </div>
+
+    </div>
+
 
     <script>
-document.getElementById("loginForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
 
-    const res = await fetch("/api/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-    });
+            e.preventDefault();
 
-    const data = await res.json();
+            const phone = document.getElementById("phone").value;
+            const password = document.getElementById("password").value;
 
-    if (data.success) {
-        localStorage.setItem("token", data.token);
-        window.location.href = "/dashboard.html";
-    } else {
-        alert("Login failed");
-    }
-});
+            const res = await fetch("/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    password: password
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.token) {
+
+                localStorage.setItem("token", data.token);
+
+                window.location.href = "/dashboard.html";
+
+            } else {
+
+                alert(data.error || "Login failed");
+
+            }
+
+        });
+
+        // Autofill phone if passed in URL
+        const params = new URLSearchParams(window.location.search);
+        const phone = params.get("phone");
+
+        if (phone) {
+            document.getElementById("phone").value = phone;
+        }
+
+        const phoneInput = document.getElementById("phone");
+
+        phoneInput.addEventListener("input", function () {
+
+            let value = this.value.replace(/\D/g, "");
+
+            if (value.length > 10) {
+                value = value.slice(0, 10);
+            }
+
+            if (value.startsWith("0")) {
+                value = value.substring(1);
+            }
+
+            this.value = value;
+
+        });
+
+        async function forgotPassword() {
+
+            const phone = document.getElementById("phone").value;
+
+            const res = await fetch("/auth/forgot-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone })
+            });
+
+            const data = await res.json();
+
+            alert(data.message);
+        }
+
+        function contactSupport() {
+            alert("Please contact support at reachoutowner@gmail.com");
+        }
+
     </script>
+
+    
 
 </body>
 </html>
