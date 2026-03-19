@@ -10,7 +10,7 @@ const QRCode = require("qrcode");
 const generateQrId = require("../utils/qrGenerator");
 const db = require("../config/db");
 const { activateOrUpgrade } = require("../services/subscription.service");
-const { sendWhatsApp } = require("../services/whatsapp.service");
+//const { sendWhatsApp } = require("../services/whatsapp.service");
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -75,8 +75,6 @@ router.post("/create-order", async (req, res) => {
     }
 
 });
-
-
 
 /* ==============================
    VERIFY PAYMENT
@@ -166,19 +164,15 @@ router.post("/verify-payment", async (req, res) => {
                             const hash = await bcrypt.hash(password, 10);
 
                             const result = await new Promise((resolve, reject) => {
-
-                                const uniqueEmail = phone + "_" + Date.now() + "@reachoutowner.com";
-
                                 db.run(
                                     `INSERT INTO users (name,email,password_hash,phone)
                                      VALUES (?,?,?,?)`,
-                                    [name, uniqueEmail, hash, phone],
+                                    [name, email, hash, phone],
                                     function (err) {
                                         if (err) reject(err);
                                         resolve(this.lastID);
                                     }
                                 );
-
                             });
 
                             userId = result;
@@ -235,22 +229,37 @@ router.post("/verify-payment", async (req, res) => {
                                     );
                                 }
 
-                                // ✅ SEND MESSAGE
+                                //Genrate Message
                                 let message;
 
                                 if (user) {
-                                    message = `Your QR purchase is successful.
-
-                                Login Mobile: ${phone}
-                                Use your existing password to login.
-
-                                If you forgot password, please use "Forgot Password" option.`;
-                                                                } else {
-                                                                    message = `Login Mobile: ${phone}
-                                Password: ${password}`;
+                                    message = `
+    <div style="font-family:Arial, sans-serif; font-size:14px; color:#333; line-height:1;">
+      <div style="margin-bottom:3px;">Dear ${name},</div>
+      <div style="margin-bottom:3px;">Thank you for choosing <strong>ReachOutOwner</strong>! 🎉 We’re excited to welcome you on board.</div>
+      <div style="margin-bottom:3px;">Your QR purchase has been successfully activated. Here are your login details:</div>
+      <div style="margin-bottom:0px;"><strong>Login Mobile:</strong> ${phone}</div>
+      <div style="margin-bottom:3px;"><strong>Password:</strong> Use your existing password</div>
+      <div style="margin-bottom:3px;">If you ever forget your password, simply use the “Forgot Password” option to reset it instantly.</div>
+      <div style="margin-bottom:3px;">We’re committed to making your experience smooth and secure. Your QR codes are now live, and you’re ready to enjoy all the benefits of your subscription.</div>
+      <div style="margin-top:5px;">Warm regards,<br><strong>The ReachOutOwner Team</strong></div>
+    </div>
+  `;
+                                } else {
+                                    message = `
+    <div style="font-family:Arial, sans-serif; font-size:14px; color:#333; line-height:1;">
+      <div style="margin-bottom:3px;">Dear ${name},</div>
+      <div style="margin-bottom:3px;">Welcome to <strong>ReachOutOwner</strong>! 🎉 Your account has been created successfully.</div>
+      <div style="margin-bottom:3px;">Here are your login details:</div>
+      <div style="margin-bottom:0px;"><strong>Login Mobile:</strong> ${phone}</div>
+      <div style="margin-bottom:3px;"><strong>Password:</strong> ${password}</div>
+      <div style="margin-bottom:3px;">We recommend changing your password after your first login for security.</div>
+      <div style="margin-top:5px;">Warm regards,<br><strong>The ReachOutOwner Team</strong></div>
+    </div>
+  `;
                                 }
 
-                                await sendWhatsApp(phone, message);
+                                // await sendWhatsApp(phone, message);
                                 await sendEmail(email, "ReachOutOwner Activated", message);
 
                                 // ✅ UPDATE ORDER
