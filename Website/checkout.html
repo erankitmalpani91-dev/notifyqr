@@ -11,71 +11,61 @@
     <style>
 
         .checkout-container {
-            max-width: 700px;
+            max-width: 420px;
+            width: 92%;
             margin: 40px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
         }
 
             .checkout-container h2 {
                 margin-bottom: 20px;
             }
 
+        body {
+            background: #f5f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
         .checkout-form input,
         .checkout-form textarea {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
+            padding: 14px;
+            margin-bottom: 14px;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fafafa;
         }
 
         .checkout-btn {
             width: 100%;
-            padding: 14px;
-            background: #1f3cff;
+            padding: 15px;
+            background: linear-gradient(135deg, #3a5bff, #1f3cff);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: 0.2s;
         }
+
+            .checkout-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 15px rgba(31,60,255,0.25);
+            }
 
         .plan-summary {
-            background: #f5f6fa;
-            padding: 15px;
-            border-radius: 6px;
+            background: #f1f4ff;
+            padding: 16px;
+            border-radius: 12px;
             margin-bottom: 20px;
+            border: 1px solid #e0e6ff;
         }
 
-        .checkout-container {
-            max-width: 700px;
-            width: 92%;
-            margin: 40px auto;
-            padding: 24px;
-        }
-
-        @media (max-width:768px) {
-
-            .checkout-container {
-                padding: 18px;
-                margin: 20px auto;
-            }
-
-            .checkout-form input,
-            .checkout-form textarea {
-                font-size: 16px;
-                padding: 14px;
-            }
-
-            .checkout-btn {
-                font-size: 18px;
-                padding: 16px;
-            }
-        }
+        
     </style>
 
 </head>
@@ -84,11 +74,19 @@
 
     <div class="checkout-container">
 
-        <h2>Complete Your Protection</h2>
+        <h2 style="text-align:center; margin-bottom:20px;">
+            Secure Your Assets 🔒
+        </h2>
 
         <div class="plan-summary">
-            <p><strong>Selected Plan:</strong> <span id="planName"></span></p>
-            <p><strong>Amount:</strong> ₹<span id="planPrice"></span></p>
+            <p><strong>Product:</strong> QR Protection (1 Year)</p>
+
+            <label><strong>Number of QRs:</strong></label>
+            <input type="number" id="quantity" value="1" min="1" max="50" style="width:100px;">
+
+            <p style="margin-top:10px;">
+                <strong>Total:</strong> ₹<span id="totalPrice">199</span>
+            </p>
         </div>
 
         <form id="checkoutForm" class="checkout-form">
@@ -127,6 +125,24 @@
         const phoneInput = document.getElementById("phone");
         const pincodeInput = document.getElementById("pincode");
         const emailInput = document.getElementById("email");
+
+        const pricePerQR = 199;
+
+        const qtyInput = document.getElementById("quantity");
+        const totalPriceEl = document.getElementById("totalPrice");
+
+        qtyInput.addEventListener("input", () => {
+
+            let qty = parseInt(qtyInput.value) || 1;
+
+            if (qty < 1) qty = 1;
+            if (qty > 50) qty = 50;
+
+            qtyInput.value = qty;
+
+            totalPriceEl.innerText = qty * pricePerQR;
+
+        });
 
         phoneInput.addEventListener("input", function () {
             // Remove anything that's not a digit
@@ -171,115 +187,85 @@
                 this.setCustomValidity("");
             }
         });
-const params = new URLSearchParams(window.location.search);
-const plan = params.get("plan");
-
-let price = 0;
-let planName = "";
-
-if(plan === "299"){
-price = 299;
-planName = "Essential Plan";
-}
-
-if(plan === "499"){
-price = 499;
-planName = "Plus Plan";
-}
-
-document.getElementById("planName").innerText = planName;
-document.getElementById("planPrice").innerText = price;
 
 
-document.getElementById("checkoutForm").addEventListener("submit", async function(e){
 
-e.preventDefault();
+        document.getElementById("checkoutForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
 
-const name = document.getElementById("name").value;
-const phone = document.getElementById("phone").value;
-const email = document.getElementById("email").value;
-const address = document.getElementById("address").value;
-const city = document.getElementById("city").value;
-const state = document.getElementById("state").value;
-const pincode = document.getElementById("pincode").value;
+            const name = document.getElementById("name").value;
+            const phone = document.getElementById("phone").value;
+            const email = document.getElementById("email").value;
+            const address = document.getElementById("address").value;
+            const city = document.getElementById("city").value;
+            const state = document.getElementById("state").value;
+            const pincode = document.getElementById("pincode").value;
 
-const response = await fetch("/order/create-order",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-planType:plan,
-name:name,
-phone:phone,
-email:email
-})
-});
+            // ✅ Calculate quantity before fetch
+            const quantityValue = document.getElementById("quantity").value;
+            const quantity = Number(quantityValue);
+            console.log("Sending quantity:", quantity);
 
-    const data = await response.json();
-    console.log("ORDER RESPONSE:", data);
-
-    if (!data.orderId) {
-        alert("Order creation failed");
-        return;
-    }
-
-const options = {
-
-key:data.key,
-amount:data.amount,
-currency:"INR",
-name:"ReachOutOwner",
-description:"QR Protection Plan",
-order_id:data.orderId,
-
-    handler: async function (response) {
-
-        try {
-
-            const verify = await fetch("/order/verify-payment", {
+            // ✅ Correct fetch call
+            const response = await fetch("/order/create-order", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature,
+                    quantity: quantity,
+                    name: name,
                     phone: phone,
-                    email: email,
-                    name: name
+                    email: email
                 })
             });
 
-            const result = await verify.json();
+            const data = await response.json();
+            console.log("ORDER RESPONSE:", data);
 
-            if (result.success) {
-
-                window.location.href = "/payment-success.html?phone=" + phone;
-
-            } else {
-
-                alert("Payment verification failed");
-
+            if (!data.orderId) {
+                alert("Order creation failed");
+                return;
             }
 
-        } catch (err) {
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: "INR",
+                name: "ReachOutOwner",
+                description: "QR Subscription",
+                order_id: data.orderId,
+                handler: async function (response) {
+                    try {
+                        const verify = await fetch("/order/verify-payment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                phone: phone,
+                                email: email,
+                                name: name
+                            })
+                        });
 
-            console.error("Verification error:", err);
+                        const result = await verify.json();
+                        if (result.success) {
+                            window.location.href = "/payment-success.html?phone=" + phone;
+                        } else {
+                            alert("Payment verification failed");
+                        }
+                    } catch (err) {
+                        console.error("Verification error:", err);
+                        alert("Server error during payment verification");
+                    }
+                }
+            };
 
-            alert("Server error during payment verification");
-
-        }
-
-    }
-
-};
-
-const rzp = new Razorpay(options);
-rzp.open();
-
-});
+            const rzp = new Razorpay(options);
+            rzp.open();
+        });
 
     </script>
 

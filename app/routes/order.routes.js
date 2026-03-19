@@ -25,17 +25,16 @@ const { sendEmail } = require("../services/email.service");
 
 router.post("/create-order", async (req, res) => {
 
-    const { planType, name, phone, email } = req.body;
+    const { quantity, name, phone, email } = req.body;
     console.log("CREATE ORDER BODY:", req.body);
 
-    let amount = 0;
+    const pricePerQR = 199;
 
-    if (planType == 299) amount = 29900;
-    if (planType == 499) amount = 49900;
-
-    if (!amount) {
-        return res.status(400).json({ error: "Invalid plan type" });
+    if (!quantity || quantity < 1) {
+        return res.status(400).json({ error: "Invalid quantity" });
     }
+
+    const amount = quantity * pricePerQR * 100; // in paise
 
     try {
 
@@ -51,7 +50,14 @@ router.post("/create-order", async (req, res) => {
             (plan_type, amount, payment_status, payment_reference, transaction_type, slots)
             VALUES (?, ?, ?, ?, ?, ?)
             `,
-            [planType, amount / 100, "pending", order.id, "purchase", 0]
+            [
+                "QR_PURCHASE",
+                quantity * pricePerQR,
+                "pending",
+                order.id,
+                "purchase",
+                quantity
+            ]
         );
 
         res.json({
@@ -151,6 +157,9 @@ router.post("/verify-payment", async (req, res) => {
 
                         if (user) {
                             userId = user.id;
+
+                            // 👇 ADD THIS LINE
+                            password = "USE_YOUR_EXISTING_PASSWORD";
                         } else {
 
                             password = Math.random().toString(36).slice(-8);
@@ -184,10 +193,10 @@ router.post("/verify-payment", async (req, res) => {
                             try {
 
                                 // ✅ ACTIVATE PLAN
-                                await activateOrUpgrade(userId, order.plan_type);
+                                await activateOrUpgrade(userId, "BASIC");
 
                                 // ✅ GENERATE QR
-                                let totalQrs = order.plan_type == "499" ? 3 : 1;
+                                let totalQrs = order.slots || 1;
 
                                 for (let i = 0; i < totalQrs; i++) {
 
@@ -229,10 +238,16 @@ router.post("/verify-payment", async (req, res) => {
                                 // ✅ SEND MESSAGE
                                 let message;
 
-                                if (password) {
-                                    message = `Login Mobile: ${phone}\nPassword: ${password}`;
-                                } else {
-                                    message = `New QR codes added to your account`;
+                                if (user) {
+                                    message = `Your QR purchase is successful.
+
+                                Login Mobile: ${phone}
+                                Use your existing password to login.
+
+                                If you forgot password, please use "Forgot Password" option.`;
+                                                                } else {
+                                                                    message = `Login Mobile: ${phone}
+                                Password: ${password}`;
                                 }
 
                                 await sendWhatsApp(phone, message);
