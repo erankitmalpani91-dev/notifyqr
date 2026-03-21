@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require("../config/db");
 
 router.get("/", (req, res) => {
-
     const userId = req.session.userId;
     if (!userId) {
         return res.status(401).json({ error: "Not logged in" });
@@ -14,25 +13,24 @@ router.get("/", (req, res) => {
          FROM users WHERE id = ?`,
         [userId],
         (err, user) => {
-
             if (err) return res.status(500).json({ error: err.message });
             if (!user) return res.json({ user: {}, qrs: [] });
 
             db.all(
                 `
-            SELECT 
-                q.qr_id,
-                q.status,
-                q.asset_name,
-                q.source,
-                q.expiry_date,
-                n.phone,
-                n.type
-            FROM qr_codes q
-            LEFT JOIN qr_numbers n 
-            ON q.qr_id = n.qr_id
-            WHERE q.user_id = ?
-            `,
+                SELECT 
+                    q.qr_id,
+                    q.status,
+                    q.asset_name,
+                    q.source,
+                    q.expiry_date,
+                    n.phone,
+                    n.type
+                FROM qr_codes q
+                LEFT JOIN qr_numbers n 
+                ON q.qr_id = n.qr_id
+                WHERE q.user_id = ?
+                `,
                 [userId],
                 (err2, rows) => {
                     if (err2) return res.status(500).json({ error: err2.message });
@@ -61,70 +59,66 @@ router.get("/", (req, res) => {
                         }
                     });
 
-                    // 🧪 SLOT-FILLING LOGIC GOES HERE
+                    // 🧪 SLOT-FILLING LOGIC
                     db.get(
                         `SELECT COUNT(*) as count FROM qr_codes WHERE user_id=?`,
                         [userId],
                         (err, row) => {
+                            if (err) return res.status(500).json({ error: err.message });
+
                             const currentCount = row.count;
-                    const requiredSlots = user.max_qr_slots || 0;
+                            const requiredSlots = user.max_qr_slots || 0;
 
-                    if (currentCount < requiredSlots) {
-                        const missing = requiredSlots - currentCount;
+                            if (currentCount < requiredSlots) {
+                                const missing = requiredSlots - currentCount;
 
-                        for (let i = 0; i < missing; i++) {
-                            const qrId = require("../utils/qrGenerator")();
+                                for (let i = 0; i < missing; i++) {
+                                    const qrId = require("../utils/qrGenerator")();
 
-                            const expiryDate = new Date();
-                            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                            const expiryString = expiryDate.toISOString();
+                                    const expiryDate = new Date();
+                                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                                    const expiryString = expiryDate.toISOString();
 
-                            db.run(
-                                `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, expiry_date)
-                                 VALUES (?, ?, ?, 'inactive', 'web', ?)`,
-                                [qrId, userId, user.plan_type, expiryString]
-                            );
+                                    db.run(
+                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, expiry_date)
+                                         VALUES (?, ?, ?, 'inactive', 'web', ?)`,
+                                        [qrId, userId, user.plan_type, expiryString]
+                                    );
 
-                            // also add to grouped so response reflects it immediately
-                            grouped[qrId] = {
-                                qr_id: qrId,
-                                status: "inactive",
-                                asset_name: null,
-                                primary: null,
-                                secondary: null,
-                                expiry: expiryString,
-                                source: "web"
-                            };
-                        }
-                    }
-
-                    const today = new Date();
-
-                    Object.values(grouped).forEach(q => {
-
-                        if (user.subscription_expiry) {
-
-                            const expiry = new Date(user.subscription_expiry);
-
-                            if (today > expiry) {
-                                q.status = "expired";
+                                    grouped[qrId] = {
+                                        qr_id: qrId,
+                                        status: "inactive",
+                                        asset_name: null,
+                                        primary: null,
+                                        secondary: null,
+                                        expiry: expiryString,
+                                        source: "web"
+                                    };
+                                }
                             }
+
+                            const today = new Date();
+
+                            Object.values(grouped).forEach(q => {
+                                if (user.subscription_expiry) {
+                                    const expiry = new Date(user.subscription_expiry);
+                                    if (today > expiry) {
+                                        q.status = "expired";
+                                    }
+                                }
+                            });
+
+                            // ✅ Respond
+                            res.json({
+                                user,
+                                qrs: Object.values(grouped)
+                            });
                         }
-
-                    });
-
-
-                    // ✅ Now respond with updated user + qrs
-                    res.json({
-                        user,
-                        qrs: Object.values(grouped)
-                    });
+                    ); // closes inner db.get
                 }
-            );
-
+            ); // closes db.all
         }
-    );
-
-});
+    ); // closes outer db.get
+}); // closes router.get
 
 module.exports = router;
