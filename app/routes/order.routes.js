@@ -202,13 +202,17 @@ router.post("/verify-payment", async (req, res) => {
 
                             try {
 
-                                // ✅ ACTIVATE PLAN
+                                // ACTIVATE PLAN
                                 await activateOrUpgrade(userId, "BASIC");
 
+                                // how many QR purchased
+                                const totalQrs = (order && order.slots) ? order.slots : 1;
+
+                                // update slot count
                                 db.run(
                                     `UPDATE users 
- SET max_qr_slots = COALESCE(max_qr_slots,0) + ?
- WHERE id = ?`,
+                                     SET max_qr_slots = COALESCE(max_qr_slots,0) + ?
+                                     WHERE id = ?`,
                                     [totalQrs, userId]
                                 );
 
@@ -217,7 +221,6 @@ router.post("/verify-payment", async (req, res) => {
                                 const expiryString = expiryDate.toISOString();
 
                                 // ✅ GENERATE QR
-                                let totalQrs = order.slots || 1;
 
                                 for (let i = 0; i < totalQrs; i++) {
 
