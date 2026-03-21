@@ -207,7 +207,7 @@
             console.log("Sending quantity:", quantity);
 
             // ✅ Correct fetch call
-            const response = await fetch("/order/create-order", {
+            const response = await fetch("/create-order", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -237,7 +237,7 @@
                 order_id: data.orderId,
                 handler: async function (response) {
                     try {
-                        const verify = await fetch("/order/verify-payment", {
+                        const verify = await fetch("/verify-payment", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
