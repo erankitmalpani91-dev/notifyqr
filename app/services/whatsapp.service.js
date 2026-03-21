@@ -1,55 +1,57 @@
 const axios = require("axios");
 
-async function sendWhatsAppAlert(phone, message, location, qrId) {
 
-    const url = "https://api.gupshup.io/sm/api/v1/msg";
 
-    const payload = {
-        channel: "whatsapp",
-        source: "YOUR_GUPSHUP_NUMBER",
-        destination: phone,
-        message: JSON.stringify({
-            type: "interactive",
-            interactive: {
-                type: "button",
-                body: {
-                    text: `🚨 Alert\n\n${message}\n\n📍 ${location}`
-                },
-                action: {
-                    buttons: [
+async function sendWhatsApp(to, data) {
+    try {
+        // CLEAN PHONE NUMBER
+        to = to.replace(/\D/g, "");
+
+        // FIX FORMAT STRICTLY
+        if (to.length === 10) {
+            to = "91" + to;
+        } else if (to.length === 12 && to.startsWith("91")) {
+            // correct
+        } else {
+            console.log("❌ INVALID NUMBER:", to);
+        }
+
+        // FINAL LOG
+        console.log("📲 FINAL NUMBER:", to);
+
+        await axios.post(
+            `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
+            {
+                messaging_product: "whatsapp",
+                to: to,
+                type: "template",
+                template: {
+                    name: "qr_purchase_success",
+                    language: { code: "en" },
+                    components: [
                         {
-                            type: "reply",
-                            reply: {
-                                id: `coming_${qrId}`,
-                                title: "I'm coming"
-                            }
-                        },
-                        {
-                            type: "reply",
-                            reply: {
-                                id: `2min_${qrId}`,
-                                title: "2 mins"
-                            }
-                        },
-                        {
-                            type: "reply",
-                            reply: {
-                                id: `call_${qrId}`,
-                                title: "Call me"
-                            }
+                            type: "body",
+                            parameters: [
+                                { type: "text", text: data.name },
+                                { type: "text", text: data.link }
+                            ]
                         }
                     ]
                 }
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+                    "Content-Type": "application/json"
+                }
             }
-        })
-    };
+        );
 
-    await axios.post(url, payload, {
-        headers: {
-            apikey: process.env.GUPSHUP_API_KEY,
-            "Content-Type": "application/json"
-        }
-    });
+        console.log("✅ WHATSAPP SENT:", to);
+
+    } catch (err) {
+        console.log("❌ WHATSAPP ERROR:", err.response?.data || err.message);
+    }
 }
 
-module.exports = { sendWhatsAppAlert };
+module.exports = { sendWhatsApp };

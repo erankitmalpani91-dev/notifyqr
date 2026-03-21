@@ -1,11 +1,12 @@
-const token = localStorage.getItem("token");
+fetch("/api/dashboard")
 
-
-
-fetch("/api/dashboard", {
-    headers: { Authorization: "Bearer " + token }
-})
-    .then(res => res.json())
+    .then(res => {
+        if (res.status === 401) {
+            window.location.href = "/login.html";
+            return;
+        }
+        return res.json();
+    })
     .then(data => {
 
         // OWNER DETAILS
@@ -144,7 +145,7 @@ function addSecondary(qrId) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+            
         },
         body: JSON.stringify({ qr_id: qrId, phone: num })
     })
@@ -188,7 +189,7 @@ function activate(qrId) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+          
         },
         body: JSON.stringify({
             qr_id: qrId,
@@ -206,7 +207,7 @@ function deactivate(qrId) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+           
         },
         body: JSON.stringify({ qr_id: qrId })
     }).then(() => location.reload());
@@ -215,8 +216,10 @@ function deactivate(qrId) {
 
 
 function logout() {
-    localStorage.removeItem("token");
-    window.location.href = "/login.html";
+    fetch("/api/logout", { method: "POST" })
+        .then(() => {
+            window.location.href = "/login.html";
+        });
 }
 
 async function createQR() {
@@ -225,7 +228,7 @@ async function createQR() {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+            
         },
         body: JSON.stringify({
             planType: "299", // default, backend handles slots
@@ -250,7 +253,7 @@ function reactivate(qrId) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+            
         },
         body: JSON.stringify({ qr_id: qrId })
     }).then(() => location.reload());
@@ -294,7 +297,7 @@ function editSecondary(qrId) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+           
         },
         body: JSON.stringify({ qr_id: qrId, phone: newNumber })
     })
@@ -316,15 +319,9 @@ function editSecondary(qrId) {
 
 async function renewSubscriptionPlan() {
 
-    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-    const userId = tokenPayload.id;
-
+    
     const res = await fetch("/order/create-renewal-order", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ userId })
+        method: "POST"
     });
 
     const data = await res.json();

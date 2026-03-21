@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const verify = require("../middlewares/auth.middleware");
 
-router.get("/", verify, (req, res) => {
+router.get("/", (req, res) => {
 
-    const userId = req.user.id;
+    const userId = req.session.userId;
+    if (!userId) {
+        return res.status(401).json({ error: "Not logged in" });
+    }
 
     db.get(
         `SELECT name, phone, email, plan_type, max_qr_slots, subscription_expiry

@@ -30,11 +30,7 @@ margin-bottom:20px;
 
 </head>
 
-<script>
-setTimeout(() => {
-    window.location.href = "/login.html";
-}, 4000);
-</script>
+
 
 <body>
 
@@ -47,8 +43,8 @@ setTimeout(() => {
 <p>Your QR protection plan is now active.</p>
 
 <p>
-Your login details will be sent to your
-<strong>WhatsApp and Email</strong>.
+    Your login link has been sent to your <strong>WhatsApp</strong>.
+    Please click the link to access your dashboard.
 </p>
 
 <br>
@@ -73,10 +69,7 @@ Go to Home
         localStorage.setItem("user_phone", phone);
     }
 
-    // redirect to login after 3 sec
-    setTimeout(() => {
-        window.location.href = "/login.html";
-    }, 3000);
+    
 </script>
 
 

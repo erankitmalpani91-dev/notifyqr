@@ -34,8 +34,9 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT DEFAULT 'owner', -- owner or admin
+  role TEXT DEFAULT 'owner',
   phone TEXT,
+  login_token TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 )
 `);

@@ -30,10 +30,7 @@
                     <input type="tel" id="phone" inputmode="numeric" pattern="[0-9]*" placeholder="Enter mobile number" required>
                 </div>
 
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="password" id="password" placeholder="Enter password" required>
-                </div>
+                
 
                 <button type="submit" class="login-btn">
                     Login
@@ -53,41 +50,24 @@
 
     <script>
 
-        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        // ✅ LOGIN FORM (NO PASSWORD)
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
 
             e.preventDefault();
 
             const phone = document.getElementById("phone").value;
-            const password = document.getElementById("password").value;
 
-            const res = await fetch("/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    phone: phone,
-                    password: password
-                })
-            });
-
-            const data = await res.json();
-
-            if (data.token) {
-
-                localStorage.setItem("token", data.token);
-
-                window.location.href = "/dashboard.html";
-
-            } else {
-
-                alert(data.error || "Login failed");
-
+            if (!phone || phone.length !== 10) {
+                alert("Please enter valid mobile number");
+                return;
             }
+
+            alert("Login link has been sent to your WhatsApp. Please check.");
 
         });
 
-        // Autofill phone if passed in URL
+
+        // ✅ Autofill phone if passed in URL
         const params = new URLSearchParams(window.location.search);
         const phone = params.get("phone");
 
@@ -95,6 +75,8 @@
             document.getElementById("phone").value = phone;
         }
 
+
+        // ✅ Restrict phone input
         const phoneInput = document.getElementById("phone");
 
         phoneInput.addEventListener("input", function () {
@@ -113,24 +95,20 @@
 
         });
 
-        async function forgotPassword() {
 
-            const phone = document.getElementById("phone").value;
-
-            const res = await fetch("/auth/forgot-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone })
-            });
-
-            const data = await res.json();
-
-            alert(data.message);
-        }
-
+        // ✅ Optional support
         function contactSupport() {
             alert("Please contact support at reachoutowner@gmail.com");
         }
+
+
+        // ✅ Autofill from localStorage (optional)
+        window.onload = () => {
+            const phone = localStorage.getItem("user_phone");
+            if (phone) {
+                document.getElementById("phone").value = phone;
+            }
+        };
 
     </script>
 

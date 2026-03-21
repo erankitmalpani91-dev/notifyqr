@@ -15,7 +15,7 @@ app.use(
     session({
         secret: "notifyqr-secret",
         resave: false,
-        saveUninitialized: false
+        saveUninitialized: true
     })
 );
 
@@ -33,7 +33,7 @@ app.use("/app", express.static(path.join(__dirname, "public")));
 /* -------------------- ROUTES -------------------- */
 app.use("/admin", require("./routes/admin.routes"));
 app.use("/auth", require("./routes/auth.routes"));
-app.use("/order", require("./routes/order.routes"));
+app.use("/", require("./routes/order.routes"));
 app.use("/payment", require("./routes/payment.routes"));
 app.use("/renewal", require("./routes/renewal.routes"));
 app.use("/subscription", require("./routes/subscription.routes"));

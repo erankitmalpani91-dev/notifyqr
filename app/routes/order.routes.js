@@ -10,7 +10,7 @@ const QRCode = require("qrcode");
 const generateQrId = require("../utils/qrGenerator");
 const db = require("../config/db");
 const { activateOrUpgrade } = require("../services/subscription.service");
-//const { sendWhatsApp } = require("../services/whatsapp.service");
+const { sendWhatsApp } = require("../services/whatsapp.service");
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -184,6 +184,22 @@ router.post("/verify-payment", async (req, res) => {
                         // 🧠 BACKGROUND PROCESS STARTS HERE
                         (async () => {
 
+                            // 🔐 CREATE MAGIC LOGIN TOKEN
+                            const token = crypto.randomBytes(20).toString("hex");
+
+                            await new Promise((resolve, reject) => {
+                                db.run(
+                                    `UPDATE users SET login_token=? WHERE id=?`,
+                                    [token, userId],
+                                    function (err) {
+                                        if (err) reject(err);
+                                        resolve();
+                                    }
+                                );
+                            });
+
+                            const loginLink = `https://reachoutowner.com/magic-login/${token}`;
+
                             try {
 
                                 // ✅ ACTIVATE PLAN
@@ -230,36 +246,28 @@ router.post("/verify-payment", async (req, res) => {
                                 }
 
                                 //Genrate Message
-                                let message;
+                                let message = `
+<div style="font-family:Arial">
+  <p>Dear ${name},</p>
 
-                                if (user) {
-                                    message = `
-    <div style="font-family:Arial, sans-serif; font-size:14px; color:#333; line-height:1;">
-      <div style="margin-bottom:3px;">Dear ${name},</div>
-      <div style="margin-bottom:3px;">Thank you for choosing <strong>ReachOutOwner</strong>! 🎉 We’re excited to welcome you on board.</div>
-      <div style="margin-bottom:3px;">Your QR purchase has been successfully activated. Here are your login details:</div>
-      <div style="margin-bottom:0px;"><strong>Login Mobile:</strong> ${phone}</div>
-      <div style="margin-bottom:3px;"><strong>Password:</strong> Use your existing password</div>
-      <div style="margin-bottom:3px;">If you ever forget your password, simply use the “Forgot Password” option to reset it instantly.</div>
-      <div style="margin-bottom:3px;">We’re committed to making your experience smooth and secure. Your QR codes are now live, and you’re ready to enjoy all the benefits of your subscription.</div>
-      <div style="margin-top:5px;">Warm regards,<br><strong>The ReachOutOwner Team</strong></div>
-    </div>
-  `;
-                                } else {
-                                    message = `
-    <div style="font-family:Arial, sans-serif; font-size:14px; color:#333; line-height:1;">
-      <div style="margin-bottom:3px;">Dear ${name},</div>
-      <div style="margin-bottom:3px;">Welcome to <strong>ReachOutOwner</strong>! 🎉 Your account has been created successfully.</div>
-      <div style="margin-bottom:3px;">Here are your login details:</div>
-      <div style="margin-bottom:0px;"><strong>Login Mobile:</strong> ${phone}</div>
-      <div style="margin-bottom:3px;"><strong>Password:</strong> ${password}</div>
-      <div style="margin-bottom:3px;">We recommend changing your password after your first login for security.</div>
-      <div style="margin-top:5px;">Warm regards,<br><strong>The ReachOutOwner Team</strong></div>
-    </div>
-  `;
-                                }
+  <p>Your QR purchase is successful 🎉</p>
 
-                                // await sendWhatsApp(phone, message);
+  <p>
+    You can access your dashboard using the link sent on WhatsApp.
+  </p>
+
+  <p>
+    If needed, you can request login link from login page.
+  </p>
+
+  <p>Regards,<br>ReachOutOwner Team</p>
+</div>
+`;
+
+                                await sendWhatsApp(phone, {
+                                    name,
+                                    link: loginLink
+                                });
                                 await sendEmail(email, "ReachOutOwner Activated", message);
 
                                 // ✅ UPDATE ORDER
@@ -294,7 +302,11 @@ router.post("/verify-payment", async (req, res) => {
 
 router.post("/create-renewal-order", async (req, res) => {
 
-    const { userId } = req.body;
+    const userId = req.session.userId;
+
+    if (!userId) {
+        return res.json({ success: false, message: "Not logged in" });
+    }
 
     db.get(
         `SELECT COUNT(*) as totalQR FROM qr_codes WHERE user_id=?`,
@@ -347,6 +359,32 @@ router.post("/create-renewal-order", async (req, res) => {
         }
     );
 
+});
+
+router.get("/magic-login/:token", (req, res) => {
+
+    const { token } = req.params;
+
+    db.get(
+        `SELECT * FROM users WHERE login_token=?`,
+        [token],
+        (err, user) => {
+
+            if (!user) {
+                return res.send("Invalid link");
+            }
+
+            req.session.userId = user.id;
+
+            return res.redirect("/dashboard.html");
+        }
+    );
+});
+
+router.post("/api/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.json({ success: true });
+    });
 });
 
 module.exports = router;
