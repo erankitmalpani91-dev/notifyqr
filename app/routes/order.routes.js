@@ -201,12 +201,13 @@ router.post("/verify-payment", async (req, res) => {
                             const loginLink = `https://reachoutowner.com/magic-login/${token}`;
 
                             try {
+                                // how many QR purchased
+                                const totalQrs = (order && order.slots) ? order.slots : 1;
 
                                 // ACTIVATE PLAN
                                 await activateOrUpgrade(userId, "BASIC");
 
-                                // how many QR purchased
-                                const totalQrs = (order && order.slots) ? order.slots : 1;
+                               
 
                                 // update slot count
                                 db.run(
