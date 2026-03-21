@@ -62,7 +62,11 @@ router.get("/", (req, res) => {
                     });
 
                     // 🧪 SLOT-FILLING LOGIC GOES HERE
-                    const currentCount = Object.keys(grouped).length;
+                    db.get(
+                        `SELECT COUNT(*) as count FROM qr_codes WHERE user_id=?`,
+                        [userId],
+                        (err, row) => {
+                            const currentCount = row.count;
                     const requiredSlots = user.max_qr_slots || 0;
 
                     if (currentCount < requiredSlots) {

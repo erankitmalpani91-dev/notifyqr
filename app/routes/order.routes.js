@@ -205,6 +205,13 @@ router.post("/verify-payment", async (req, res) => {
                                 // ✅ ACTIVATE PLAN
                                 await activateOrUpgrade(userId, "BASIC");
 
+                                db.run(
+                                    `UPDATE users 
+ SET max_qr_slots = COALESCE(max_qr_slots,0) + ?
+ WHERE id = ?`,
+                                    [totalQrs, userId]
+                                );
+
                                 const expiryDate = new Date();
                                 expiryDate.setFullYear(expiryDate.getFullYear() + 1);
                                 const expiryString = expiryDate.toISOString();
