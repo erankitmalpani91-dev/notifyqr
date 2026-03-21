@@ -19,9 +19,7 @@ const razorpay = new Razorpay({
 
 const { sendEmail } = require("../services/email.service");
 
-/* ==============================
-   CREATE RAZORPAY ORDER
-============================== */
+//CREATE RAZORPAY ORDER
 
 router.post("/create-order", async (req, res) => {
 
@@ -76,9 +74,7 @@ router.post("/create-order", async (req, res) => {
 
 });
 
-/* ==============================
-   VERIFY PAYMENT
-============================== */
+//VERIFY PAYMENT
 
 router.post("/verify-payment", async (req, res) => {
 
