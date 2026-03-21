@@ -15,17 +15,8 @@ fetch("/api/dashboard")
         document.getElementById("ownerEmail").innerText = data.user.email || "-";
         document.getElementById("maxSlots").innerText = data.user.max_qr_slots || "-";
         // PLAN DISPLAY FIX
-        let planText = "-";
-
-        if (data.user.plan_type == "299") {
-            planText = "Essential (1 QR)";
-        }
-        if (data.user.plan_type == "499") {
-            planText = "Plus (3 QR)";
-        }
-
+        let planText = data.user.max_qr_slots + " QR Plan";
         document.getElementById("planType").innerText = planText;
-
    
 
         // SPLIT QR
@@ -34,7 +25,7 @@ fetch("/api/dashboard")
 
         data.qrs.forEach(qr => {
 
-            if (qr.status === "inactive") {
+            if (qr.status === "inactive" && qr.source === "web") {
 
                 document.getElementById("setupTable").innerHTML += `
 

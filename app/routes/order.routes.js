@@ -118,10 +118,10 @@ router.post("/verify-payment", async (req, res) => {
                 if (order.transaction_type === "renewal") {
 
                     db.run(
-                        `UPDATE users
-                         SET subscription_expiry = DATE('now', '+1 year'),
-                             subscription_status = 'active'
-                         WHERE id = ?`,
+                        `UPDATE qr_codes
+                        SET status='active',
+                        expiry_date = DATE('now', '+1 year')
+                        WHERE user_id=?`,
                         [order.user_id]
                     );
 
@@ -205,6 +205,10 @@ router.post("/verify-payment", async (req, res) => {
                                 // ✅ ACTIVATE PLAN
                                 await activateOrUpgrade(userId, "BASIC");
 
+                                const expiryDate = new Date();
+                                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                                const expiryString = expiryDate.toISOString();
+
                                 // ✅ GENERATE QR
                                 let totalQrs = order.slots || 1;
 
@@ -239,9 +243,9 @@ router.post("/verify-payment", async (req, res) => {
                                     await QRCode.toFile(qrPath, qrUrl);
 
                                     db.run(
-                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status)
-                                         VALUES (?, ?, ?, 'inactive')`,
-                                        [qrId, userId, order.plan_type]
+                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, expiry_date)
+                                        VALUES (?, ?, ?, 'inactive', 'web', ?)`,
+                                        [qrId, userId, order.plan_type, expiryString]
                                     );
                                 }
 

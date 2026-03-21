@@ -42,6 +42,7 @@ app.use("/api/dashboard", require("./routes/dashboard.routes"));
 app.use("/api/assets", require("./routes/assets.routes"));
 app.use("/api/qr", require("./routes/qr.manage.routes"));
 app.use("/api/alerts", require("./routes/alert.routes"));
+app.use("/retail", require("./routes/retail.routes"));
 app.use("/", require("./routes/qr.routes"));
 
 

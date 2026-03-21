@@ -20,17 +20,19 @@ router.get("/", (req, res) => {
 
             db.all(
                 `
-    SELECT 
-        q.qr_id,
-        q.status,
-        q.asset_name,
-        n.phone,
-        n.type
-    FROM qr_codes q
-    LEFT JOIN qr_numbers n 
-    ON q.qr_id = n.qr_id
-    WHERE q.user_id = ?
-    `,
+            SELECT 
+                q.qr_id,
+                q.status,
+                q.asset_name,
+                q.source,
+                q.expiry_date,
+                n.phone,
+                n.type
+            FROM qr_codes q
+            LEFT JOIN qr_numbers n 
+            ON q.qr_id = n.qr_id
+            WHERE q.user_id = ?
+            `,
                 [userId],
                 (err2, rows) => {
                     if (err2) return res.status(500).json({ error: err2.message });
@@ -45,7 +47,8 @@ router.get("/", (req, res) => {
                                 asset_name: r.asset_name,
                                 primary: null,
                                 secondary: null,
-                                expiry: user.subscription_expiry
+                                expiry: r.expiry_date,
+                                source: r.source
                             };
                         }
 
@@ -68,10 +71,14 @@ router.get("/", (req, res) => {
                         for (let i = 0; i < missing; i++) {
                             const qrId = require("../utils/qrGenerator")();
 
+                            const expiryDate = new Date();
+                            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                            const expiryString = expiryDate.toISOString();
+
                             db.run(
-                                `INSERT INTO qr_codes (qr_id, user_id, plan_type, status)
-                     VALUES (?, ?, ?, 'inactive')`,
-                                [qrId, userId, user.plan_type]
+                                `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, expiry_date)
+                                 VALUES (?, ?, ?, 'inactive', 'web', ?)`,
+                                [qrId, userId, user.plan_type, expiryString]
                             );
 
                             // also add to grouped so response reflects it immediately
@@ -81,7 +88,8 @@ router.get("/", (req, res) => {
                                 asset_name: null,
                                 primary: null,
                                 secondary: null,
-                                expiry: user.subscription_expiry
+                                expiry: expiryString,
+                                source: "web"
                             };
                         }
                     }
