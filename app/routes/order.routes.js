@@ -23,7 +23,7 @@ const { sendEmail } = require("../services/email.service");
 
 router.post("/create-order", async (req, res) => {
 
-    const { quantity, name, phone, email } = req.body;
+    const { quantity, name, phone, email, asset_type } = req.body;
     console.log("CREATE ORDER BODY:", req.body);
 
     const pricePerQR = 199;
@@ -45,8 +45,8 @@ router.post("/create-order", async (req, res) => {
         db.run(
             `
             INSERT INTO orders
-            (plan_type, amount, payment_status, payment_reference, transaction_type, slots)
-            VALUES (?, ?, ?, ?, ?, ?)
+            (plan_type, amount, payment_status, payment_reference, transaction_type, slots, asset_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 "QR_PURCHASE",
@@ -54,7 +54,8 @@ router.post("/create-order", async (req, res) => {
                 "pending",
                 order.id,
                 "purchase",
-                quantity
+                quantity,
+                asset_type || null
             ]
         );
 
@@ -115,9 +116,17 @@ router.post("/verify-payment", async (req, res) => {
 
                     db.run(
                         `UPDATE qr_codes
-                        SET status='active',
-                        expiry_date = DATE('now', '+1 year')
-                        WHERE user_id=?`,
+SET
+    status='active',
+    expiry_date = DATE(
+        CASE
+            WHEN expiry_date IS NULL OR expiry_date < DATE('now')
+            THEN DATE('now')
+            ELSE expiry_date
+        END,
+        '+1 year'
+    )
+WHERE user_id=?`,
                         [order.user_id]
                     );
 
@@ -241,6 +250,7 @@ router.post("/verify-payment", async (req, res) => {
 
                                     const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
                                     const qrFolder = path.join(__dirname, "../../storage/qrcodes");
+                                    const orderAsset = order.asset_type;
 
                                     if (!fs.existsSync(qrFolder)) {
                                         fs.mkdirSync(qrFolder, { recursive: true });
@@ -250,9 +260,9 @@ router.post("/verify-payment", async (req, res) => {
                                     await QRCode.toFile(qrPath, qrUrl);
 
                                     db.run(
-                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, expiry_date)
+                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, asset_name)
                                         VALUES (?, ?, ?, 'inactive', 'web', ?)`,
-                                        [qrId, userId, order.plan_type, expiryString]
+                                        [qrId, userId, order.plan_type, orderAsset || null]
                                     );
                                 }
 

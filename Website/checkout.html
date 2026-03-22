@@ -64,7 +64,29 @@
             margin-bottom: 20px;
             border: 1px solid #e0e6ff;
         }
-
+        .input-group label {
+            font-size: 12px;
+            color: #777;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .checkout-form select {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            background-color: #fafafa;
+            color: #333;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%23777' height='20' viewBox='0 0 20 20' width='20'><path d='M5.516 7.548l4.484 4.484 4.484-4.484z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
         
     </style>
 
@@ -102,6 +124,19 @@
 
             <input type="email" id="email" placeholder="Email Address" required>
 
+            <select id="assetType">
+                <option value="">Where will you use it (optional)</option>
+                <option value="car">Car</option>
+                <option value="bike">Bike / Scooter</option>
+                <option value="bag">Bag / Luggage</option>
+                <option value="laptop">Laptop / Mobile</option>
+                <option value="keys">Keys</option>
+                <option value="pet">Pet</option>
+                <option value="child">Child</option>
+                <option value="vehicle">Other Vehicle</option>
+                <option value="other">Other</option>
+            </select>
+            
             <textarea id="address" placeholder="Shipping Address" required></textarea>
 
             <input type="text" id="city" placeholder="City" required>
@@ -207,16 +242,19 @@
             console.log("Sending quantity:", quantity);
 
             // ✅ Correct fetch call
+            const assetType = document.getElementById("assetType").value;
+
             const response = await fetch("/create-order", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    quantity: quantity,
-                    name: name,
-                    phone: phone,
-                    email: email
+                    quantity,
+                    name,
+                    phone,
+                    email,
+                    asset_type: assetType
                 })
             });
 

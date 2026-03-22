@@ -35,12 +35,17 @@ fetch("/api/dashboard")
 <td>${qr.qr_id}</td>
 
 <td>
-<select id="asset_${qr.qr_id}">
-<option>Car</option>
-<option>Bike</option>
-<option>Laptop</option>
-<option>Bag</option>
-</select>
+${qr.asset_name ?
+                        `<b>${qr.asset_name}</b>` :
+                        `<select id="asset_${qr.qr_id}">
+        <option>Car</option>
+        <option>Bike</option>
+        <option>Laptop</option>
+        <option>Bag</option>
+        <option>Keys</option>
+        <option>Pet</option>
+    </select>`
+}
 </td>
 
 <td>
@@ -154,7 +159,8 @@ function addSecondary(qrId) {
 
 function activate(qrId) {
 
-    const asset = document.getElementById("asset_" + qrId).value;
+    const assetEl = document.getElementById("asset_" + qrId);
+    const asset = assetEl ? assetEl.value : null;
     const p = document.getElementById("p_" + qrId).value.trim();
     const s = document.getElementById("s_" + qrId).value.trim();
 

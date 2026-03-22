@@ -9,26 +9,29 @@ router.post("/activate", verify, (req, res) => {
 
     
 
-        db.run(
-            `UPDATE qr_codes
-         SET status='active', asset_name=?
-         WHERE qr_id=? AND user_id=?`,
-            [asset_name, qr_id, req.user.id],
-            () => {
+    db.run(
+        `UPDATE qr_codes
+     SET status='active',
+         asset_name = COALESCE(?, asset_name),
+         expiry_date = DATE('now', '+365 days'),
+         claimed_at = CURRENT_TIMESTAMP
+     WHERE qr_id=? AND user_id=?`,
+        [asset_name, qr_id, req.user.id],
+        () => {
 
-                db.run(`DELETE FROM qr_numbers WHERE qr_id=?`, [qr_id]);
+            db.run(`DELETE FROM qr_numbers WHERE qr_id=?`, [qr_id]);
 
+            db.run(`INSERT INTO qr_numbers (qr_id, phone, type) VALUES (?, ?, ?)`,
+                [qr_id, primary, "primary"]);
+
+            if (secondary) {
                 db.run(`INSERT INTO qr_numbers (qr_id, phone, type) VALUES (?, ?, ?)`,
-                    [qr_id, primary, "primary"]);
-
-                if (secondary) {
-                    db.run(`INSERT INTO qr_numbers (qr_id, phone, type) VALUES (?, ?, ?)`,
-                        [qr_id, secondary, "secondary"]);
-                }
-
-                res.json({ success: true });
+                    [qr_id, secondary, "secondary"]);
             }
-        );
+
+            res.json({ success: true });
+        }
+    );
 
     });
 

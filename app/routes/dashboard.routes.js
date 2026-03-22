@@ -75,13 +75,9 @@ router.get("/", (req, res) => {
                                 for (let i = 0; i < missing; i++) {
                                     const qrId = require("../utils/qrGenerator")();
 
-                                    const expiryDate = new Date();
-                                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                                    const expiryString = expiryDate.toISOString();
-
                                     db.run(
-                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, expiry_date)
-                                         VALUES (?, ?, ?, 'inactive', 'web', ?)`,
+                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source)
+                                         VALUES (?, ?, ?, 'inactive', 'web')`,
                                         [qrId, userId, user.plan_type, expiryString]
                                     );
 
@@ -100,10 +96,18 @@ router.get("/", (req, res) => {
                             const today = new Date();
 
                             Object.values(grouped).forEach(q => {
-                                if (user.subscription_expiry) {
-                                    const expiry = new Date(user.subscription_expiry);
+
+                                // If no primary number → not activated yet
+                                if (!q.primary) {
+                                    q.status = "inactive";
+                                } else if (q.status === "disabled") {
+                                    q.status = "disabled";
+                                } else if (q.expiry) {
+                                    const expiry = new Date(q.expiry);
                                     if (today > expiry) {
                                         q.status = "expired";
+                                    } else {
+                                        q.status = "active";
                                     }
                                 }
                             });

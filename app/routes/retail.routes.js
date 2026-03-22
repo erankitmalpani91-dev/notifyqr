@@ -23,9 +23,13 @@ router.post("/activate-retail", (req, res) => {
 
                 db.run(
                     `UPDATE qr_codes 
- SET user_id=?, asset_name=?, status='active', expiry_date=?
- WHERE qr_id=?`,
-                    [userId, asset, expiryString, qr_id]
+     SET user_id=?,
+         asset_name=?,
+         status='active',
+         expiry_date = DATE('now', '+365 days'),
+         claimed_at = CURRENT_TIMESTAMP
+     WHERE qr_id=?`,
+                    [userId, asset, qr_id]
                 );
 
                 db.run(
