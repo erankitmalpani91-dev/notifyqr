@@ -160,9 +160,12 @@ WHERE user_id=?`,
 
                         if (user) {
                             userId = user.id;
-
-                            // 👇 ADD THIS LINE
                             password = "USE_YOUR_EXISTING_PASSWORD";
+
+                            db.run(
+                                `UPDATE users SET email=?, name=? WHERE id=?`,
+                                [email, name, userId]
+                            );
                         } else {
 
                             password = Math.random().toString(36).slice(-8);

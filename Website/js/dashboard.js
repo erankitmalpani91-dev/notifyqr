@@ -26,45 +26,48 @@ fetch("/api/dashboard")
         data.qrs.forEach(qr => {
 
             if (qr.status === "inactive" && qr.source === "web") {
+                // Setup table
+            } else {
+                // Active table
+            }
 
                 document.getElementById("setupTable").innerHTML += `
+                <tr>
+                <td>${setupIndex++}</td>
+                <td>${data.user.plan_type}</td>
+                <td>${qr.qr_id}</td>
 
-<tr>
-<td>${setupIndex++}</td>
-<td>${data.user.plan_type}</td>
-<td>${qr.qr_id}</td>
+                <td>${qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "-"}</td>
 
-<td>
-${qr.asset_name ?
-        `<b>${qr.asset_name}</b>` :
-        `<select id="asset_${qr.qr_id}">
-            <option>Car</option>
-            <option>Bike</option>
-            <option>Laptop</option>
-            <option>Bag</option>
-            <option>Keys</option>
-            <option>Pet</option>
+                <td>
+                ${qr.status === "inactive"
+                        ? `<select id="asset_${qr.qr_id}">
+            <option ${qr.asset_name === "Car" ? "selected" : ""}>Car</option>
+            <option ${qr.asset_name === "Bike" ? "selected" : ""}>Bike</option>
+            <option ${qr.asset_name === "Laptop" ? "selected" : ""}>Laptop</option>
+            <option ${qr.asset_name === "Bag" ? "selected" : ""}>Bag</option>
+            <option ${qr.asset_name === "Keys" ? "selected" : ""}>Keys</option>
+            <option ${qr.asset_name === "Pet" ? "selected" : ""}>Pet</option>
         </select>`
+                        : `<b>${qr.asset_name || "-"}</b>`
 }
 </td>
 
-<td>${qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "-"}</td>
+        <td>
+        <input id="p_${qr.qr_id}" placeholder="Primary">
+        </td>
 
-<td>
-<input id="p_${qr.qr_id}" placeholder="Primary">
-</td>
+        <td>
+        <input id="s_${qr.qr_id}" placeholder="Secondary">
+        </td>
 
-<td>
-<input id="s_${qr.qr_id}" placeholder="Secondary">
-</td>
-
-<td>
-<button onclick="activate('${qr.qr_id}')">
-Activate
-</button>
-</td>
-</tr>
-`;
+        <td>
+        <button onclick="activate('${qr.qr_id}')">
+        Activate
+        </button>
+        </td>
+        </tr>
+        `;
 
             } else {
 

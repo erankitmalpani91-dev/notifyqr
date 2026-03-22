@@ -99,16 +99,23 @@ router.get("/", (req, res) => {
 
                             Object.values(grouped).forEach(q => {
 
-                                // If no primary number → not activated yet
                                 if (q.status === "disabled") {
                                     q.status = "disabled";
-                                } else if (q.expiry) {
+                                    return;
+                                }
+
+                                if (q.expiry) {
                                     const expiry = new Date(q.expiry);
                                     if (today > expiry) {
                                         q.status = "expired";
                                     } else {
                                         q.status = "active";
                                     }
+                                    return;
+                                }
+
+                                if (q.primary) {
+                                    q.status = "active";
                                 } else {
                                     q.status = "inactive";
                                 }
