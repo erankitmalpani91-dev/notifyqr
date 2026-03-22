@@ -61,45 +61,53 @@ fetch("/api/dashboard")
                 const isDisabled = qr.status === "disabled";
                 const isExpired = qr.status === "expired";
 
+                let secondarySection = "";
+
+                if (qr.secondary) {
+                    secondarySection =
+                        "<small id='secondary_" + qr.qr_id + "'>S: " + qr.secondary + "</small><br>" +
+                        "<button onclick=\"editSecondary('" + qr.qr_id + "')\">Edit</button>";
+                } else {
+                    secondarySection =
+                        "<input id='sec_" + qr.qr_id + "' placeholder='Add Secondary'><br>" +
+                        "<button onclick=\"addSecondary('" + qr.qr_id + "')\">Add</button>";
+                }
+
                 document.getElementById("activeTable").innerHTML += `
-        <tr ${(isDisabled || isExpired) ? "style='opacity:0.5;'" : ""}>
-        <td>${activeIndex++}</td>
-        <td>${qr.qr_id}</td>
+                <tr ${(isDisabled || isExpired) ? "style='opacity:0.5;'" : ""}>
+                <td>${activeIndex++}</td>
+                <td>${qr.qr_id}</td>
 
-        <td>
-        ${qr.asset_name || "Not Assigned"}<br>
-        <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
+                <td>
+                ${qr.asset_name || "Not Assigned"}<br>
+                <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
+                ${secondarySection}
+                </td>
 
-        ${qr.secondary
-                        ? `<small id="secondary_${qr.qr_id}">S: ${qr.secondary}</small><br>
-               <button onclick="editSecondary('${qr.qr_id}')">Edit</button>`
-                        : `<input id="sec_${qr.qr_id}" placeholder="Add Secondary"><br>
-               <button onclick="addSecondary('${qr.qr_id}')">Add</button>`
-                    }
-        </td>
+                <td>${qr.expiry ? new Date(qr.expiry).toLocaleDateString() : "N/A"}</td>
 
-        <td>${qr.expiry ? new Date(qr.expiry).toLocaleDateString() : "N/A"}</td>
+                <td>
+                ${(isDisabled || isExpired)
+                                        ? "-"
+                                        : `<a href="/qrcodes/${qr.qr_id}.png" download>Download</a>`
+                                    }
+                </td>
 
-        <td>
-        ${(isDisabled || isExpired)
-                        ? "-"
-                        : `<a href="/qrcodes/${qr.qr_id}.png" download>Download</a>`
-                    }
-        </td>
-
-        <td>
-        ${isExpired
+                <td>
+                ${isExpired
                         ? `<button onclick="renewSubscriptionPlan()">Renew</button>`
                         : isDisabled
                             ? `<button onclick="reactivate('${qr.qr_id}')">Reactivate</button>`
                             : `<button onclick="deactivate('${qr.qr_id}')">Deactivate</button>`
                     }
-        </td>
-        </tr>
-        `;
+                </td>
+
+                </tr>
+                `;
             }
 
         });
+    }); // THIS WAS MISSING
 
 
 function addSecondary(qrId) {
