@@ -26,101 +26,80 @@ fetch("/api/dashboard")
         data.qrs.forEach(qr => {
 
             if (qr.status === "inactive" && qr.source === "web") {
-                // Setup table
-            } else {
-                // Active table
-            }
 
+                // SETUP TABLE
                 document.getElementById("setupTable").innerHTML += `
-                <tr>
-                <td>${setupIndex++}</td>
-                <td>${data.user.plan_type}</td>
-                <td>${qr.qr_id}</td>
+        <tr>
+        <td>${setupIndex++}</td>
+        <td>${data.user.plan_type}</td>
+        <td>${qr.qr_id}</td>
+        <td>${qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "-"}</td>
 
-                <td>${qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "-"}</td>
-
-                <td>
-                ${qr.status === "inactive"
-                        ? `<select id="asset_${qr.qr_id}">
+        <td>
+        <select id="asset_${qr.qr_id}">
             <option ${qr.asset_name === "Car" ? "selected" : ""}>Car</option>
             <option ${qr.asset_name === "Bike" ? "selected" : ""}>Bike</option>
             <option ${qr.asset_name === "Laptop" ? "selected" : ""}>Laptop</option>
             <option ${qr.asset_name === "Bag" ? "selected" : ""}>Bag</option>
             <option ${qr.asset_name === "Keys" ? "selected" : ""}>Keys</option>
             <option ${qr.asset_name === "Pet" ? "selected" : ""}>Pet</option>
-        </select>`
-                        : `<b>${qr.asset_name || "-"}</b>`
-}
-</td>
-
-        <td>
-        <input id="p_${qr.qr_id}" placeholder="Primary">
+        </select>
         </td>
 
-        <td>
-        <input id="s_${qr.qr_id}" placeholder="Secondary">
-        </td>
+        <td><input id="p_${qr.qr_id}" placeholder="Primary"></td>
+        <td><input id="s_${qr.qr_id}" placeholder="Secondary"></td>
 
         <td>
-        <button onclick="activate('${qr.qr_id}')">
-        Activate
-        </button>
+        <button onclick="activate('${qr.qr_id}')">Activate</button>
         </td>
         </tr>
         `;
 
             } else {
 
+                // ACTIVE TABLE
                 const isDisabled = qr.status === "disabled";
                 const isExpired = qr.status === "expired";
 
                 document.getElementById("activeTable").innerHTML += `
-<tr ${(isDisabled || isExpired) ? "style='opacity:0.5;'" : ""}>
-<td>${activeIndex++}</td>
-<td>${qr.qr_id}</td>
+        <tr ${(isDisabled || isExpired) ? "style='opacity:0.5;'" : ""}>
+        <td>${activeIndex++}</td>
+        <td>${qr.qr_id}</td>
 
-<td>
-${qr.asset_name || "Not Assigned"}<br>
-<small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
+        <td>
+        ${qr.asset_name || "Not Assigned"}<br>
+        <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
 
-${qr.secondary ? `
+        ${qr.secondary
+                        ? `<small id="secondary_${qr.qr_id}">S: ${qr.secondary}</small><br>
+               <button onclick="editSecondary('${qr.qr_id}')">Edit</button>`
+                        : `<input id="sec_${qr.qr_id}" placeholder="Add Secondary"><br>
+               <button onclick="addSecondary('${qr.qr_id}')">Add</button>`
+                    }
+        </td>
 
-<small id="secondary_${qr.qr_id}">S: ${qr.secondary}</small><br>
+        <td>${qr.expiry ? new Date(qr.expiry).toLocaleDateString() : "N/A"}</td>
 
-<button onclick="editSecondary('${qr.qr_id}')">Edit</button>
+        <td>
+        ${(isDisabled || isExpired)
+                        ? "-"
+                        : `<a href="/qrcodes/${qr.qr_id}.png" download>Download</a>`
+                    }
+        </td>
 
-` : `
-
-<input id="sec_${qr.qr_id}" placeholder="Add Secondary" style="margin-top:5px;"><br>
-
-<button onclick="addSecondary('${qr.qr_id}')">Add</button>
-
-`}
-
-</td>
-
-<td>${qr.expiry ? new Date(qr.expiry).toLocaleDateString() : "N/A"}</td>
-
-<td>
-${(isDisabled || isExpired) ? "-" : `<a href="/qrcodes/${qr.qr_id}.png" download>Download</a>`}
-</td>
-
-<td>
-${isExpired
+        <td>
+        ${isExpired
                         ? `<button onclick="renewSubscriptionPlan()">Renew</button>`
                         : isDisabled
                             ? `<button onclick="reactivate('${qr.qr_id}')">Reactivate</button>`
                             : `<button onclick="deactivate('${qr.qr_id}')">Deactivate</button>`
-}
-</td>
-
-</tr>
-`;
+                    }
+        </td>
+        </tr>
+        `;
             }
 
         });
-
-    });
 
 
 function addSecondary(qrId) {
