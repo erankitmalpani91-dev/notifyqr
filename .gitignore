@@ -3,3 +3,8 @@ node_modules/
 .vs/
 database/reachoutowner.sqlite
 storage/
+app/db.sqlite
+database/
+storage/
+qrcodes/
+logs/
