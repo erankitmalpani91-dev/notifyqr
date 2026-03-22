@@ -36,17 +36,19 @@ fetch("/api/dashboard")
 
 <td>
 ${qr.asset_name ?
-                        `<b>${qr.asset_name}</b>` :
-                        `<select id="asset_${qr.qr_id}">
-        <option>Car</option>
-        <option>Bike</option>
-        <option>Laptop</option>
-        <option>Bag</option>
-        <option>Keys</option>
-        <option>Pet</option>
-    </select>`
+        `<b>${qr.asset_name}</b>` :
+        `<select id="asset_${qr.qr_id}">
+            <option>Car</option>
+            <option>Bike</option>
+            <option>Laptop</option>
+            <option>Bag</option>
+            <option>Keys</option>
+            <option>Pet</option>
+        </select>`
 }
 </td>
+
+<td>${qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "-"}</td>
 
 <td>
 <input id="p_${qr.qr_id}" placeholder="Primary">

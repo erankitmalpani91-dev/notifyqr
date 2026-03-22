@@ -24,6 +24,7 @@ router.get("/", (req, res) => {
                     q.asset_name,
                     q.source,
                     q.expiry_date,
+                    q.created_at,
                     n.phone,
                     n.type
                 FROM qr_codes q
@@ -46,6 +47,7 @@ router.get("/", (req, res) => {
                                 primary: null,
                                 secondary: null,
                                 expiry: r.expiry_date,
+                                created_at: r.created_at,
                                 source: r.source
                             };
                         }
@@ -78,7 +80,7 @@ router.get("/", (req, res) => {
                                     db.run(
                                         `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source)
                                          VALUES (?, ?, ?, 'inactive', 'web')`,
-                                        [qrId, userId, user.plan_type, expiryString]
+                                        [qrId, userId, user.plan_type]
                                     );
 
                                     grouped[qrId] = {
@@ -98,9 +100,7 @@ router.get("/", (req, res) => {
                             Object.values(grouped).forEach(q => {
 
                                 // If no primary number → not activated yet
-                                if (!q.primary) {
-                                    q.status = "inactive";
-                                } else if (q.status === "disabled") {
+                                if (q.status === "disabled") {
                                     q.status = "disabled";
                                 } else if (q.expiry) {
                                     const expiry = new Date(q.expiry);
@@ -109,6 +109,8 @@ router.get("/", (req, res) => {
                                     } else {
                                         q.status = "active";
                                     }
+                                } else {
+                                    q.status = "inactive";
                                 }
                             });
 
