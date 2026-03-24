@@ -89,7 +89,8 @@ router.get("/", (req, res) => {
                                         asset_name: null,
                                         primary: null,
                                         secondary: null,
-                                        expiry: expiryString,
+                                        expiry: null,
+                                        created_at: new Date().toISOString(),
                                         source: "web"
                                     };
                                 }
@@ -97,10 +98,11 @@ router.get("/", (req, res) => {
 
                             const today = new Date();
 
+                            const today = new Date();
+
                             Object.values(grouped).forEach(q => {
 
                                 if (q.status === "disabled") {
-                                    q.status = "disabled";
                                     return;
                                 }
 

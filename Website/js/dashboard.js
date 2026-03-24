@@ -135,6 +135,7 @@ function addSecondary(qrId) {
             "Content-Type": "application/json",
             
         },
+        credentials: "include",
         body: JSON.stringify({ qr_id: qrId, phone: num })
     })
         .then(res => res.json())
@@ -180,6 +181,7 @@ function activate(qrId) {
             "Content-Type": "application/json",
           
         },
+        credentials: "include",
         body: JSON.stringify({
             qr_id: qrId,
             asset_name: asset,
@@ -198,6 +200,7 @@ function deactivate(qrId) {
             "Content-Type": "application/json",
            
         },
+        credentials: "include",
         body: JSON.stringify({ qr_id: qrId })
     }).then(() => location.reload());
 
@@ -244,6 +247,7 @@ function reactivate(qrId) {
             "Content-Type": "application/json",
             
         },
+        credentials: "include",
         body: JSON.stringify({ qr_id: qrId })
     }).then(() => location.reload());
 

@@ -6,13 +6,10 @@ const verify = require("../middlewares/auth.middleware");
 router.post("/activate", verify, (req, res) => {
 
     const { qr_id, asset_name, primary, secondary } = req.body;
-
-    
-
     db.run(
         `UPDATE qr_codes
      SET status='active',
-         asset_name = COALESCE(?, asset_name),
+         asset_name = ?,
          expiry_date = DATE('now', '+365 days'),
          claimed_at = CURRENT_TIMESTAMP
      WHERE qr_id=? AND user_id=?`,
@@ -32,10 +29,38 @@ router.post("/activate", verify, (req, res) => {
             res.json({ success: true });
         }
     );
+    
 
     });
 
 
+router.post("/deactivate", verify, (req, res) => {
+
+    const { qr_id } = req.body;
+
+    db.run(
+        `UPDATE qr_codes
+SET status='disabled'
+WHERE qr_id=? AND user_id=?`,
+        [qr_id, req.user.id],
+        () => res.json({ success: true })
+    );
+
+});
+
+router.post("/reactivate", verify, (req, res) => {
+
+    const { qr_id } = req.body;
+
+    db.run(
+        `UPDATE qr_codes
+         SET status='active'
+         WHERE qr_id=? AND user_id=?`,
+        [qr_id, req.user.id],
+        () => res.json({ success: true })
+    );
+
+});
 router.post("/deactivate", verify, (req, res) => {
 
     const { qr_id } = req.body;
