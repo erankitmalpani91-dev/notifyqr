@@ -98,8 +98,6 @@ router.get("/", (req, res) => {
 
                             const today = new Date();
 
-                            const today = new Date();
-
                             Object.values(grouped).forEach(q => {
 
                                 if (q.status === "disabled") {
