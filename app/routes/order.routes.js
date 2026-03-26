@@ -384,7 +384,6 @@ router.post("/create-renewal-order", async (req, res) => {
     );
 
 });
-
 router.get("/magic-login/:token", (req, res) => {
 
     const { token } = req.params;
@@ -395,14 +394,23 @@ router.get("/magic-login/:token", (req, res) => {
         (err, user) => {
 
             if (!user) {
-                return res.send("Invalid link");
+                return res.send("Invalid or expired login link");
             }
 
+            // Create session
             req.session.userId = user.id;
 
-            return res.redirect("/dashboard.html");
+            // OPTIONAL: clear token so link becomes single-use
+            db.run(
+                `UPDATE users SET login_token=NULL WHERE id=?`,
+                [user.id]
+            );
+
+            res.redirect("/dashboard.html");
+
         }
     );
+
 });
 
 router.post("/api/logout", (req, res) => {
