@@ -61,73 +61,35 @@ router.get("/", (req, res) => {
                         }
                     });
 
-                    // 🧪 SLOT-FILLING LOGIC
-                    db.get(
-                        `SELECT COUNT(*) as count FROM qr_codes WHERE user_id=?`,
-                        [userId],
-                        (err, row) => {
-                            if (err) return res.status(500).json({ error: err.message });
+                    const today = new Date();
 
-                            const currentCount = row.count;
-                            const requiredSlots = user.max_qr_slots || 0;
+                    Object.values(grouped).forEach(q => {
 
-                            if (currentCount < requiredSlots) {
-                                const missing = requiredSlots - currentCount;
-
-                                for (let i = 0; i < missing; i++) {
-                                    const qrId = require("../utils/qrGenerator")();
-
-                                    db.run(
-                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source)
-                                         VALUES (?, ?, ?, 'inactive', 'web')`,
-                                        [qrId, userId, user.plan_type]
-                                    );
-
-                                    grouped[qrId] = {
-                                        qr_id: qrId,
-                                        status: "inactive",
-                                        asset_name: null,
-                                        primary: null,
-                                        secondary: null,
-                                        expiry: null,
-                                        created_at: new Date().toISOString(),
-                                        source: "web"
-                                    };
-                                }
-                            }
-
-                            const today = new Date();
-
-                            Object.values(grouped).forEach(q => {
-
-                                if (q.status === "disabled") {
-                                    return;
-                                }
-
-                                if (q.expiry) {
-                                    const expiry = new Date(q.expiry);
-                                    if (today > expiry) {
-                                        q.status = "expired";
-                                    } else {
-                                        q.status = "active";
-                                    }
-                                    return;
-                                }
-
-                                if (q.primary) {
-                                    q.status = "active";
-                                } else {
-                                    q.status = "inactive";
-                                }
-                            });
-
-                            // ✅ Respond
-                            res.json({
-                                user,
-                                qrs: Object.values(grouped)
-                            });
+                        if (q.status === "disabled") {
+                            return;
                         }
-                    ); // closes inner db.get
+
+                        if (q.expiry) {
+                            const expiry = new Date(q.expiry);
+                            if (today > expiry) {
+                                q.status = "expired";
+                            } else {
+                                q.status = "active";
+                            }
+                            return;
+                        }
+
+                        if (q.primary) {
+                            q.status = "active";
+                        } else {
+                            q.status = "inactive";
+                        }
+                    });
+
+                    res.json({
+                        user,
+                        qrs: Object.values(grouped)
+                    });
                 }
             ); // closes db.all
         }

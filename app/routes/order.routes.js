@@ -263,8 +263,8 @@ WHERE user_id=?`,
                                     await QRCode.toFile(qrPath, qrUrl);
 
                                     db.run(
-                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, asset_name)
-                                        VALUES (?, ?, ?, 'inactive', 'web', ?)`,
+                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, asset_name, created_at)
+                                        VALUES (?, ?, ?, 'inactive', 'web', ?, CUURENT_TIMESTAMP)`,
                                         [qrId, userId, order.plan_type, orderAsset || null]
                                     );
                                 }

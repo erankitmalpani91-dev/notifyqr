@@ -3,252 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Checkout | ReachOutOwner</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <style>
-
-        .checkout-container {
-            max-width: 420px;
-            width: 92%;
-            margin: 40px auto;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        }
-
-            .checkout-container h2 {
-                margin-bottom: 20px;
-            }
-
         body {
             background: #f5f7fb;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        .checkout-form input,
-        .checkout-form textarea {
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 14px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 15px;
-            background: #fafafa;
+            margin: 0;
         }
 
-        .checkout-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #3a5bff, #1f3cff);
-            color: white;
-            border: none;
+        /* Layout */
+        .checkout-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 1000px;
+            margin: 25px auto;
+            padding: 10px;
+        }
+
+        .checkout-left {
+            flex: 2;
+        }
+
+        .checkout-right {
+            flex: 1;
+        }
+
+        /* Cards */
+        .card {
+            background: #ffffff;
+            padding: 18px;
             border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+            margin-bottom: 14px;
         }
 
-            .checkout-btn:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 15px rgba(31,60,255,0.25);
+        h3 {
+            margin: 0 0 8px 0;
+            font-size: 17px;
+        }
+
+        /* Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        /* Inputs */
+        input, textarea, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fafafa;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        textarea {
+            min-height: 65px;
+        }
+
+            input:focus, textarea:focus, select:focus {
+                border-color: #3a5bff;
+                outline: none;
+                background: #fff;
             }
 
-        .plan-summary {
-            background: #f1f4ff;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #e0e6ff;
+        /* Summary */
+        .summary {
+            position: sticky;
+            top: 20px;
         }
-        .input-group label {
-            font-size: 12px;
-            color: #777;
-            display: block;
-            margin-bottom: 5px;
+
+        .total {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1f3cff;
+            margin: 10px 0;
         }
-        .checkout-form select {
+
+        .pay-btn {
             width: 100%;
-            padding: 14px;
-            margin-bottom: 14px;
-            border: 1px solid #ddd;
+            padding: 13px;
+            background: linear-gradient(135deg, #ff7a18, #ffb347);
+            color: white;
+            border: none;
             border-radius: 10px;
             font-size: 15px;
-            background-color: #fafafa;
-            color: #333;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg fill='%23777' height='20' viewBox='0 0 20 20' width='20'><path d='M5.516 7.548l4.484 4.484 4.484-4.484z'/></svg>");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
+            cursor: pointer;
         }
-        
-    </style>
+        /* Show number input arrows */
+        input[type=number] {
+            -webkit-appearance: auto;
+            appearance: auto;
+        }
 
+        
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .checkout-wrapper {
+                flex-direction: column;
+                margin: 10px;
+            }
+
+            .card {
+                padding: 14px;
+                margin-bottom: 10px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr 1fr; /* keep side-by-side on mobile */
+            }
+
+            textarea.full {
+                grid-column: 1 / -1;
+            }
+
+            .total {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="checkout-container">
+    <div class="checkout-wrapper">
 
-        <h2 style="text-align:center; margin-bottom:20px;">
-            Secure Your Assets 🔒
-        </h2>
+        <!-- LEFT SIDE -->
+        <div class="checkout-left">
 
-        <div class="plan-summary">
-            <p><strong>Product:</strong> QR Protection (1 Year)</p>
+            <!-- QR + Usage in one card -->
+            <div class="card">
+                <h3>Number of QR and Usage</h3>
+                <div class="form-grid">
+                    <input type="number" id="quantity" value="1" min="1" max="50">
+                    <select id="assetType">
+                        <option value="">Usage (Optional)</option>
+                        <option value="car">Car</option>
+                        <option value="bike">Bike</option>
+                        <option value="bag">Bag</option>
+                        <option value="laptop">Laptop</option>
+                        <option value="keys">Keys</option>
+                        <option value="pet">Pet</option>
+                        <option value="child">Child</option>
+                        <option value="vehicle">Vehicle</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
 
-            <label><strong>Number of QRs:</strong></label>
-            <input type="number" id="quantity" value="1" min="1" max="50" style="width:100px;">
+            <!-- Contact -->
+            <div class="card">
+                <h3>Contact Details</h3>
+                <div class="form-grid">
+                    <input type="text" id="name" placeholder="Full Name" class="full" required>
+                    <input type="text" id="phone" placeholder="Mobile Number" required>
+                    <input type="email" id="email" placeholder="Email Address" required>
+                </div>
+            </div>
 
-            <p style="margin-top:10px;">
-                <strong>Total:</strong> ₹<span id="totalPrice">199</span>
-            </p>
+            <!-- Address -->
+            <div class="card">
+                <h3>Shipping Address</h3>
+                <div class="form-grid">
+                    <textarea id="address" placeholder="Shipping Address" class="full" required></textarea>
+                    <input type="text" id="city" placeholder="City" required>
+                    <input type="text" id="state" placeholder="State" required>
+                    <input type="text" id="pincode" placeholder="Pincode" required maxlength="6">
+                </div>
+            </div>
+
         </div>
 
-        <form id="checkoutForm" class="checkout-form">
+        <!-- RIGHT SIDE SUMMARY -->
+        <div class="checkout-right">
+            <div class="card summary">
+                <h3>Order Summary</h3>
+                <p>QR Protection (1 Year)</p>
+                <p>Price per QR: ₹299</p>
 
-            <input type="text" id="name" placeholder="Full Name" required minlength="3">
+                <div class="total">
+                    Total ₹<span id="totalPrice">299</span>
+                </div>
 
-            <input type="text"
-                   id="phone"
-                   placeholder="Mobile Number"
-                   required
-                   pattern="[1-9][0-9]{9}"
-                   maxlength="10">
+                <button class="pay-btn" id="payButton">
+                    Proceed to Payment
+                </button>
 
-            <input type="email" id="email" placeholder="Email Address" required>
-
-            <select id="assetType">
-                <option value="">Where will you use it (optional)</option>
-                <option value="car">Car</option>
-                <option value="bike">Bike / Scooter</option>
-                <option value="bag">Bag / Luggage</option>
-                <option value="laptop">Laptop / Mobile</option>
-                <option value="keys">Keys</option>
-                <option value="pet">Pet</option>
-                <option value="child">Child</option>
-                <option value="vehicle">Other Vehicle</option>
-                <option value="other">Other</option>
-            </select>
-            
-            <textarea id="address" placeholder="Shipping Address" required></textarea>
-
-            <input type="text" id="city" placeholder="City" required>
-
-            <input type="text" id="state" placeholder="State" required>
-
-            <input type="text" id="pincode" placeholder="Pincode" required pattern="[0-9]{6}">
-
-            <button type="submit" class="checkout-btn">
-                Proceed to Payment
-            </button>
-
-        </form>
+                <p style="font-size:12px;color:gray;">
+                    Secure payment via Razorpay
+                </p>
+            </div>
+        </div>
 
     </div>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-
     <script>
-        const phoneInput = document.getElementById("phone");
-        const pincodeInput = document.getElementById("pincode");
-        const emailInput = document.getElementById("email");
-
-        const pricePerQR = 199;
-
+        const pricePerQR = 299;
         const qtyInput = document.getElementById("quantity");
         const totalPriceEl = document.getElementById("totalPrice");
 
+        /* Price Calculation */
         qtyInput.addEventListener("input", () => {
-
             let qty = parseInt(qtyInput.value) || 1;
-
             if (qty < 1) qty = 1;
             if (qty > 50) qty = 50;
-
             qtyInput.value = qty;
-
             totalPriceEl.innerText = qty * pricePerQR;
-
         });
 
-        phoneInput.addEventListener("input", function () {
-            // Remove anything that's not a digit
+        /* Input Restrictions */
+        document.getElementById("name").addEventListener("input", function () {
+            this.value = this.value.replace(/[^A-Za-z ]/g, '');
+        });
+        document.getElementById("city").addEventListener("input", function () {
+            this.value = this.value.replace(/[^A-Za-z ]/g, '');
+        });
+        document.getElementById("state").addEventListener("input", function () {
+            this.value = this.value.replace(/[^A-Za-z ]/g, '');
+        });
+        document.getElementById("pincode").addEventListener("input", function () {
             this.value = this.value.replace(/\D/g, '');
-
-            // Prevent starting with 0
-            if (this.value.startsWith("0")) {
-                this.value = this.value.slice(1);
-            }
-
-            // Limit to 10 digits
-            if (this.value.length > 10) {
-                this.value = this.value.slice(0, 10);
-            }
+        });
+        document.getElementById("phone").addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, '');
         });
 
-        phoneInput.addEventListener("blur", function () {
-            if (!/^[1-9][0-9]{9}$/.test(this.value)) {
-                this.setCustomValidity("Enter a valid 10-digit mobile number (cannot start with 0)");
-                this.reportValidity();
-            } else {
-                this.setCustomValidity("");
-            }
-        });
-
-        pincodeInput.addEventListener("blur", function () {
-            if (!/^[0-9]{6}$/.test(this.value)) {
-                this.setCustomValidity("Enter a valid 6 digit pincode");
-                this.reportValidity();
-            } else {
-                this.setCustomValidity("");
-            }
-        });
-
-        emailInput.addEventListener("blur", function () {
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailPattern.test(this.value)) {
-                this.setCustomValidity("Enter a valid email address");
-                this.reportValidity();
-            } else {
-                this.setCustomValidity("");
-            }
-        });
-
-
-
-        document.getElementById("checkoutForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
+        /* Razorpay */
+        document.getElementById("payButton").addEventListener("click", async function () {
 
             const name = document.getElementById("name").value;
             const phone = document.getElementById("phone").value;
             const email = document.getElementById("email").value;
-            const address = document.getElementById("address").value;
-            const city = document.getElementById("city").value;
-            const state = document.getElementById("state").value;
-            const pincode = document.getElementById("pincode").value;
-
-            // ✅ Calculate quantity before fetch
-            const quantityValue = document.getElementById("quantity").value;
-            const quantity = Number(quantityValue);
-            console.log("Sending quantity:", quantity);
-
-            // ✅ Correct fetch call
+            const quantity = Number(document.getElementById("quantity").value);
             const assetType = document.getElementById("assetType").value;
+
+            if (!name || !phone || !email) {
+                alert("Please fill all mandatory fields");
+                return;
+            }
 
             const response = await fetch("/create-order", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     quantity,
                     name,
@@ -259,12 +267,6 @@
             });
 
             const data = await response.json();
-            console.log("ORDER RESPONSE:", data);
-
-            if (!data.orderId) {
-                alert("Order creation failed");
-                return;
-            }
 
             const options = {
                 key: data.key,
@@ -274,29 +276,24 @@
                 description: "QR Subscription",
                 order_id: data.orderId,
                 handler: async function (response) {
-                    try {
-                        const verify = await fetch("/verify-payment", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                phone: phone,
-                                email: email,
-                                name: name
-                            })
-                        });
+                    const verify = await fetch("/verify-payment", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            phone: phone,
+                            email: email,
+                            name: name
+                        })
+                    });
 
-                        const result = await verify.json();
-                        if (result.success) {
-                            window.location.href = "/payment-success.html?phone=" + phone;
-                        } else {
-                            alert("Payment verification failed");
-                        }
-                    } catch (err) {
-                        console.error("Verification error:", err);
-                        alert("Server error during payment verification");
+                    const result = await verify.json();
+                    if (result.success) {
+                        window.location.href = "/payment-success.html?phone=" + phone;
+                    } else {
+                        alert("Payment verification failed");
                     }
                 }
             };
@@ -304,7 +301,6 @@
             const rzp = new Razorpay(options);
             rzp.open();
         });
-
     </script>
 
 </body>
