@@ -264,7 +264,7 @@ WHERE user_id=?`,
 
                                     db.run(
                                         `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, asset_name, created_at)
-                                        VALUES (?, ?, ?, 'inactive', 'web', ?, CUURENT_TIMESTAMP)`,
+                                        VALUES (?, ?, ?, 'inactive', 'web', ?, CURRENT_TIMESTAMP)`,
                                         [qrId, userId, order.plan_type, orderAsset || null]
                                     );
                                 }
