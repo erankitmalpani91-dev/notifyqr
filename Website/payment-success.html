@@ -43,7 +43,7 @@ margin-bottom:20px;
 <p>Your QR protection plan is now active.</p>
 
 <p>
-    Your login link has been sent to your <strong>WhatsApp</strong>.
+    Your login link has been sent to your <strong>WhatsApp</strong> and <strong>Email</strong>.
     Please click the link to access your dashboard.
 </p>
 
@@ -62,12 +62,8 @@ Go to Home
 </div>
 
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const phone = params.get("phone");
-
-    if (phone) {
-        localStorage.setItem("user_phone", phone);
-    }
+    const name = sessionStorage.getItem("paymentName");
+    sessionStorage.removeItem("paymentName");
 
     
 </script>

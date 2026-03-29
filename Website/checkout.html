@@ -229,9 +229,17 @@
             }
         }
 
-        document.getElementById("orderItems").innerHTML = orderHTML;
+        document.getElementById("orderItems").innerHTML = orderHTML || '<p>Your cart is empty. <a href="https://reachoutowner.com/#pricing-section">Browse QR plans</a></p>';
         document.getElementById("totalPrice").innerText = totalAmount;
         document.getElementById("totalQty").innerText = totalQty;
+
+        if (totalAmount === 0) {
+            const btn = document.getElementById("payButton");
+            btn.disabled = true;
+            btn.innerText = "Your cart is empty";
+            btn.style.opacity = "0.5";
+            btn.style.cursor = "not-allowed";
+        }
         
         /* Input Restrictions */
         document.getElementById("name").addEventListener("input", function () {
@@ -246,25 +254,6 @@
         document.getElementById("pincode").addEventListener("input", function () {
             this.value = this.value.replace(/\D/g, '');
         });
-        document.getElementById("phone").addEventListener("input", function () {
-            // Remove non-digit characters
-            this.value = this.value.replace(/\D/g, '');
-
-            // Enforce max length of 10 digits
-            if (this.value.length > 10) {
-                this.value = this.value.slice(0, 10);
-            }
-
-            // Regex: must be exactly 10 digits and start with 4–9
-            const phonePattern = /^[4-9]\d{9}$/;
-
-            if (!phonePattern.test(this.value)) {
-                this.setCustomValidity("Please enter a valid 10-digit mobile number starting with 4–9");
-            } else {
-                this.setCustomValidity("");
-            }
-        });
-
         const phoneInput = document.getElementById("phone");
 
         phoneInput.addEventListener("input", function () {
@@ -288,7 +277,11 @@
         
 
         /* Razorpay */
-        document.getElementById("payButton").addEventListener("click", async function () {
+        document.getElementById("payButton").addEventListener("click", async function() {
+
+            const btn = document.getElementById("payButton");
+            btn.disabled = true;
+            btn.innerText = "Processing...";
 
             const name = document.getElementById("name");
             const phone = document.getElementById("phone");
@@ -311,7 +304,6 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    amount: totalAmount,
                     quantity: totalQty,
                     cart: cart,
                     name: name.value,
@@ -323,8 +315,10 @@
             const data = await response.json();
 
             if (!data.success) {
-                alert("Order creation failed");
-                return;
+                    alert("Order creation failed");
+                    btn.disabled = false;
+                    btn.innerText = "Proceed to Payment";
+                    return;
             }
 
             const options = {
@@ -354,9 +348,12 @@
 
                     if (result.success) {
                         localStorage.removeItem("cart");
-                        window.location.href = "/payment-success.html?phone=" + phone.value;
+                        sessionStorage.setItem("paymentName", name.value);
+                        window.location.href = "/payment-success.html;
                     } else {
                         alert("Payment verification failed");
+                        btn.disabled = false;
+                        btn.innerText = "Proceed to Payment";
                     }
                 }
             };

@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const QRCode = require("qrcode");
@@ -16,6 +15,8 @@ const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+const qrFolder = path.join(__dirname, "../../storage/qrcodes");
+fs.promises.mkdir(qrFolder, { recursive: true }).catch(console.error);
 
 const { sendEmail } = require("../services/email.service");
 
@@ -23,13 +24,43 @@ const { sendEmail } = require("../services/email.service");
 
 router.post("/create-order", async (req, res) => {
 
-    const { amount, quantity, name, phone, email, cart } = req.body;
+    const { quantity, name, phone, email, cart } = req.body;
 
     if (!quantity || quantity < 1) {
         return res.status(400).json({ error: "Invalid quantity" });
     }
 
-    const razorAmount = amount * 100; // convert to paise
+    if (!cart || typeof cart !== "object") {
+        return res.status(400).json({ error: "Invalid cart" });
+    }
+
+    const PRICES = {
+        car: 299,
+        bike: 299,
+        carcombo: 699,
+        bikecombo: 599,
+        bag: 299,
+        laptop: 299,
+        mobile: 299,
+        keys: 299,
+        luggage: 299,
+        child: 299,
+        pet: 299,
+        senior: 299,
+        doorbell: 299,
+        apartment: 299,
+        rental: 299,
+        office: 299,
+        equipment: 299
+    }; // add your actual types here
+
+    let amount = 0;
+    for (const [type, qty] of Object.entries(cart)) {
+        if (!PRICES[type]) return res.status(400).json({ error: "Invalid item: " + type });
+        amount += PRICES[type] * qty;
+    }
+
+    const razorAmount = amount * 100;
 
     try {
 
@@ -87,6 +118,14 @@ router.post("/verify-payment", async (req, res) => {
         name
     } = req.body;
 
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ error: "Missing payment fields" });
+    }
+
+    if (!phone || !name || !email) {
+        return res.status(400).json({ error: "Missing user fields" });
+    }
+
     try {
 
         // ✅ VERIFY SIGNATURE
@@ -107,6 +146,7 @@ router.post("/verify-payment", async (req, res) => {
 
                 if (err) return res.status(500).json({ error: "Database error" });
                 if (!order) return res.status(400).json({ error: "Order not found" });
+                if (order.payment_status === "paid") return res.json({ success: true, alreadyProcessed: true }); // ADD THIS LINE
 
                 // ✅ HANDLE RENEWAL FAST
                 if (order.transaction_type === "renewal") {
@@ -128,13 +168,6 @@ router.post("/verify-payment", async (req, res) => {
                     );
 
                     db.run(
-                        `UPDATE qr_codes
-                         SET status = 'active'
-                         WHERE user_id = ?`,
-                        [order.user_id]
-                    );
-
-                    db.run(
                         `UPDATE orders
                          SET payment_status = 'paid'
                          WHERE payment_reference = ?`,
@@ -146,18 +179,18 @@ router.post("/verify-payment", async (req, res) => {
 
                 // ✅ FIND USER
                 db.get(
-                    `SELECT * FROM users WHERE phone = ?`,
-                    [phone],
+                    `SELECT * FROM users WHERE phone = ? AND email = ?`,
+                    [phone, email],
                     async (err, user) => {
 
                         if (err) return res.status(500).json({ error: "User lookup failed" });
 
                         let userId;
-                        let password;
+                        
 
                         if (user) {
                             userId = user.id;
-                            password = "USE_YOUR_EXISTING_PASSWORD";
+                            
 
                             db.run(
                                 `UPDATE users SET email=?, name=? WHERE id=?`,
@@ -165,15 +198,12 @@ router.post("/verify-payment", async (req, res) => {
                             );
                         } else {
 
-                            password = Math.random().toString(36).slice(-8);
-                            const hash = await bcrypt.hash(password, 10);
-
                             const result = await new Promise((resolve, reject) => {
                                 db.run(
-                                    `INSERT INTO users (name,email,password_hash,phone)
-                                     VALUES (?,?,?,?)`,
-                                    [name, email, hash, phone],
-                                    function (err) {
+                                    `INSERT INTO users (name, email, phone)
+                                    VALUES (?, ?, ?)`,
+                                    [name, email, phone],
+                                    function(err) {
                                         if (err) reject(err);
                                         resolve(this.lastID);
                                     }
@@ -233,6 +263,8 @@ router.post("/verify-payment", async (req, res) => {
                                 expiryDate.setFullYear(expiryDate.getFullYear() + 1);
                                 const expiryString = expiryDate.toISOString();
 
+                                
+
                                 // ✅ GENERATE QR
 
                                 for (let type in cartItems) {
@@ -260,12 +292,7 @@ router.post("/verify-payment", async (req, res) => {
                                         }
 
                                         const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
-                                        const qrFolder = path.join(__dirname, "../../storage/qrcodes");
-
-                                        if (!fs.existsSync(qrFolder)) {
-                                            fs.mkdirSync(qrFolder, { recursive: true });
-                                        }
-
+                                        
                                         const qrPath = path.join(qrFolder, `${qrId}.png`);
                                         await QRCode.toFile(qrPath, qrUrl);
 
@@ -305,11 +332,10 @@ router.post("/verify-payment", async (req, res) => {
                                 </div>
                                 `;
 
-                                await sendWhatsApp(phone, {
-                                    name,
-                                    link: loginLink
-                                });
-                                await sendEmail(email, "ReachOutOwner Activated", message);
+                                await Promise.all([
+                                    sendWhatsApp(phone, { name, link: loginLink }),
+                                    sendEmail(email, "ReachOutOwner Activated", message)
+                                ]);
 
                                
 
