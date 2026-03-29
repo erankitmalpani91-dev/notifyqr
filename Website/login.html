@@ -62,7 +62,21 @@
                 return;
             }
 
-            alert("Login link has been sent to your WhatsApp. Please check.");
+            fetch("/auth/send-login-link", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ phone })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Login link sent to WhatsApp and Email.");
+                    } else {
+                        alert("User not found.");
+                    }
+                });
 
         });
 

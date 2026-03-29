@@ -137,34 +137,6 @@
         <!-- LEFT SIDE -->
         <div class="checkout-left">
 
-            <!-- QR + Usage in one card -->
-            <div class="card">
-                <h3>Number of QR and Usage</h3>
-                <div class="form-grid">
-                    <input type="number"
-                           id="quantity"
-                           name="quantity"
-                           inputmode="numeric"
-                           min="1"
-                           step="1"
-                           
-                           placeholder="Enter number of QRs"
-                           required>
-                    <select id="assetType">
-                        <option value="">Usage (Optional)</option>
-                        <option value="car">Car</option>
-                        <option value="bike">Bike</option>
-                        <option value="bag">Bag</option>
-                        <option value="laptop">Laptop</option>
-                        <option value="keys">Keys</option>
-                        <option value="pet">Pet</option>
-                        <option value="child">Child</option>
-                        <option value="vehicle">Vehicle</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-            </div>
-
             <!-- Contact -->
             <div class="card">
                 <h3>Contact Details</h3>
@@ -192,11 +164,13 @@
         <div class="checkout-right">
             <div class="card summary">
                 <h3>Order Summary</h3>
-                <p>QR Protection (1 Year)</p>
-                <p>Price per QR: ₹299</p>
+
+                <div id="orderItems"></div>
+
+                <p>Total QR: <span id="totalQty">0</span></p>
 
                 <div class="total">
-                    Total ₹<span id="totalPrice">299</span>
+                    Total ₹<span id="totalPrice">0</span>
                 </div>
 
                 <button class="pay-btn" id="payButton">
@@ -211,10 +185,53 @@
     </div>
    
     <script>
-        const pricePerQR = 299;
-        const qtyInput = document.getElementById("quantity");
-        const totalPriceEl = document.getElementById("totalPrice");
+        const prices = {
+            car: 299,
+            bike: 299,
+            carcombo: 699,
+            bikecombo: 599,
+            bag: 299,
+            laptop: 299,
+            mobile: 299,
+            keys: 299,
+            luggage: 299,
+            child: 299,
+            pet: 299,
+            senior: 299,
+            doorbell: 299,
+            apartment: 299,
+            rental: 299,
+            office: 299,
+            equipment: 299
+        };
+        let cart = JSON.parse(localStorage.getItem("cart")) || {};
 
+        let totalAmount = 0;
+        let totalQty = 0;
+        let orderHTML = "";
+
+        for (let item in cart) {
+            if (cart[item] > 0) {
+
+                let qty = cart[item];
+                let price = prices[item];
+                let itemTotal = qty * price;
+
+                totalQty += qty;
+                totalAmount += itemTotal;
+
+                let name = item.replace("combo", " Combo");
+                name = name.charAt(0).toUpperCase() + name.slice(1);
+
+                orderHTML += `
+            <p>${name} QR x ${qty} = ₹${itemTotal}</p>
+        `;
+            }
+        }
+
+        document.getElementById("orderItems").innerHTML = orderHTML;
+        document.getElementById("totalPrice").innerText = totalAmount;
+        document.getElementById("totalQty").innerText = totalQty;
         
         /* Input Restrictions */
         document.getElementById("name").addEventListener("input", function () {
@@ -247,6 +264,7 @@
                 this.setCustomValidity("");
             }
         });
+
         const phoneInput = document.getElementById("phone");
 
         phoneInput.addEventListener("input", function () {
@@ -267,14 +285,7 @@
             }
         });
 
-        qtyInput.addEventListener("input", () => {
-            let val = qtyInput.value.replace(/[^0-9]/g, "");
-            if (val === "") return;
-            if (parseInt(val) < 1) val = 1;
-            if (parseInt(val) > 50) val = 50;
-            qtyInput.value = val;
-            totalPriceEl.innerText = val * pricePerQR;
-        });
+        
 
         /* Razorpay */
         document.getElementById("payButton").addEventListener("click", async function () {
@@ -286,9 +297,8 @@
             const city = document.getElementById("city");
             const state = document.getElementById("state");
             const pincode = document.getElementById("pincode");
-            const quantity = document.getElementById("quantity");
 
-            const fields = [name, phone, email, address, city, state, pincode, quantity];
+            const fields = [name, phone, email, address, city, state, pincode];
 
             for (let field of fields) {
                 if (!field.checkValidity()) {
@@ -301,11 +311,12 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    quantity: quantity.value,
+                    amount: totalAmount,
+                    quantity: totalQty,
+                    cart: cart,
                     name: name.value,
                     phone: phone.value,
-                    email: email.value,
-                    asset_type: document.getElementById("assetType").value
+                    email: email.value
                 })
             });
 
@@ -321,7 +332,7 @@
                 amount: data.amount,
                 currency: "INR",
                 name: "ReachOutOwner",
-                description: "QR Subscription",
+                description: "QR Protection",
                 order_id: data.orderId,
                 handler: async function (response) {
 
@@ -334,13 +345,15 @@
                             razorpay_signature: response.razorpay_signature,
                             phone: phone.value,
                             email: email.value,
-                            name: name.value
+                            name: name.value,
+                            quantity: totalQty
                         })
                     });
 
                     const result = await verify.json();
 
                     if (result.success) {
+                        localStorage.removeItem("cart");
                         window.location.href = "/payment-success.html?phone=" + phone.value;
                     } else {
                         alert("Payment verification failed");

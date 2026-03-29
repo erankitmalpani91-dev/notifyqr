@@ -23,21 +23,18 @@ const { sendEmail } = require("../services/email.service");
 
 router.post("/create-order", async (req, res) => {
 
-    const { quantity, name, phone, email, asset_type } = req.body;
-    console.log("CREATE ORDER BODY:", req.body);
-
-    const pricePerQR = 199;
+    const { amount, quantity, name, phone, email, cart } = req.body;
 
     if (!quantity || quantity < 1) {
         return res.status(400).json({ error: "Invalid quantity" });
     }
 
-    const amount = quantity * pricePerQR * 100; // in paise
+    const razorAmount = amount * 100; // convert to paise
 
     try {
 
         const order = await razorpay.orders.create({
-            amount,
+            amount: razorAmount,
             currency: "INR",
             receipt: "receipt_" + Date.now()
         });
@@ -47,15 +44,15 @@ router.post("/create-order", async (req, res) => {
             INSERT INTO orders
             (plan_type, amount, payment_status, payment_reference, transaction_type, slots, asset_type)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-            `,
+`,
             [
                 "QR_PURCHASE",
-                quantity * pricePerQR,
+                amount,
                 "pending",
                 order.id,
                 "purchase",
                 quantity,
-                asset_type || null
+                JSON.stringify(cart)
             ]
         );
 
@@ -116,17 +113,17 @@ router.post("/verify-payment", async (req, res) => {
 
                     db.run(
                         `UPDATE qr_codes
-SET
-    status='active',
-    expiry_date = DATE(
-        CASE
-            WHEN expiry_date IS NULL OR expiry_date < DATE('now')
-            THEN DATE('now')
-            ELSE expiry_date
-        END,
-        '+1 year'
-    )
-WHERE user_id=?`,
+                    SET
+                        status='active',
+                        expiry_date = DATE(
+                            CASE
+                                WHEN expiry_date IS NULL OR expiry_date < DATE('now')
+                                THEN DATE('now')
+                                ELSE expiry_date
+                            END,
+                            '+1 year'
+                        )
+                    WHERE user_id=?`,
                         [order.user_id]
                     );
 
@@ -192,8 +189,9 @@ WHERE user_id=?`,
                         // 🧠 BACKGROUND PROCESS STARTS HERE
                         (async () => {
 
-                            // 🔐 CREATE MAGIC LOGIN TOKEN
-                            const token = crypto.randomBytes(20).toString("hex");
+                            
+                            // 🔐 CREATE / REPLACE MAGIC LOGIN TOKEN
+                            const token = crypto.randomBytes(32).toString("hex");
 
                             await new Promise((resolve, reject) => {
                                 db.run(
@@ -211,9 +209,15 @@ WHERE user_id=?`,
                             try {
                                 // how many QR purchased
                                 const totalQrs = (order && order.slots) ? order.slots : 1;
+                                let cartItems = {};
+                                try {
+                                    cartItems = JSON.parse(order.asset_type || "{}");
+                                } catch (e) {
+                                    cartItems = {};
+                                }
 
-                                // ACTIVATE PLAN
-                                await activateOrUpgrade(userId, "BASIC");
+                                // Activate subscription for 1 year on purchase
+                                await activateOrUpgrade(userId, "QR_PURCHASE");
 
                                
 
@@ -231,68 +235,48 @@ WHERE user_id=?`,
 
                                 // ✅ GENERATE QR
 
-                                for (let i = 0; i < totalQrs; i++) {
+                                for (let type in cartItems) {
 
-                                    let qrId;
-                                    let exists = true;
+                                    let qty = cartItems[type];
 
-                                    while (exists) {
+                                    for (let i = 0; i < qty; i++) {
 
-                                        qrId = generateQrId();
+                                        let qrId;
+                                        let exists = true;
 
-                                        const existing = await new Promise((resolve) => {
-                                            db.get(
-                                                `SELECT qr_id FROM qr_codes WHERE qr_id=?`,
-                                                [qrId],
-                                                (err, row) => resolve(row)
-                                            );
-                                        });
+                                        while (exists) {
 
-                                        if (!existing) exists = false;
+                                            qrId = generateQrId();
+
+                                            const existing = await new Promise((resolve) => {
+                                                db.get(
+                                                    `SELECT qr_id FROM qr_codes WHERE qr_id=?`,
+                                                    [qrId],
+                                                    (err, row) => resolve(row)
+                                                );
+                                            });
+
+                                            if (!existing) exists = false;
+                                        }
+
+                                        const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
+                                        const qrFolder = path.join(__dirname, "../../storage/qrcodes");
+
+                                        if (!fs.existsSync(qrFolder)) {
+                                            fs.mkdirSync(qrFolder, { recursive: true });
+                                        }
+
+                                        const qrPath = path.join(qrFolder, `${qrId}.png`);
+                                        await QRCode.toFile(qrPath, qrUrl);
+
+                                        db.run(
+                                            `INSERT INTO qr_codes 
+                                            (qr_id, user_id, plan_type, status, source, asset_name, expiry_date, created_at)
+                                            VALUES (?, ?, ?, 'inactive', 'web', ?, ?, CURRENT_TIMESTAMP)`,
+                                            [qrId, userId, order.plan_type, type, expiryString]
+                                        );
                                     }
-
-                                    const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
-                                    const qrFolder = path.join(__dirname, "../../storage/qrcodes");
-                                    const orderAsset = order.asset_type;
-
-                                    if (!fs.existsSync(qrFolder)) {
-                                        fs.mkdirSync(qrFolder, { recursive: true });
-                                    }
-
-                                    const qrPath = path.join(qrFolder, `${qrId}.png`);
-                                    await QRCode.toFile(qrPath, qrUrl);
-
-                                    db.run(
-                                        `INSERT INTO qr_codes (qr_id, user_id, plan_type, status, source, asset_name, created_at)
-                                        VALUES (?, ?, ?, 'inactive', 'web', ?, CURRENT_TIMESTAMP)`,
-                                        [qrId, userId, order.plan_type, orderAsset || null]
-                                    );
                                 }
-
-                                //Genrate Message
-                                let message = `
-<div style="font-family:Arial">
-  <p>Dear ${name},</p>
-
-  <p>Your QR purchase is successful 🎉</p>
-
-  <p>
-    You can access your dashboard using the link sent on WhatsApp.
-  </p>
-
-  <p>
-    If needed, you can request login link from login page.
-  </p>
-
-  <p>Regards,<br>ReachOutOwner Team</p>
-</div>
-`;
-
-                                await sendWhatsApp(phone, {
-                                    name,
-                                    link: loginLink
-                                });
-                                await sendEmail(email, "ReachOutOwner Activated", message);
 
                                 // ✅ UPDATE ORDER
                                 db.run(
@@ -301,6 +285,33 @@ WHERE user_id=?`,
                                      WHERE payment_reference=?`,
                                     [userId, razorpay_order_id]
                                 );
+
+                                //Genrate Message
+                                let message = `
+                                <div style="font-family:Arial">
+                                  <p>Dear ${name},</p>
+
+                                  <p>Your QR purchase is successful 🎉</p>
+
+                                  <p>
+                                    Access your dashboard:
+                                    <br><br>
+                                    <a href="${loginLink}">Open Dashboard</a>
+                                  </p>
+
+                                  <p>You can use this link anytime to login.</p>
+
+                                  <p>Regards,<br>ReachOutOwner Team</p>
+                                </div>
+                                `;
+
+                                await sendWhatsApp(phone, {
+                                    name,
+                                    link: loginLink
+                                });
+                                await sendEmail(email, "ReachOutOwner Activated", message);
+
+                               
 
                             } catch (err) {
                                 console.error("BACKGROUND ERROR:", err);
@@ -399,18 +410,9 @@ router.get("/magic-login/:token", (req, res) => {
 
             // Create session
             req.session.userId = user.id;
-
-            // OPTIONAL: clear token so link becomes single-use
-            db.run(
-                `UPDATE users SET login_token=NULL WHERE id=?`,
-                [user.id]
-            );
-
             res.redirect("/dashboard.html");
-
         }
     );
-
 });
 
 router.post("/api/logout", (req, res) => {

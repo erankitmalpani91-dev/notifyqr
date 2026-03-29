@@ -61,24 +61,30 @@ router.post("/forgot-password", (req, res) => {
 
     const { phone } = req.body;
 
-    db.get(`SELECT * FROM users WHERE phone=?`, [phone], (err, user) => {
+    db.get(`SELECT * FROM users WHERE phone=?`, [phone], async (err, user) => {
 
         if (!user) return res.json({ message: "User not found" });
 
-        const token = crypto.randomBytes(20).toString("hex");
-
-        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+        const token = crypto.randomBytes(32).toString("hex");
 
         db.run(
-            `UPDATE users SET reset_token=?, reset_expiry=? WHERE id=?`,
-            [token, expiry, user.id]
+            `UPDATE users SET login_token=? WHERE id=?`,
+            [token, user.id]
         );
 
-        console.log(`RESET LINK: http://localhost:3000/reset.html?token=${token}`);
+        const loginLink = `https://reachoutowner.com/magic-login/${token}`;
 
-        res.json({
-            message: "Reset link generated (check console for now)"
+        await sendWhatsApp(user.phone, {
+            name: user.name,
+            link: loginLink
         });
+
+        await sendEmail(user.email, "Login Link", `
+            Click here to login:
+            <a href="${loginLink}">Login</a>
+        `);
+
+        res.json({ success: true, message: "Login link sent" });
 
     });
 
@@ -112,6 +118,46 @@ router.post("/reset-password", async (req, res) => {
 
         }
     );
+
+});
+
+// Magic Link//
+
+const { sendWhatsApp } = require("../services/whatsapp.service");
+const { sendEmail } = require("../services/email.service");
+
+router.post("/send-login-link", (req, res) => {
+
+    const { phone } = req.body;
+
+    db.get(`SELECT * FROM users WHERE phone=?`, [phone], async (err, user) => {
+
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+
+        db.run(
+            `UPDATE users SET login_token=? WHERE id=?`,
+            [token, user.id]
+        );
+
+        const loginLink = `https://reachoutowner.com/magic-login/${token}`;
+
+        await sendWhatsApp(user.phone, {
+            name: user.name,
+            link: loginLink
+        });
+
+        await sendEmail(user.email, "Login Link", `
+            Click here to login:
+            <a href="${loginLink}">Login</a>
+        `);
+
+        res.json({ success: true });
+
+    });
 
 });
 

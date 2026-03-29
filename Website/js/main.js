@@ -292,6 +292,110 @@ async function buyPlan(planAmount) {
     }
 }
 
+//Cart Logic//
+/* CART SYSTEM */
+let cart = {
+    car: 0,
+    bike: 0,
+    carcombo: 0,
+    bikecombo: 0,
+    bag: 0,
+    laptop: 0,
+    mobile: 0,
+    keys: 0,
+    luggage: 0,
+    child: 0,
+    pet: 0,
+    senior: 0,
+    doorbell: 0,
+    apartment: 0,
+    rental: 0,
+    office: 0,
+    equipment: 0
+};
 
 
+function changeQty(type, change) {
+    let qtyEl = document.getElementById("qty-" + type);
+    let qty = parseInt(qtyEl.innerText);
+    qty += change;
 
+    if (qty < 1) qty = 1;
+
+    qtyEl.innerText = qty;
+}
+
+function addToCart(type) {
+    let qty = parseInt(document.getElementById("qty-" + type).innerText);
+    cart[type] += qty;
+    updateCart();
+}
+
+function removeFromCart(type) {
+    if (cart[type] > 0) {
+        cart[type]--;
+    }
+    updateCart();
+}
+
+function updateCart() {
+    let total = 0;
+    let cartHTML = "";
+
+    for (let item in cart) {
+        if (cart[item] > 0) {
+            total += cart[item];
+
+            let name = item.replace("combo", " Combo");
+            name = name.charAt(0).toUpperCase() + name.slice(1);
+
+            cartHTML += `
+                <div class="cart-item">
+                    ${name} QR ${cart[item]}
+                    <button onclick="removeFromCart('${item}')">−</button>
+                </div>
+            `;
+        }
+    }
+
+    document.getElementById("cartItems").innerHTML = cartHTML;
+    document.getElementById("cartTotal").innerText = total;
+}
+
+function goToCheckout() {
+    let total = 0;
+    for (let item in cart) {
+        total += cart[item];
+    }
+
+    if (total === 0) {
+        alert("Add items to cart first");
+        return;
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    window.location.href = "checkout.html";
+}
+/* CATEGORY TABS */
+function showCategory(category, el) {
+
+    // Hide all category sliders
+    document.querySelectorAll(".product-slider").forEach(section => {
+        section.classList.remove("active");
+    });
+
+    // Show selected category
+    let selected = document.querySelector("." + category);
+    if (selected) {
+        selected.classList.add("active");
+    }
+
+    // Update active tab
+    document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.remove("active");
+    });
+
+    if (el) {
+        el.classList.add("active");
+    }
+}

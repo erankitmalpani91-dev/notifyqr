@@ -304,46 +304,147 @@
         </div>
     </section>
 
+    <!-----Pricing Section--->
 
+    <section id="pricing-section" class="catalog-section">
 
+        <h2 class="catalog-title">Simple Pricing. Maximum Protection</h2>
+        <p>Buy QR codes and enjoy complete control with alerts and a secure dashboard</p>
 
-    <!-- PRICING -->
-    <section id="pricing-section" class="pricing-section">
-        <div class="pricing-container">
-            <h2>Simple Pricing. Maximum Protection.</h2>
-            <p>Buy as many QR codes as you need and enjoy complete control with alerts and a secure dashboard</p>
+        <!-- CATEGORY TABS -->
+        <div class="category-tabs">
+            <button class="tab active" onclick="showCategory('vehicle')">Vehicle</button>
+            <button class="tab" onclick="showCategory('personal')">Personal</button>
+            <button class="tab" onclick="showCategory('family')">Family</button>
+            <button class="tab" onclick="showCategory('home')">Home</button>
+            <button class="tab" onclick="showCategory('business')">Business</button>
+        </div>
 
-            <div class="pricing-cards">
+        <!-- VEHICLE -->
+        <div class="product-slider category vehicle active">
+            <div class="product-card">
+                <div class="product-image">🚗</div>
+                <h3>Car Safety QR</h3>
+                <p>Parking alerts, accident alerts & emergency contact</p>
+                <div class="price">₹299 / year</div>
 
-                <div class="pricing-cards">
-
-                    <div class="pricing-card popular">
-
-                        <h3>QR Protection</h3>
-
-                        <p class="price">₹299 <span>/ QR / year</span></p>
-
-                        <ul>
-                            <li>1 QR Sticker per unit</li>
-                            <li>WhatsApp + Missed Call Alerts</li>
-                            <li>Add 2 Phone Numbers</li>
-                            <li>Owner Dashboard Access</li>
-                            <li>Recharge anytime</li>
-                        </ul>
-
-                        <button class="pricing-btn"
-                                onclick="window.location.href='checkout.html'">
-                            Buy QR Now
-                        </button>
-
-                    </div>
-
+                <div class="qty-box">
+                    <button onclick="changeQty('car', -1)">-</button>
+                    <span id="qty-car">1</span>
+                    <button onclick="changeQty('car', 1)">+</button>
                 </div>
 
+                <button onclick="addToCart('car')" class="add-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">🏍</div>
+                <h3>Bike Safety QR</h3>
+                <p>Bike alerts & emergency contact</p>
+                <div class="price">₹299 / year</div>
+
+                <div class="qty-box">
+                    <button onclick="changeQty('bike', -1)">-</button>
+                    <span id="qty-bike">1</span>
+                    <button onclick="changeQty('bike', 1)">+</button>
+                </div>
+
+                <button onclick="addToCart('bike')" class="add-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">🔑</div>
+                <h3>Car Combo QR</h3>
+                <p>Car + Keys + Mobile protection</p>
+                <div class="price">₹699 / year</div>
+
+                <div class="qty-box">
+                    <button onclick="changeQty('carcombo', -1)">-</button>
+                    <span id="qty-carcombo">1</span>
+                    <button onclick="changeQty('carcombo', 1)">+</button>
+                </div>
+
+                <button onclick="addToCart('carcombo')" class="add-cart-btn">Add to Cart</button>
             </div>
         </div>
+
+        <!-- PERSONAL -->
+        <div class="product-slider category personal">
+            <div class="product-card">
+                <div class="product-image">🎒</div>
+                <h3>Bag QR</h3>
+                <p>Lost bag contact & return alerts</p>
+                <div class="price">₹299 / year</div>
+
+                <div class="qty-box">
+                    <button onclick="changeQty('bag', -1)">-</button>
+                    <span id="qty-bag">1</span>
+                    <button onclick="changeQty('bag', 1)">+</button>
+                </div>
+
+                <button onclick="addToCart('bag')" class="add-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">💻</div>
+                <h3>Laptop QR</h3>
+                <p>Device identification & contact</p>
+                <div class="price">₹299 / year</div>
+
+                <div class="qty-box">
+                    <button onclick="changeQty('laptop', -1)">-</button>
+                    <span id="qty-laptop">1</span>
+                    <button onclick="changeQty('laptop', 1)">+</button>
+                </div>
+
+                <button onclick="addToCart('laptop')" class="add-cart-btn">Add to Cart</button>
+            </div>
+        </div>
+
+        <!-- FAMILY -->
+        <div class="product-slider category family">
+            <div class="product-card">
+                <div class="product-image">🧒</div>
+                <h3>Child Safety QR</h3>
+                <p>Guardian contact & emergency alerts</p>
+                <div class="price">₹299 / year</div>
+
+                <div class="qty-box">
+                    <button onclick="changeQty('child', -1)">-</button>
+                    <span id="qty-child">1</span>
+                    <button onclick="changeQty('child', 1)">+</button>
+                </div>
+
+                <button onclick="addToCart('child')" class="add-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">🐶</div>
+                <h3>Pet QR</h3>
+                <p>Lost pet contact & alerts</p>
+                <div class="price">₹299 / year</div>
+
+                <div class="qty-box">
+                    <button onclick="changeQty('pet', -1)">-</button>
+                    <span id="qty-pet">1</span>
+                    <button onclick="changeQty('pet', 1)">+</button>
+                </div>
+
+                <button onclick="addToCart('pet')" class="add-cart-btn">Add to Cart</button>
+            </div>
+        </div>
+
     </section>
 
+    
+    <div class="cart-wrapper">
+        <div class="cart-items" id="cartItems"></div>
+
+        <div class="cart-summary">
+            Total <span id="cartTotal">0</span>
+            <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
+        </div>
+    </div>
 
     <!-- TESTIMONIALS -->
     <section class="testimonials-section">
