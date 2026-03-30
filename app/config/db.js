@@ -8,8 +8,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.error("Database error:", err);
     } else {
         console.log("Connected to SQLite database");
+        console.log("DB PATH:", dbPath); // ADD THIS LINE
     }
 });
+
 
 // CONTACT SALES TABLE
 db.run(`
@@ -33,7 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT,
   role TEXT DEFAULT 'owner',
   phone TEXT,
   login_token TEXT,
@@ -102,10 +104,13 @@ CREATE TABLE IF NOT EXISTS qr_numbers (
 db.run(`ALTER TABLE orders ADD COLUMN transaction_type TEXT DEFAULT 'purchase'`, () => { });
 db.run(`ALTER TABLE orders ADD COLUMN slots INTEGER DEFAULT 0`, () => { });
 db.run(`ALTER TABLE qr_codes ADD COLUMN claimed_at TEXT`, () => { });
+db.run(`ALTER TABLE qr_codes ADD COLUMN asset_name TEXT`, () => { });
+db.run(`ALTER TABLE qr_codes ADD COLUMN source TEXT`, () => { });
+db.run(`ALTER TABLE qr_codes ADD COLUMN expiry_date TEXT`, () => { });
+db.run(`ALTER TABLE qr_codes ADD COLUMN whatsapp_enabled INTEGER DEFAULT 1`, () => { });
 db.run(`CREATE INDEX IF NOT EXISTS idx_qr_id ON qr_codes(qr_id)`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_scan_qr ON scan_logs(qr_id)`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_scan_time ON scan_logs(scanned_at)`);
-db.run(`CREATE INDEX IF NOT EXISTS idx_scan_qr ON scan_logs(qr_id)`);
-db.run(`CREATE INDEX IF NOT EXISTS idx_scan_time ON scan_logs(scanned_at)`);
-
+db.run(`ALTER TABLE orders ADD COLUMN asset_type TEXT`, () => { });
+db.run(`ALTER TABLE orders ADD COLUMN shipping_address TEXT`, () => { });
 module.exports = db;
