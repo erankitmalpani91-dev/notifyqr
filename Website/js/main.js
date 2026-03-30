@@ -45,9 +45,11 @@
 
 
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
 
     const howSection = document.querySelector(".how-section");
+
+    if (!howSection) return;
 
     function revealHowSection() {
         const sectionTop = howSection.getBoundingClientRect().top;
@@ -216,105 +218,42 @@ async function connectWhatsApp() {
 /*toggle Menu*/
 
 function toggleMenu() {
-    document.getElementById("mobileMenu").classList.toggle("active");
-        document.querySelectorAll("#mobileMenu a").forEach(link => {
-            link.addEventListener("click", () => {
-                document.getElementById("mobileMenu").classList.remove("active");
-            });
-        });
-}
-
-/* =========================
-   PLAN PURCHASE (RAZORPAY)
-========================= */
-
-async function buyPlan(planAmount) {
-
-    try {
-
-        const response = await fetch("/order/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                amount: planAmount
-            })
-        });
-
-        const data = await response.json();
-
-        if (!data.order_id) {
-            alert("Unable to start payment.");
-            return;
-        }
-
-        const options = {
-            key: data.key,
-            amount: data.amount,
-            currency: "INR",
-            name: "ReachOutOwner",
-            description: "QR Safety Protection Plan",
-            order_id: data.order_id,
-
-            handler: function (response) {
-
-                // Redirect after successful payment
-                window.location.href =
-                    "/payment/success?payment_id=" +
-                    response.razorpay_payment_id;
-
-            },
-
-            theme: {
-                color: "#111"
-            }
-        };
-
-        if (phone.length !== 10) {
-            alert("Enter valid mobile number");
-            return;
-        }
-
-        if (pincode.length !== 6) {
-            alert("Enter valid pincode");
-            return;
-        }
-
-        const rzp = new Razorpay(options);
-        rzp.open();
-
-    } catch (error) {
-
-        console.error("Checkout error:", error);
-        alert("Payment system error. Please try again.");
-
+        document.getElementById("mobileMenu").classList.toggle("active");
     }
-}
 
-//Cart Logic//
+    document.querySelectorAll("#mobileMenu a").forEach(link => {
+        link.addEventListener("click", () => {
+            document.getElementById("mobileMenu").classList.remove("active");
+        });
+    });
+
+
+
+
 /* CART SYSTEM */
-let cart = {
-    car: 0,
-    bike: 0,
-    carcombo: 0,
-    bikecombo: 0,
-    bag: 0,
-    laptop: 0,
-    mobile: 0,
-    keys: 0,
-    luggage: 0,
-    child: 0,
-    pet: 0,
-    senior: 0,
-    doorbell: 0,
-    apartment: 0,
-    rental: 0,
-    office: 0,
-    equipment: 0
-};
+const defaultCart = {
+        car: 0,
+        bike: 0,
+        carcombo: 0,
+        bikecombo: 0,
+        bag: 0,
+        laptop: 0,
+        mobile: 0,
+        keys: 0,
+        luggage: 0,
+        child: 0,
+        pet: 0,
+        senior: 0,
+        doorbell: 0,
+        apartment: 0,
+        rental: 0,
+        office: 0,
+        equipment: 0
+    };
 
+    let cart = Object.assign({}, defaultCart, JSON.parse(localStorage.getItem("cart")) || {});
 
+updateCart();
 function changeQty(type, change) {
     let qtyEl = document.getElementById("qty-" + type);
     let qty = parseInt(qtyEl.innerText);

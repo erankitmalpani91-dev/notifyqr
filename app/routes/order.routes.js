@@ -24,7 +24,7 @@ const { sendEmail } = require("../services/email.service");
 
 router.post("/create-order", async (req, res) => {
 
-    const { quantity, name, phone, email, cart } = req.body;
+    const { quantity, name, phone, email, cart, address, city, state, pincode } = req.body;
 
     if (!quantity || quantity < 1) {
         return res.status(400).json({ error: "Invalid quantity" });
@@ -32,6 +32,14 @@ router.post("/create-order", async (req, res) => {
 
     if (!cart || typeof cart !== "object") {
         return res.status(400).json({ error: "Invalid cart" });
+    }
+
+    if (!address || !city || !state || !pincode) {
+        return res.status(400).json({ error: "Shipping address is incomplete" });
+    }
+
+    if (!/^[0-9]{6}$/.test(pincode)) {
+        return res.status(400).json({ error: "Invalid pincode" });
     }
 
     const PRICES = {
@@ -70,22 +78,14 @@ router.post("/create-order", async (req, res) => {
             receipt: "receipt_" + Date.now()
         });
 
-        db.run(
-            `
-            INSERT INTO orders
-            (plan_type, amount, payment_status, payment_reference, transaction_type, slots, asset_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-`,
-            [
-                "QR_PURCHASE",
-                amount,
-                "pending",
-                order.id,
-                "purchase",
-                quantity,
-                JSON.stringify(cart)
-            ]
-        );
+        const shippingAddress = `${req.body.address}, ${req.body.city}, ${req.body.state} - ${req.body.pincode}`;
+
+            db.run(
+                `INSERT INTO orders
+            (plan_type, amount, payment_status, payment_reference, transaction_type, slots, asset_type, shipping_address)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                ["QR_PURCHASE", amount, "pending", order.id, "purchase", quantity, JSON.stringify(cart), shippingAddress]
+            );
 
         res.json({
             success: true,

@@ -209,6 +209,7 @@
         let totalAmount = 0;
         let totalQty = 0;
         let orderHTML = "";
+        let hasItems = false;
 
         for (let item in cart) {
             if (cart[item] > 0) {
@@ -224,12 +225,13 @@
                 name = name.charAt(0).toUpperCase() + name.slice(1);
 
                 orderHTML += `
-            <p>${name} QR x ${qty} = ₹${itemTotal}</p>
-        `;
+                    <p>${name} QR x ${qty} = ₹${itemTotal}</p>
+                `;
+                    hasItems = true;
             }
         }
 
-        document.getElementById("orderItems").innerHTML = orderHTML || '<p>Your cart is empty. <a href="https://reachoutowner.com/#pricing-section">Browse QR plans</a></p>';
+        document.getElementById("orderItems").innerHTML = hasItems ? orderHTML : '<p>Your cart is empty. <a href="https://reachoutowner.com/#plans">Browse QR plans</a></p>';
         document.getElementById("totalPrice").innerText = totalAmount;
         document.getElementById("totalQty").innerText = totalQty;
 
@@ -294,11 +296,13 @@
             const fields = [name, phone, email, address, city, state, pincode];
 
             for (let field of fields) {
-                if (!field.checkValidity()) {
-                    field.reportValidity();
-                    return;
-                }
-            }
+                            if (!field.checkValidity()) {
+                                field.reportValidity();
+                                btn.disabled = false;
+                                btn.innerText = "Proceed to Payment";
+                                return;
+                            }
+                        }
 
             const response = await fetch("/create-order", {
                 method: "POST",
@@ -308,9 +312,14 @@
                     cart: cart,
                     name: name.value,
                     phone: phone.value,
-                    email: email.value
+                    email: email.value,
+                    address: address.value,
+                    city: city.value,
+                    state: state.value,
+                    pincode: pincode.value
                 })
             });
+                        
 
             const data = await response.json();
 
@@ -349,7 +358,7 @@
                     if (result.success) {
                         localStorage.removeItem("cart");
                         sessionStorage.setItem("paymentName", name.value);
-                        window.location.href = "/payment-success.html;
+                        window.location.href = "/payment-success.html";
                     } else {
                         alert("Payment verification failed");
                         btn.disabled = false;

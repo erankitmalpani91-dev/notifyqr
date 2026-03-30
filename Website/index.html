@@ -313,11 +313,11 @@
 
         <!-- CATEGORY TABS -->
         <div class="category-tabs">
-            <button class="tab active" onclick="showCategory('vehicle')">Vehicle</button>
-            <button class="tab" onclick="showCategory('personal')">Personal</button>
-            <button class="tab" onclick="showCategory('family')">Family</button>
-            <button class="tab" onclick="showCategory('home')">Home</button>
-            <button class="tab" onclick="showCategory('business')">Business</button>
+            <button class="tab active" onclick="showCategory('vehicle', this)">Vehicle</button>
+            <button class="tab" onclick="showCategory('personal', this)">Personal</button>
+            <button class="tab" onclick="showCategory('family', this)">Family</button>
+            <button class="tab" onclick="showCategory('home', this)">Home</button>
+            <button class="tab" onclick="showCategory('business', this)">Business</button>
         </div>
 
         <!-- VEHICLE -->
@@ -643,7 +643,7 @@
                             class="btn-whatsapp"
                             onclick="connectWhatsApp()">
 
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                        <img src="/assets/images/whatsapp.svg"
                              alt="WhatsApp"
                              class="wa-icon">
 
@@ -661,7 +661,7 @@
         </div>
     </div>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
     <script src="js/main.js"></script>
 
 </body>
