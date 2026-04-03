@@ -5,10 +5,8 @@ const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const QRCode = require("qrcode");
-
 const generateQrId = require("../utils/qrGenerator");
 const db = require("../config/db");
-const { activateOrUpgrade } = require("../services/subscription.service");
 const { sendWhatsApp } = require("../services/whatsapp.service");
 
 const razorpay = new Razorpay({
@@ -20,90 +18,118 @@ fs.promises.mkdir(qrFolder, { recursive: true }).catch(console.error);
 
 const { sendEmail } = require("../services/email.service");
 
-//CREATE RAZORPAY ORDER
+// CREATE RAZORPAY ORDER
 
-router.post("/create-order", async (req, res) => {
 
-    const { quantity, name, phone, email, cart, address, city, state, pincode } = req.body;
+    router.post("/create-order", async (req, res) => {
+        const { quantity, name, phone, email, cart, address, city, state, pincode } = req.body;
 
-    if (!quantity || quantity < 1) {
-        return res.status(400).json({ error: "Invalid quantity" });
-    }
+        // ✅ Input validation
+        if (!quantity || quantity < 1) return res.status(400).json({ error: "Invalid quantity" });
+        if (!cart || typeof cart !== "object") return res.status(400).json({ error: "Invalid cart" });
+        if (!address || !city || !state || !pincode) return res.status(400).json({ error: "Shipping address is incomplete" });
+        if (!/^[0-9]{6}$/.test(pincode)) return res.status(400).json({ error: "Invalid pincode" });
 
-    if (!cart || typeof cart !== "object") {
-        return res.status(400).json({ error: "Invalid cart" });
-    }
+        const PRICES = {
+            car: 299, bike: 299, carcombo: 699, bikecombo: 599,
+            bag: 299, laptop: 299, mobile: 299, keys: 299,
+            luggage: 299, child: 299, pet: 299, senior: 299,
+            doorbell: 299, apartment: 299, rental: 299,
+            office: 299, equipment: 299
+        };
 
-    if (!address || !city || !state || !pincode) {
-        return res.status(400).json({ error: "Shipping address is incomplete" });
-    }
+        let amount = 0;
 
-    if (!/^[0-9]{6}$/.test(pincode)) {
-        return res.status(400).json({ error: "Invalid pincode" });
-    }
+        for (const [type, qty] of Object.entries(cart)) {
 
-    const PRICES = {
-        car: 299,
-        bike: 299,
-        carcombo: 699,
-        bikecombo: 599,
-        bag: 299,
-        laptop: 299,
-        mobile: 299,
-        keys: 299,
-        luggage: 299,
-        child: 299,
-        pet: 299,
-        senior: 299,
-        doorbell: 299,
-        apartment: 299,
-        rental: 299,
-        office: 299,
-        equipment: 299
-    }; // add your actual types here
+            // Skip items with 0 quantity
+            if (!qty || qty === 0) continue;
 
-    let amount = 0;
-    for (const [type, qty] of Object.entries(cart)) {
-        if (!PRICES[type]) return res.status(400).json({ error: "Invalid item: " + type });
-        amount += PRICES[type] * qty;
-    }
+            if (!PRICES[type]) {
+                return res.status(400).json({ error: "Invalid item: " + type });
+            }
 
-    const razorAmount = amount * 100;
+            if (!Number.isInteger(qty) || qty < 0) {
+                return res.status(400).json({ error: "Invalid quantity for " + type });
+            }
 
-    try {
+            amount += PRICES[type] * qty;
+        }
 
-        const order = await razorpay.orders.create({
-            amount: razorAmount,
-            currency: "INR",
-            receipt: "receipt_" + Date.now()
-        });
+        if (amount === 0) {
+            return res.status(400).json({ error: "Cart is empty" });
+        }
 
-        const shippingAddress = `${req.body.address}, ${req.body.city}, ${req.body.state} - ${req.body.pincode}`;
+        const razorAmount = amount * 100;
 
-            db.run(
-                `INSERT INTO orders
-            (plan_type, amount, payment_status, payment_reference, transaction_type, slots, asset_type, shipping_address)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                ["QR_PURCHASE", amount, "pending", order.id, "purchase", quantity, JSON.stringify(cart), shippingAddress]
-            );
+        try {
+            // ✅ Create Razorpay order
+            const order = await razorpay.orders.create({
+                amount: razorAmount,
+                currency: "INR",
+                receipt: "receipt_" + Date.now()
+            });
 
-        res.json({
-            success: true,
-            orderId: order.id,
-            key: process.env.RAZORPAY_KEY_ID,
-            amount
-        });
+            const shippingAddress = `${address}, ${city}, ${state} - ${pincode}`;
 
-    } catch (err) {
+            // Helper to promisify db.run
+            const runQuery = (sql, params = []) =>
+                new Promise((resolve, reject) => {
+                    db.run(sql, params, function(err) {
+                        if (err) reject(err);
+                        else resolve(this.lastID);
+                    });
+                });
 
-        console.error(err);
-        res.status(500).json({ error: "Razorpay order creation failed" });
+            db.serialize(async () => {
+                try {
+                    await runQuery("BEGIN TRANSACTION");
 
-    }
+                    // ✅ Insert order
+                    const orderDbId = await runQuery(
+                        `INSERT INTO orders
+                           (owner_name, owner_email, owner_phone, shipping_address, city, state, pincode,
+                            amount, payment_status, payment_reference, transaction_type, order_source)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [name, email, phone, shippingAddress, city, state, pincode,
+                            amount, "pending", order.id, "purchase", "website"]
+                    );
 
-});
+                    // ✅ Insert order items
+                    const insertItems = Object.entries(cart)
+                    .filter(([type, qty]) => qty > 0)
+                    .map(([type, qty]) =>
+                        runQuery(
+                            `INSERT INTO order_items (order_id, product_type, quantity, price)
+                         VALUES (?, ?, ?, ?)`,
+                            [orderDbId, type, qty, PRICES[type]]
+                        )
+                    );
+                    await Promise.all(insertItems);
 
-//VERIFY PAYMENT
+                    // ✅ Commit transaction
+                    await runQuery("COMMIT");
+
+                    res.json({
+                        success: true,
+                        orderId: order.id,
+                        key: process.env.RAZORPAY_KEY_ID,
+                        amount
+                    });
+                } catch (err) {
+                    console.error("Transaction failed:", err);
+                    await runQuery("ROLLBACK");
+                    res.status(500).json({ error: "Order creation failed" });
+                }
+            });
+        } catch (err) {
+            console.error("Razorpay error:", err);
+            res.status(500).json({ error: "Razorpay order creation failed" });
+        }
+    });
+
+
+//VERIFY PAYMENT//
 
 router.post("/verify-payment", async (req, res) => {
 
@@ -169,9 +195,10 @@ router.post("/verify-payment", async (req, res) => {
 
                     db.run(
                         `UPDATE orders
-                         SET payment_status = 'paid'
+                         SET payment_status = 'paid',
+                             user_id = ?
                          WHERE payment_reference = ?`,
-                        [razorpay_order_id]
+                        [order.user_id, razorpay_order_id]
                     );
 
                     return res.json({ success: true, renewal: true });
@@ -236,40 +263,32 @@ router.post("/verify-payment", async (req, res) => {
 
                             const loginLink = `https://reachoutowner.com/magic-login/${token}`;
 
-                            try {
-                                // how many QR purchased
-                                const totalQrs = (order && order.slots) ? order.slots : 1;
-                                let cartItems = {};
-                                try {
-                                    cartItems = JSON.parse(order.asset_type || "{}");
-                                } catch (e) {
-                                    cartItems = {};
-                                }
-
-                                // Activate subscription for 1 year on purchase
-                                await activateOrUpgrade(userId, "QR_PURCHASE");
-
-                               
-
-                                // update slot count
-                                db.run(
-                                    `UPDATE users 
-                                     SET max_qr_slots = COALESCE(max_qr_slots,0) + ?
-                                     WHERE id = ?`,
-                                    [totalQrs, userId]
+                            // GET ORDER ITEMS FROM DB
+                            const items = await new Promise((resolve, reject) => {
+                                db.all(
+                                    `SELECT * FROM order_items WHERE order_id = ?`,
+                                    [order.id],
+                                    (err, rows) => {
+                                        if (err) reject(err);
+                                        resolve(rows);
+                                    }
                                 );
+                            });
 
+                            try {
+                                                              
                                 const expiryDate = new Date();
                                 expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                                const expiryString = expiryDate.toISOString();
+                                const expiryString = expiryDate.toISOString().split('T')[0];
 
-                                
 
-                                // ✅ GENERATE QR
 
-                                for (let type in cartItems) {
+                                // ✅ GENERATE QR FROM ORDER ITEMS
 
-                                    let qty = cartItems[type];
+                                for (let item of items) {
+
+                                    let type = item.product_type;
+                                    let qty = item.quantity;
 
                                     for (let i = 0; i < qty; i++) {
 
@@ -292,15 +311,14 @@ router.post("/verify-payment", async (req, res) => {
                                         }
 
                                         const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
-                                        
                                         const qrPath = path.join(qrFolder, `${qrId}.png`);
                                         await QRCode.toFile(qrPath, qrUrl);
 
                                         db.run(
                                             `INSERT INTO qr_codes 
-                                            (qr_id, user_id, plan_type, status, source, asset_name, expiry_date, created_at)
-                                            VALUES (?, ?, ?, 'inactive', 'web', ?, ?, CURRENT_TIMESTAMP)`,
-                                            [qrId, userId, order.plan_type, type, expiryString]
+                                        (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source)
+                                        VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website')`,
+                                            [qrId, userId, order.id, type, type, expiryString]
                                         );
                                     }
                                 }
@@ -397,11 +415,11 @@ router.post("/create-renewal-order", async (req, res) => {
 
                 db.run(
                     `
-                    INSERT INTO orders
-                    (user_id, amount, payment_status, payment_reference, transaction_type, slots)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    `,
-                    [userId, totalQR * 99, "pending", order.id, "renewal", totalQR]
+                INSERT INTO orders
+                (user_id, amount, payment_status, payment_reference, transaction_type, order_source)
+                VALUES (?, ?, ?, ?, ?, ?)
+                `,
+                    [userId, totalQR * 99, "pending", order.id, "renewal", "website"]
                 );
 
                 res.json({

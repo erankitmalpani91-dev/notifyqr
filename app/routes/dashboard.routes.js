@@ -2,98 +2,87 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-router.get("/", (req, res) => {
+// Promisify db.get and db.all
+const getQuery = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+    });
+
+const allQuery = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+    });
+
+router.get("/", async (req, res) => {
     const userId = req.session.userId;
-    if (!userId) {
-        return res.status(401).json({ error: "Not logged in" });
-    }
+    if (!userId) return res.status(401).json({ error: "Not logged in" });
 
-    db.get(
-        `SELECT name, phone, email, plan_type, max_qr_slots, subscription_expiry
-         FROM users WHERE id = ?`,
-        [userId],
-        (err, user) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (!user) return res.json({ user: {}, qrs: [] });
+    try {
+        // Fetch user
+        const user = await getQuery(
+            `SELECT id, name, phone, email, created_at FROM users WHERE id = ?`,
+            [userId]
+        );
+        if (!user) return res.json({ user: {}, qrs: [] });
 
-            db.all(
-                `
-                SELECT 
-                    q.qr_id,
-                    q.status,
-                    q.asset_name,
-                    q.source,
-                    q.expiry_date,
-                    q.created_at,
-                    n.phone,
-                    n.type
-                FROM qr_codes q
-                LEFT JOIN qr_numbers n 
-                ON q.qr_id = n.qr_id
-                WHERE q.user_id = ?
-                `,
-                [userId],
-                (err2, rows) => {
-                    if (err2) return res.status(500).json({ error: err2.message });
+        // Fetch QR codes
+        const rows = await allQuery(
+            `SELECT 
+             q.qr_id, q.status, q.asset_name, q.product_type, q.order_id,
+             q.source, q.expiry_date, q.created_at, n.phone, n.type
+             FROM qr_codes q
+             LEFT JOIN qr_numbers n ON q.qr_id = n.qr_id
+             WHERE q.user_id = ?
+             ORDER BY q.created_at DESC`,
+            [userId]
+        );
 
-                    const grouped = {};
+        // Group QR rows
+        const grouped = {};
+        rows.forEach(r => {
+            if (!grouped[r.qr_id]) {
+                grouped[r.qr_id] = {
+                    qr_id: r.qr_id,
+                    status: r.status || "inactive",
+                    asset_name: r.asset_name,
+                    product_type: r.product_type,
+                    order_id: r.order_id,
+                    primary: null,
+                    secondary: null,
+                    expiry: r.expiry_date,
+                    created_at: r.created_at,
+                    source: r.source
+                };
+            }
 
-                    rows.forEach(r => {
-                        if (!grouped[r.qr_id]) {
-                            grouped[r.qr_id] = {
-                                qr_id: r.qr_id,
-                                status: r.status,
-                                asset_name: r.asset_name,
-                                primary: null,
-                                secondary: null,
-                                expiry: r.expiry_date,
-                                created_at: r.created_at,
-                                source: r.source
-                            };
-                        }
+            if (r.type === "primary") grouped[r.qr_id].primary = r.phone;
+            if (r.type === "secondary") grouped[r.qr_id].secondary = r.phone;
+        });
 
-                        if (r.type === "primary") {
-                            grouped[r.qr_id].primary = r.phone;
-                        }
+        // Status logic
+        const today = new Date();
 
-                        if (r.type === "secondary") {
-                            grouped[r.qr_id].secondary = r.phone;
-                        }
-                    });
+        Object.values(grouped).forEach(q => {
+            if (q.expiry) {
+                const expiry = new Date(q.expiry);
 
-                    const today = new Date();
-
-                    Object.values(grouped).forEach(q => {
-
-                        if (q.status === "disabled") {
-                            return;
-                        }
-
-                        if (q.expiry) {
-                            const expiry = new Date(q.expiry);
-                            if (today > expiry) {
-                                q.status = "expired";
-                            } else {
-                                q.status = "active";
-                            }
-                            return;
-                        }
-
-                        if (q.primary) {
-                            q.status = "active";
-                        } else {
-                            q.status = "inactive";
-                        }
-                    });
-
-                    res.json({
-                        user,
-                        qrs: Object.values(grouped)
-                    });
+                if (!isNaN(expiry)) {
+                    if (today > expiry) q.status = "expired";
+                    else if (q.primary) q.status = "active";
+                    else q.status = "inactive";
                 }
-            ); // closes db.all
-        }
-    ); // closes outer db.get
-}); // closes router.get
+            } else {
+                if (q.primary) q.status = "active";
+                else q.status = "inactive";
+            }
+        });
+
+        res.json({ user, qrs: Object.values(grouped) });
+
+    } catch (err) {
+        console.error("Dashboard error:", err);
+        res.status(500).json({ error: "Failed to load dashboard" });
+    }
+});
 
 module.exports = router;

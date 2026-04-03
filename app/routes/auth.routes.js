@@ -1,164 +1,106 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, loginUser } = require("../services/auth.service");
-const db = require("../config/db");   // <-- Fix
-const bcrypt = require("bcrypt");     // <-- Needed for hashing
-
-
-router.get("/quick-register", async (req, res) => {
-    try {
-        const userId = await registerUser(
-            "Ankit",
-            "ankit@test.com",
-            "123456",
-            "9876543210"
-        );
-
-        res.send("User Created with ID: " + userId);
-    } catch (err) {
-        res.send("Error: " + err);
-    }
-});
-
-router.post("/register", async (req, res) => {
-    const { name, email, password, phone } = req.body;
-
-    try {
-        const userId = await registerUser(name, email, password, phone);
-        res.json({ success: true, userId });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message || err });
-    }
-});
-
-router.post("/login", async (req, res) => {
-
-    const { phone, password } = req.body;
-
-    if (!phone || !password) {
-        return res.status(400).json({ error: "Phone and password required" });
-    }
-
-    try {
-
-        const token = await loginUser(phone, password);
-
-        res.json({ token });
-
-    } catch (err) {
-
-        console.log("LOGIN ERROR:", err);
-
-        res.status(400).json({ error: err });
-
-    }
-
-});
-
 const crypto = require("crypto");
-
-router.post("/forgot-password", (req, res) => {
-
-    const { phone } = req.body;
-
-    db.get(`SELECT * FROM users WHERE phone=?`, [phone], async (err, user) => {
-
-        if (!user) return res.json({ message: "User not found" });
-
-        const token = crypto.randomBytes(32).toString("hex");
-
-        db.run(
-            `UPDATE users SET login_token=? WHERE id=?`,
-            [token, user.id]
-        );
-
-        const loginLink = `https://reachoutowner.com/magic-login/${token}`;
-
-        await sendWhatsApp(user.phone, {
-            name: user.name,
-            link: loginLink
-        });
-
-        await sendEmail(user.email, "Login Link", `
-            Click here to login:
-            <a href="${loginLink}">Login</a>
-        `);
-
-        res.json({ success: true, message: "Login link sent" });
-
-    });
-
-});
-
-router.post("/reset-password", async (req, res) => {
-
-    const { token, password } = req.body;
-
-    db.get(
-        `SELECT * FROM users WHERE reset_token=?`,
-        [token],
-        async (err, user) => {
-
-            if (!user) return res.json({ message: "Invalid token" });
-
-            if (new Date() > new Date(user.reset_expiry)) {
-                return res.json({ message: "Token expired" });
-            }
-
-            const hash = await require("bcrypt").hash(password, 10);
-
-            db.run(
-                `UPDATE users 
-                 SET password_hash=?, reset_token=NULL, reset_expiry=NULL 
-                 WHERE id=?`,
-                [hash, user.id]
-            );
-
-            res.json({ success: true, message: "Password updated" });
-
-        }
-    );
-
-});
-
-// Magic Link//
-
+const db = require("../config/db");
 const { sendWhatsApp } = require("../services/whatsapp.service");
 const { sendEmail } = require("../services/email.service");
 
-router.post("/send-login-link", (req, res) => {
+// Promisify DB
+const runQuery = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.run(sql, params, function(err) {
+            if (err) reject(err);
+            else resolve(this.lastID);
+        });
+    });
 
+const getQuery = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+    });
+
+const allQuery = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+    });
+
+/* SEND MAGIC LOGIN LINK */
+router.post("/send-login-link", async (req, res) => {
     const { phone } = req.body;
+    if (!phone) return res.status(400).json({ error: "Phone required" });
 
-    db.get(`SELECT * FROM users WHERE phone=?`, [phone], async (err, user) => {
+    try {
+        const user = await getQuery(`SELECT * FROM users WHERE phone=?`, [phone]);
+        if (!user) return res.json({ success: false, message: "User not found" });
 
-        if (!user) {
-            return res.json({ success: false, message: "User not found" });
+        // Rate limit 3 per hour
+        const recentRequests = await allQuery(
+            `SELECT COUNT(*) as count
+               FROM login_requests
+               WHERE user_id=?
+               AND requested_at >= DATETIME('now', '-1 hour')`,
+            [user.id]
+        );
+
+        if (recentRequests[0].count >= 3) {
+            return res.status(429).json({ error: "Too many login requests. Try again later." });
         }
 
+        // Generate token
         const token = crypto.randomBytes(32).toString("hex");
 
-        db.run(
+        await runQuery(
             `UPDATE users SET login_token=? WHERE id=?`,
             [token, user.id]
         );
 
+        await runQuery(
+            `INSERT INTO login_requests (user_id) VALUES (?)`,
+            [user.id]
+        );
+
         const loginLink = `https://reachoutowner.com/magic-login/${token}`;
 
-        await sendWhatsApp(user.phone, {
-            name: user.name,
-            link: loginLink
-        });
-
-        await sendEmail(user.email, "Login Link", `
-            Click here to login:
-            <a href="${loginLink}">Login</a>
-        `);
+        await Promise.all([
+            sendWhatsApp(user.phone, { name: user.name, link: loginLink }),
+            sendEmail(user.email, "Login Link", `<a href="${loginLink}">Login</a>`)
+        ]);
 
         res.json({ success: true });
 
-    });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to send login link" });
+    }
+});
 
+/* MAGIC LOGIN */
+router.get("/magic-login/:token", async (req, res) => {
+    const token = req.params.token;
+
+    try {
+        const user = await getQuery(
+            `SELECT * FROM users WHERE login_token=?`,
+            [token]
+        );
+
+        if (!user) return res.send("Invalid login link");
+
+        req.session.userId = user.id;
+
+        res.redirect("/dashboard.html");
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Login failed");
+    }
+});
+
+/* LOGOUT */
+router.get("/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.redirect("/");
+    });
 });
 
 module.exports = router;

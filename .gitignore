@@ -1,10 +1,8 @@
 node_modules/
 .env
 .vs/
-database/reachoutowner.sqlite
-storage/
-app/db.sqlite
-database/
+database/*.sqlite
+app/*.sqlite
 storage/
 qrcodes/
 logs/

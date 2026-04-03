@@ -1,73 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Payment Successful | ReachOutOwner</title>
+    <title>Payment Successful | ReachOutOwner</title>
 
-<link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 
-<style>
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 80px auto;
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
 
-.success-container{
-max-width:600px;
-margin:80px auto;
-text-align:center;
-background:white;
-padding:40px;
-border-radius:10px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-}
+        .success-icon {
+            font-size: 60px;
+            color: green;
+            margin-bottom: 20px;
+        }
 
-.success-icon{
-font-size:60px;
-color:green;
-margin-bottom:20px;
-}
-
-</style>
+        .dashboard-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: #1f3cff;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+    </style>
 
 </head>
 
-
-
 <body>
 
-<div class="success-container">
+    <div class="success-container">
 
-<div class="success-icon">✅</div>
+        <div class="success-icon">✅</div>
 
-<h2>Payment Successful</h2>
+        <h2 id="successTitle">Payment Successful</h2>
 
-<p>Your QR protection plan is now active.</p>
+        <p>Your QR codes have been successfully assigned to your account.</p>
 
-<p>
-    Your login link has been sent to your <strong>WhatsApp</strong> and <strong>Email</strong>.
-    Please click the link to access your dashboard.
-</p>
+        <p>
+            Your secure dashboard login link has been sent to your
+            <strong>WhatsApp</strong> and <strong>Email</strong>.
+        </p>
 
-<br>
+        <p>Please open the link to activate your QR and add details.</p>
 
-<a href="/" style="
-padding:12px 25px;
-background:#1f3cff;
-color:white;
-border-radius:6px;
-text-decoration:none;
-">
-Go to Home
-</a>
+        <a href="/" class="dashboard-btn">Go to Home</a>
 
-</div>
+        <div id="dashboardLinkContainer"></div>
 
-<script>
+    </div>
+
+    <script>
+    // Get name from session storage
     const name = sessionStorage.getItem("paymentName");
+
+    if (name) {
+        document.getElementById("successTitle").innerText =
+            "Thank you, " + name + "! Payment Successful";
+    }
+
     sessionStorage.removeItem("paymentName");
 
-    
-</script>
+    // Clear cart
+    localStorage.removeItem("cart");
 
+    // Optional: If token passed in URL, show dashboard button
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+        document.getElementById("dashboardLinkContainer").innerHTML = `
+            <a href="/magic-login/${token}" class="dashboard-btn">
+                Open Dashboard
+            </a>
+        `;
+    }
+    </script>
 
 </body>
 </html>

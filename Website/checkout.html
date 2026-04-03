@@ -142,7 +142,7 @@
                 <h3>Contact Details</h3>
                 <div class="form-grid">
                     <input type="text" id="name" required pattern="[A-Za-z ]+" placeholder="Full Name">
-                    <input type="text" id="phone" required pattern="[4-9][0-9]{9}" maxlength="10" placeholder="Mobile Number">
+                    <input type="text" id="phone" required pattern="[6-9][0-9]{9}" maxlength="10" placeholder="Mobile Number">
                     <input type="email" id="email" required placeholder="Email Address">
                 </div>
             </div>
@@ -304,12 +304,18 @@
                             }
                         }
 
-            const response = await fetch("/create-order", {
+            /* Filter cart to remove zero quantity items */
+            let filteredCart = {};
+            for (const [type, qty] of Object.entries(cart)) {
+                if (qty > 0) filteredCart[type] = qty;
+            }
+
+            const response = await fetch("/api/order/create-order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     quantity: totalQty,
-                    cart: cart,
+                    cart: filteredCart,
                     name: name.value,
                     phone: phone.value,
                     email: email.value,
@@ -318,8 +324,7 @@
                     state: state.value,
                     pincode: pincode.value
                 })
-            });
-                        
+            });        
 
             const data = await response.json();
 
@@ -339,7 +344,7 @@
                 order_id: data.orderId,
                 handler: async function (response) {
 
-                    const verify = await fetch("/verify-payment", {
+                    const verify = await fetch("/api/order/verify-payment", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -348,8 +353,7 @@
                             razorpay_signature: response.razorpay_signature,
                             phone: phone.value,
                             email: email.value,
-                            name: name.value,
-                            quantity: totalQty
+                            name: name.value
                         })
                     });
 

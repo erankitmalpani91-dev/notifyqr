@@ -6,7 +6,6 @@ const db = require("../config/db");
 router.post("/razorpay-webhook", express.json({ type: "*/*" }), (req, res) => {
 
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-
     const signature = req.headers["x-razorpay-signature"];
 
     const expectedSignature = crypto
@@ -15,11 +14,8 @@ router.post("/razorpay-webhook", express.json({ type: "*/*" }), (req, res) => {
         .digest("hex");
 
     if (signature !== expectedSignature) {
-
         console.log("Webhook signature mismatch");
-
         return res.status(400).send("Invalid signature");
-
     }
 
     const event = req.body.event;
@@ -27,22 +23,46 @@ router.post("/razorpay-webhook", express.json({ type: "*/*" }), (req, res) => {
     if (event === "payment.captured") {
 
         const payment = req.body.payload.payment.entity;
-
         const orderId = payment.order_id;
+        const paymentId = payment.id;
 
         console.log("Webhook payment captured:", orderId);
 
         db.run(
             `UPDATE orders 
-             SET payment_status='paid' 
+             SET payment_status='paid',
+                 payment_id=?
+             WHERE payment_reference=? 
+             AND payment_status!='paid'`,
+            [paymentId, orderId],
+            function(err) {
+                if (err) {
+                    console.error("Webhook DB update error:", err);
+                } else if (this.changes === 0) {
+                    console.log("Webhook: Order not found or already paid:", orderId);
+                } else {
+                    console.log("Webhook: Order marked as paid:", orderId);
+                }
+            }
+        );
+    }
+
+    if (event === "payment.failed") {
+
+        const payment = req.body.payload.payment.entity;
+        const orderId = payment.order_id;
+
+        console.log("Webhook payment failed:", orderId);
+
+        db.run(
+            `UPDATE orders 
+             SET payment_status='failed'
              WHERE payment_reference=?`,
             [orderId]
         );
-
     }
 
     res.json({ status: "ok" });
-
 });
 
 module.exports = router;

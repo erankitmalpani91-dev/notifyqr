@@ -51,33 +51,44 @@
     <script>
 
         // ✅ LOGIN FORM (NO PASSWORD)
-        document.getElementById("loginForm").addEventListener("submit", function (e) {
-
+        document.getElementById("loginForm").addEventListener("submit", async function(e) {
             e.preventDefault();
 
             const phone = document.getElementById("phone").value;
+            const btn = document.querySelector(".login-btn");
 
             if (!phone || phone.length !== 10) {
                 alert("Please enter valid mobile number");
                 return;
             }
 
-            fetch("/auth/send-login-link", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ phone })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Login link sent to WhatsApp and Email.");
-                    } else {
-                        alert("User not found.");
-                    }
+            btn.disabled = true;
+            btn.innerText = "Sending link...";
+
+            try {
+                const res = await fetch("/api/auth/send-login-link", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ phone })
                 });
 
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem("user_phone", phone);
+                    alert("Login link sent to WhatsApp and Email.");
+                } else {
+                    alert(data.message || "User not found.");
+                }
+
+            } catch (err) {
+                alert("Server error");
+            }
+
+            btn.disabled = false;
+            btn.innerText = "Login";
         });
 
 
@@ -124,16 +135,31 @@
             }
         };
 
-    </script>
 
-    <script>
-        window.onload = () => {
-            const phone = localStorage.getItem("user_phone");
-            if (phone) {
-                document.getElementById("phone").value = phone;
-            }
-        };
-    </script>
+        function forgotPassword() {
+        const phone = document.getElementById("phone").value;
+        if (!phone || phone.length !== 10) {
+            alert("Enter mobile number first");
+            return;
+        }
 
+        fetch("/api/auth/forgot-password", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ phone })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Reset link sent to WhatsApp/Email");
+                } else {
+                    alert("User not found");
+                }
+            });
+    }
+
+    </script>
 </body>
 </html>

@@ -15,34 +15,52 @@ app.use(
     session({
         secret: "notifyqr-secret",
         resave: false,
-        saveUninitialized: true
+        saveUninitialized: false,
+        cookie: { secure: false }
     })
 );
 
 /* -------------------- STATIC FILES -------------------- */
-// Serve website pages
+// Website pages
 app.use("/", express.static(path.join(__dirname, "../Website")));
 
-// Serve QR images
+// QR images
 app.use("/qrcodes", express.static(path.join(__dirname, "../storage/qrcodes")));
 
-// Admin/public assets
+// Public assets
 app.use("/app", express.static(path.join(__dirname, "public")));
 
 
 /* -------------------- ROUTES -------------------- */
-app.use("/admin", require("./routes/admin.routes"));
-app.use("/auth", require("./routes/auth.routes"));
-app.use("/", require("./routes/order.routes"));
-app.use("/payment", require("./routes/payment.routes"));
-app.use("/renewal", require("./routes/renewal.routes"));
-app.use("/subscription", require("./routes/subscription.routes"));
-app.use("/secure", require("./routes/qr.secure.routes"));
+
+// Auth / Magic login
+app.use("/api/auth", require("./routes/auth.routes"));
+
+// Orders (create order, verify payment, renewal)
+app.use("/api/order", require("./routes/order.routes"));
+
+// Razorpay webhook
+app.use("/api/payment", require("./routes/payment.routes"));
+
+// Dashboard
 app.use("/api/dashboard", require("./routes/dashboard.routes"));
-app.use("/api/assets", require("./routes/assets.routes"));
+
+// QR management
 app.use("/api/qr", require("./routes/qr.manage.routes"));
+
+// Assets
+app.use("/api/assets", require("./routes/assets.routes"));
+
+// Alerts
 app.use("/api/alerts", require("./routes/alert.routes"));
-app.use("/retail", require("./routes/retail.routes"));
+
+// Admin
+app.use("/api/admin", require("./routes/admin.routes"));
+
+// Retail / bulk
+app.use("/api/retail", require("./routes/retail.routes"));
+
+// QR scan route (public scanning)
 app.use("/", require("./routes/qr.routes"));
 
 
