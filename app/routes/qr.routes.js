@@ -8,10 +8,7 @@ router.get("/q/:qrId", (req, res) => {
     const qrId = req.params.qrId;
 
     db.get(
-        `SELECT q.*, u.subscription_expiry, u.subscription_status
-     FROM qr_codes q
-     JOIN users u ON q.user_id = u.id
-     WHERE q.qr_id = ?`,
+        `SELECT q.* FROM qr_codes q WHERE q.qr_id = ?`
         [qrId],
         (err, qr) => {
 
@@ -21,16 +18,6 @@ router.get("/q/:qrId", (req, res) => {
             return res.send("Invalid QR Code");
         }
 
-            if (qr.subscription_status !== "active") {
-                return res.send("Subscription expired. Please renew.");
-            }
-
-            const today = new Date();
-            const expiry = new Date(qr.subscription_expiry);
-
-            if (today > expiry) {
-                return res.send("Subscription expired. Please renew.");
-            }
 
             if (qr.status === "inactive") {
 

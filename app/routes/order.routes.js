@@ -261,7 +261,7 @@ router.post("/verify-payment", async (req, res) => {
                                 );
                             });
 
-                            const loginLink = `https://reachoutowner.com/magic-login/${token}`;
+                            const loginLink = `https://reachoutowner.com/api/order/magic-login/${token}`;
 
                             // GET ORDER ITEMS FROM DB
                             const items = await new Promise((resolve, reject) => {

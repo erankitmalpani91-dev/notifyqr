@@ -88,7 +88,7 @@ router.get("/magic-login/:token", async (req, res) => {
 
         req.session.userId = user.id;
 
-        res.redirect("/dashboard.html");
+        res.redirect("/app/owner.html");
 
     } catch (err) {
         console.error(err);

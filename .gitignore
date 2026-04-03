@@ -6,3 +6,5 @@ app/*.sqlite
 storage/
 qrcodes/
 logs/
+database/*.sqlite-shm
+database/*.sqlite-wal
