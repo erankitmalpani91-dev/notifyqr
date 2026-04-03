@@ -11,14 +11,16 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-    session({
-        secret: "notifyqr-secret",
-        resave: false,
-        saveUninitialized: false,
-        cookie: { secure: false }
-    })
-);
+app.set("trust proxy", 1);
+
+    app.use(
+        session({
+            secret: "notifyqr-secret",
+            resave: false,
+            saveUninitialized: false,
+            cookie: { secure: true }
+        })
+    );
 
 /* -------------------- STATIC FILES -------------------- */
 // Website pages
@@ -35,6 +37,12 @@ app.use("/app", express.static(path.join(__dirname, "public")));
 
 // Auth / Magic login
 app.use("/api/auth", require("./routes/auth.routes"));
+
+// Auth / Magic login
+app.use("/api/auth", require("./routes/auth.routes"));
+
+// Magic login route (public)
+app.use("/", require("./routes/auth.routes"));
 
 // Orders (create order, verify payment, renewal)
 app.use("/api/order", require("./routes/order.routes"));
