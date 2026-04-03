@@ -223,26 +223,61 @@ function editSecondary(qrId) {
 /* LOGOUT */
 function logout() {
   fetch("/api/auth/logout", { credentials: "include" })
-    .then(() => {
-      window.location.href = "/login.html";
+    .then(res => {
+      if (res.ok) {
+        window.location.href = "/login.html";
+      } else {
+        alert("Logout failed");
+      }
+    })
+    .catch(() => {
+      alert("Server error during logout");
     });
 }
 
 /* RENEW QR */
 async function renewQR() {
-  const res = await fetch("/order/create-renewal-order", {
-    method: "POST",
-    credentials: "include"
-  });
-  const data = await res.json();
+  try {
+    const res = await fetch("/order/create-renewal-order", {
+      method: "POST",
+      credentials: "include"
+    });
+    const data = await res.json();
 
-  if (!data.success) {
-    alert(data.message || "Unable to start renewal");
-    return;
+    if (!data.success) {
+      alert(data.message || "Unable to start renewal");
+      return;
+    }
+
+    const options = {
+      key: data.key,
+      amount: data.amount,
+      currency: "INR",
+      name: "ReachOutOwner",
+      description: "QR Renewal",
+      order_id: data.orderId,
+      handler: async function (response) {
+        // Verify payment with backend
+        const verifyRes = await fetch("/order/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(response)
+        });
+        const result = await verifyRes.json();
+        if (result.success) {
+          alert("QR renewed successfully");
+          window.location.reload();
+        } else {
+          alert("Payment verification failed");
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  } catch (err) {
+    console.error("Renewal error:", err);
+    alert("Server error during renewal");
   }
-
-  const options = {
-    key: data.key,
-    amount: data.amount,
-    currency: "INR",
-    name: "ReachOutOwner
+}
