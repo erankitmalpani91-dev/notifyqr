@@ -4,30 +4,43 @@ const db = require("../config/db");
 
 
 router.get("/q/:qrId", (req, res) => {
-
     const qrId = req.params.qrId;
 
     db.get(
-        `SELECT q.* FROM qr_codes q WHERE q.qr_id = ?`
+        `SELECT status FROM qr_codes WHERE qr_id = ?`,
         [qrId],
         (err, qr) => {
 
-        if (err) return res.send("Server error");
-
-        if (!qr) {
-            return res.send("Invalid QR Code");
-        }
-
+            if (err || !qr) {
+                return res.send("Invalid QR Code");
+            }
 
             if (qr.status === "inactive") {
-
                 return res.send(`
-        <h2>Activate Your QR</h2>
-        <p>This sticker is not linked yet.</p>
-        <a href="/claim/${qrId}">Claim this QR</a>
-    `);
-
+                    <h2>QR Not Activated</h2>
+                    <p>Please contact owner.</p>
+                `);
             }
+
+            if (qr.status === "disabled") {
+                return res.send(`
+                    <h2>QR Disabled</h2>
+                    <p>This QR is currently inactive.</p>
+                `);
+            }
+
+            if (qr.status === "expired") {
+                return res.send(`
+                    <h2>QR Expired</h2>
+                    <p>Subscription expired.</p>
+                `);
+            }
+
+            // ACTIVE QR → Redirect to scan page
+            res.redirect(`/scan.html?qr=${qrId}`);
+        }
+    );
+});
 
         // Log scan
             const { logScan } = require("../services/scanBuffer.service");

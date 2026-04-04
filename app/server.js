@@ -11,16 +11,18 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.set("trust proxy", 1);
-
-    app.use(
-        session({
-            secret: "notifyqr-secret",
-            resave: false,
-            saveUninitialized: false,
-            cookie: { secure: true }
-        })
-    );
+app.use(
+    session({
+        secret: "notifyqr-secret",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: true,
+            sameSite: "lax"
+        }
+    })
+);
 
 /* -------------------- STATIC FILES -------------------- */
 // Website pages

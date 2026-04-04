@@ -205,3 +205,6 @@ button {
         font-size: 12px;
     }
 }
+.disabled-text {
+    opacity: 0.5;
+}

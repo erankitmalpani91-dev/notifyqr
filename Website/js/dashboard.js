@@ -1,3 +1,14 @@
+//Date Format
+
+function formatDate(dateString) {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 // DASHBOARD INITIALIZATION
 fetch("/api/dashboard", { credentials: "include" })
   .then(res => {
@@ -28,17 +39,7 @@ fetch("/api/dashboard", { credentials: "include" })
             <td>${setupIndex++}</td>
             <td>${qr.product_type || "-"}</td>
             <td>${qr.qr_id}</td>
-            <td>${qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "-"}</td>
-            <td>
-              <select id="asset_${qr.qr_id}">
-                <option ${qr.asset_name === "Car" ? "selected" : ""}>Car</option>
-                <option ${qr.asset_name === "Bike" ? "selected" : ""}>Bike</option>
-                <option ${qr.asset_name === "Laptop" ? "selected" : ""}>Laptop</option>
-                <option ${qr.asset_name === "Bag" ? "selected" : ""}>Bag</option>
-                <option ${qr.asset_name === "Keys" ? "selected" : ""}>Keys</option>
-                <option ${qr.asset_name === "Pet" ? "selected" : ""}>Pet</option>
-              </select>
-            </td>
+            <td>${formatDate(qr.created_at) || "-"}</td>
             <td><input id="p_${qr.qr_id}" placeholder="Primary"></td>
             <td><input id="s_${qr.qr_id}" placeholder="Secondary"></td>
             <td><button onclick="activate('${qr.qr_id}')">Activate</button></td>
@@ -48,36 +49,49 @@ fetch("/api/dashboard", { credentials: "include" })
         const isDisabled = qr.status === "disabled";
         const isExpired = qr.status === "expired";
 
-        let secondarySection = qr.secondary
-          ? `<small id="secondary_${qr.qr_id}">S: ${qr.secondary}</small><br>
-             <button onclick="editSecondary('${qr.qr_id}')">Edit</button>`
-          : `<input id="sec_${qr.qr_id}" placeholder="Add Secondary"><br>
-             <button onclick="addSecondary('${qr.qr_id}')">Add</button>`;
+        let secondarySection = "";
+
+                if (isDisabled || isExpired) {
+                    secondarySection = qr.secondary
+                        ? `<small>S: ${qr.secondary}</small>`
+                        : `<small>No secondary</small>`;
+                } else {
+                    secondarySection = qr.secondary
+                        ? `<small id="secondary_${qr.qr_id}">S: ${qr.secondary}</small><br>
+                   <button onclick="editSecondary('${qr.qr_id}')">Edit</button>`
+                        : `<input id="sec_${qr.qr_id}" placeholder="Add Secondary"><br>
+                   <button onclick="addSecondary('${qr.qr_id}')">Add</button>`;
+                }
 
         activeRows += `
-          <tr ${(isDisabled || isExpired) ? "style='opacity:0.5;'" : ""}>
+        <tr>
             <td>${activeIndex++}</td>
-            <td>${qr.qr_id}</td>
-            <td>
-              ${qr.asset_name || "Not Assigned"}<br>
-              <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
-              ${secondarySection}
-            </td>
-            <td>${qr.expiry ? new Date(qr.expiry).toLocaleDateString() : "N/A"}</td>
-            <td>
-              ${(isDisabled || isExpired)
-                ? "-"
-                : `<a href="/qrcodes/${qr.qr_id}.png" download>Download</a>`}
-            </td>
-            <td>
-              ${isExpired
-                ? `<button onclick="renewQR()">Renew</button>`
-                : isDisabled
-                  ? `<button onclick="reactivate('${qr.qr_id}')">Reactivate</button>`
-                  : `<button onclick="deactivate('${qr.qr_id}')">Deactivate</button>`}
-            </td>
-          </tr>`;
-      }
+              <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">${qr.qr_id}</td>
+              <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">
+                ${qr.asset_name || "Not Assigned"}<br>
+                <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
+                ${secondarySection}
+              </td>
+              <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">
+                ${formatDate(qr.activated_at) || "-"}
+              </td>
+              <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">
+                ${formatDate(qr.expiry) || "N/A"}
+              </td>
+              <td>
+                ${(isDisabled || isExpired)
+                            ? "-"
+                            : `<a href="/qrcodes/${qr.qr_id}.png" download>Download</a>`}
+              </td>
+              <td>
+                ${isExpired
+                            ? `<button onclick="renewQR()">Renew</button>`
+                            : isDisabled
+                                ? `<button onclick="reactivate('${qr.qr_id}')">Reactivate</button>`
+                                : `<button onclick="deactivate('${qr.qr_id}')">Deactivate</button>`}
+              </td>
+            </tr>`;
+        }
     });
 
     document.getElementById("setupTable").innerHTML = setupRows;
@@ -118,7 +132,7 @@ function addSecondary(qrId) {
 
 /* ACTIVATE QR */
 function activate(qrId) {
-  const asset = document.getElementById("asset_" + qrId).value;
+  const asset = "Asset";
   const p = document.getElementById("p_" + qrId).value.trim();
   const s = document.getElementById("s_" + qrId).value.trim();
 
@@ -142,10 +156,18 @@ function activate(qrId) {
     body: JSON.stringify({ qr_id: qrId, asset_name: asset, primary: p, secondary: s })
   })
     .then(res => res.json())
-    .then(data => {
-      if (data.success) location.reload();
-      else alert(data.error || "Activation failed");
-    });
+        .then(data => {
+            if (data.success) {
+                alert("QR Activated");
+                location.reload();
+            } else {
+                alert(data.error || "Activation failed");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Server error");
+        });
 }
 
 /* DEACTIVATE QR */
@@ -222,7 +244,7 @@ function editSecondary(qrId) {
 
 /* LOGOUT */
 function logout() {
-  fetch("/api/auth/logout", { credentials: "include" })
+  fetch("/api/logout", { credentials: "include" })
     .then(res => {
       if (res.ok) {
         window.location.href = "/login.html";
@@ -238,7 +260,7 @@ function logout() {
 /* RENEW QR */
 async function renewQR() {
   try {
-    const res = await fetch("/order/create-renewal-order", {
+    const res = await fetch("/api/order/create-renewal-order", {
       method: "POST",
       credentials: "include"
     });
@@ -258,7 +280,7 @@ async function renewQR() {
       order_id: data.orderId,
       handler: async function (response) {
         // Verify payment with backend
-        const verifyRes = await fetch("/order/verify-payment", {
+        const verifyRes = await fetch("/api/order/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

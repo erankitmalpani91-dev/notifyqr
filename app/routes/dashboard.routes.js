@@ -29,7 +29,10 @@ router.get("/", async (req, res) => {
         const rows = await allQuery(
             `SELECT 
              q.qr_id, q.status, q.asset_name, q.product_type, q.order_id,
-             q.source, q.expiry_date, q.created_at, n.phone, n.type
+             q.source, DATE(q.expiry_date) as expiry_date,
+             DATE(q.created_at) as created_at,
+             DATE(q.activated_at) as activated_at,
+             n.phone, n.type
              FROM qr_codes q
              LEFT JOIN qr_numbers n ON q.qr_id = n.qr_id
              WHERE q.user_id = ?
@@ -51,6 +54,7 @@ router.get("/", async (req, res) => {
                     secondary: null,
                     expiry: r.expiry_date,
                     created_at: r.created_at,
+                    activated_at: r.activated_at,
                     source: r.source
                 };
             }
@@ -63,6 +67,10 @@ router.get("/", async (req, res) => {
         const today = new Date();
 
         Object.values(grouped).forEach(q => {
+            if (q.status === "disabled") return;
+
+            const today = new Date();
+
             if (q.expiry) {
                 const expiry = new Date(q.expiry);
 

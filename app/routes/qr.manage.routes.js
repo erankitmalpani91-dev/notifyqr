@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const verify = require("../middlewares/auth.middleware");
+//const verify = require("../middlewares/auth.middleware");
 
 // Helper to promisify db.run/db.get/db.all
 const runQuery = (sql, params = []) =>
@@ -25,7 +25,10 @@ const allQuery = (sql, params = []) =>
 /* ===============================
    ACTIVATE QR
 ================================ */
-router.post("/activate", verify, async (req, res) => {
+router.post("/activate", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Not logged in" });
+    }
     const { qr_id, asset_name, primary, secondary } = req.body;
 
     if (!qr_id || !asset_name || !primary) {
@@ -33,11 +36,11 @@ router.post("/activate", verify, async (req, res) => {
     }
 
     // Phone validation
-    if (!/^[0-9]{10}$/.test(primary)) {
+    if (!/^[6-9][0-9]{9}$/.test(primary)) {
         return res.status(400).json({ error: "Invalid primary phone" });
     }
 
-    if (secondary && !/^[0-9]{10}$/.test(secondary)) {
+    if (secondary && !/^[6-9][0-9]{9}$/.test(secondary)) {
         return res.status(400).json({ error: "Invalid secondary phone" });
     }
 
@@ -45,7 +48,7 @@ router.post("/activate", verify, async (req, res) => {
         // Check ownership
         const qr = await getQuery(
             `SELECT qr_id FROM qr_codes WHERE qr_id=? AND user_id=?`,
-            [qr_id, req.user.id]
+            [qr_id, req.session.userId]
         );
         if (!qr) return res.status(403).json({ error: "Unauthorized QR" });
 
@@ -54,16 +57,14 @@ router.post("/activate", verify, async (req, res) => {
         // Activate QR + expiry logic
         await runQuery(
             `UPDATE qr_codes
-       SET status='active',
-           asset_name=?,
-           expiry_date = CASE
-             WHEN expiry_date IS NULL THEN DATE('now', '+365 days')
-             WHEN expiry_date < DATE('now') THEN DATE('now', '+365 days')
-             ELSE expiry_date
-           END,
-           claimed_at = CURRENT_TIMESTAMP
-       WHERE qr_id=? AND user_id=?`,
-            [asset_name, qr_id, req.user.id]
+               SET 
+                 status = 'active',
+                 asset_name = ?,
+                 activated_at = CURRENT_TIMESTAMP,
+                 expiry_date = DATE('now', '+365 days'),
+                 claimed_at = CURRENT_TIMESTAMP
+               WHERE qr_id = ? AND user_id = ?`,
+            [asset_name, qr_id, req.session.userId]
         );
 
         // Remove old numbers
@@ -72,16 +73,16 @@ router.post("/activate", verify, async (req, res) => {
         // Insert primary number
         await runQuery(
             `INSERT INTO qr_numbers (qr_id, phone, type)
-       VALUES (?, ?, 'primary')`,
-            [qr_id, primary]
+       VALUES (?, ?, ?)`,
+            [qr_id, primary, 'primary']
         );
 
         // Insert secondary if exists
         if (secondary) {
             await runQuery(
                 `INSERT INTO qr_numbers (qr_id, phone, type)
-         VALUES (?, ?, 'secondary')`,
-                [qr_id, secondary]
+         VALUES (?, ?, ?)`,
+                [qr_id, secondary, 'secondary']
             );
         }
 
@@ -99,7 +100,10 @@ router.post("/activate", verify, async (req, res) => {
 /* ===============================
    DEACTIVATE QR
 ================================ */
-router.post("/deactivate", verify, async (req, res) => {
+router.post("/deactivate", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Not logged in" });
+    }
     const { qr_id } = req.body;
     if (!qr_id) return res.status(400).json({ error: "Missing qr_id" });
 
@@ -108,7 +112,7 @@ router.post("/deactivate", verify, async (req, res) => {
             `UPDATE qr_codes 
        SET status='disabled'
        WHERE qr_id=? AND user_id=?`,
-            [qr_id, req.user.id]
+            [qr_id, req.session.userId]
         );
         res.json({ success: true });
     } catch (err) {
@@ -120,7 +124,10 @@ router.post("/deactivate", verify, async (req, res) => {
 /* ===============================
    REACTIVATE QR
 ================================ */
-router.post("/reactivate", verify, async (req, res) => {
+router.post("/reactivate", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Not logged in" });
+    }
     const { qr_id } = req.body;
     if (!qr_id) return res.status(400).json({ error: "Missing qr_id" });
 
@@ -133,7 +140,7 @@ router.post("/reactivate", verify, async (req, res) => {
          ELSE 'active'
        END
        WHERE qr_id=? AND user_id=?`,
-            [qr_id, req.user.id]
+            [qr_id, req.session.userId]
         );
 
         res.json({ success: true });
@@ -146,7 +153,10 @@ router.post("/reactivate", verify, async (req, res) => {
 /* ===============================
    ADD SECONDARY NUMBER
 ================================ */
-router.post("/add-secondary", verify, async (req, res) => {
+router.post("/add-secondary", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Not logged in" });
+    }
     const { qr_id, phone } = req.body;
 
     if (!qr_id || !phone)
@@ -158,7 +168,7 @@ router.post("/add-secondary", verify, async (req, res) => {
     try {
         const qr = await getQuery(
             `SELECT qr_id FROM qr_codes WHERE qr_id=? AND user_id=?`,
-            [qr_id, req.user.id]
+            [qr_id, req.session.userId]
         );
         if (!qr) return res.json({ success: false, message: "QR not found" });
 
@@ -171,7 +181,7 @@ router.post("/add-secondary", verify, async (req, res) => {
 
         await runQuery(
             `INSERT INTO qr_numbers (qr_id, phone, type)
-       VALUES (?, ?, 'secondary')`,
+            VALUES (?, ?, 'secondary')`,
             [qr_id, phone]
         );
 
@@ -186,7 +196,10 @@ router.post("/add-secondary", verify, async (req, res) => {
 /* ===============================
    UPDATE SECONDARY NUMBER
 ================================ */
-router.post("/update-secondary", verify, async (req, res) => {
+router.post("/update-secondary", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: "Not logged in" });
+    }
     const { qr_id, phone } = req.body;
 
     if (!qr_id || !phone)
@@ -198,8 +211,8 @@ router.post("/update-secondary", verify, async (req, res) => {
     try {
         await runQuery(
             `UPDATE qr_numbers
-       SET phone=?
-       WHERE qr_id=? AND type='secondary'`,
+               SET phone=?
+               WHERE qr_id=? AND type='secondary'`,
             [phone, qr_id]
         );
 

@@ -59,7 +59,7 @@ router.post("/send-login-link", async (req, res) => {
             [user.id]
         );
 
-        const loginLink = `https://reachoutowner.com/magic-login/${token}`;
+        const loginLink = `${process.env.BASE_URL}/magic-login/${token}`;
 
         await Promise.all([
             sendWhatsApp(user.phone, { name: user.name, link: loginLink }),
@@ -88,7 +88,7 @@ router.get("/magic-login/:token", async (req, res) => {
 
         req.session.userId = user.id;
 
-        res.redirect("/app/owner.html");
+        res.redirect("/dashboard.html");
 
     } catch (err) {
         console.error(err);

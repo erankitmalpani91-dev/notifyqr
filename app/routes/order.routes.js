@@ -261,7 +261,7 @@ router.post("/verify-payment", async (req, res) => {
                                 );
                             });
 
-                            const loginLink = `https://reachoutowner.com/api/order/magic-login/${token}`;
+                            const loginLink = `${process.env.BASE_URL}/magic-login/${token}`;
 
                             // GET ORDER ITEMS FROM DB
                             const items = await new Promise((resolve, reject) => {
@@ -438,25 +438,6 @@ router.post("/create-renewal-order", async (req, res) => {
         }
     );
 
-});
-router.get("/magic-login/:token", (req, res) => {
-
-    const { token } = req.params;
-
-    db.get(
-        `SELECT * FROM users WHERE login_token=?`,
-        [token],
-        (err, user) => {
-
-            if (!user) {
-                return res.send("Invalid or expired login link");
-            }
-
-            // Create session
-            req.session.userId = user.id;
-            res.redirect("/dashboard.html");
-        }
-    );
 });
 
 router.post("/api/logout", (req, res) => {

@@ -77,6 +77,7 @@ CREATE TABLE qr_codes (
   source TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   claimed_at TEXT,
+  activated_at TEXT,
   FOREIGN KEY(user_id) REFERENCES users(id),
   FOREIGN KEY(order_id) REFERENCES orders(id)
 );
