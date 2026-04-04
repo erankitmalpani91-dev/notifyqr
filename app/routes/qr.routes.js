@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { logScan } = require("../services/scanBuffer.service");
+const { logScan } = require("../services/scanbuffer.service");
 
 router.get("/q/:qrId", (req, res) => {
     const qrId = req.params.qrId;
