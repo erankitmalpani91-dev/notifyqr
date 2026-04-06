@@ -61,7 +61,7 @@ router.post("/activate", async (req, res) => {
                  status = 'active',
                  asset_name = ?,
                  activated_at = CURRENT_TIMESTAMP,
-                 expiry_date = DATE('now', '+365 days'),
+                 expiry_date = DATE('now', '+' || plan_years || ' years'),
                  claimed_at = CURRENT_TIMESTAMP
                WHERE qr_id = ? AND user_id = ?`,
             [asset_name, qr_id, req.session.userId]

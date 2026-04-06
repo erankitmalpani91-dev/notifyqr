@@ -86,13 +86,15 @@ const { sendEmail } = require("../services/email.service");
                     await runQuery("BEGIN TRANSACTION");
 
                     // ✅ Insert order
+                    const planYears = req.body.planYears || 1;
+
                     const orderDbId = await runQuery(
                         `INSERT INTO orders
                            (owner_name, owner_email, owner_phone, shipping_address, city, state, pincode,
-                            amount, payment_status, payment_reference, transaction_type, order_source)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            amount, payment_status, payment_reference, transaction_type, order_source, plan_years)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                         [name, email, phone, shippingAddress, city, state, pincode,
-                            amount, "pending", order.id, "purchase", "website"]
+                            amount, "pending", order.id, "purchase", "website", planYears]
                     );
 
                     // ✅ Insert order items
@@ -177,20 +179,22 @@ router.post("/verify-payment", async (req, res) => {
                 // ✅ HANDLE RENEWAL FAST
                 if (order.transaction_type === "renewal") {
 
+                    const planYears = order.plan_years || 1;
+                    const interval = `+${planYears} years`;
+
                     db.run(
                         `UPDATE qr_codes
-                    SET
-                        status='active',
-                        expiry_date = DATE(
-                            CASE
-                                WHEN expiry_date IS NULL OR expiry_date < DATE('now')
-                                THEN DATE('now')
-                                ELSE expiry_date
-                            END,
-                            '+1 year'
-                        )
-                    WHERE user_id=?`,
-                        [order.user_id]
+                   SET status='active',
+                       expiry_date = DATE(
+                         CASE
+                           WHEN expiry_date IS NULL OR expiry_date < DATE('now')
+                           THEN DATE('now')
+                           ELSE expiry_date
+                         END,
+                         ?
+                       )
+                   WHERE user_id=?`,
+                        [interval, order.user_id]
                     );
 
                     db.run(
@@ -276,9 +280,10 @@ router.post("/verify-payment", async (req, res) => {
                             });
 
                             try {
-                                                              
+                                
+                                const planYears = order.plan_years || 1;
                                 const expiryDate = new Date();
-                                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                                expiryDate.setFullYear(expiryDate.getFullYear() + planYears);
                                 const expiryString = expiryDate.toISOString().split('T')[0];
 
 
@@ -316,9 +321,9 @@ router.post("/verify-payment", async (req, res) => {
 
                                         db.run(
                                             `INSERT INTO qr_codes 
-                                        (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source)
-                                        VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website')`,
-                                            [qrId, userId, order.id, type, type, expiryString]
+                                        (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years)
+                                        VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?)`,
+                                            [qrId, userId, order.id, type, type, expiryString, planYears]
                                         );
                                     }
                                 }
@@ -416,10 +421,10 @@ router.post("/create-renewal-order", async (req, res) => {
                 db.run(
                     `
                 INSERT INTO orders
-                (user_id, amount, payment_status, payment_reference, transaction_type, order_source)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (user_id, amount, payment_status, payment_reference, transaction_type, order_source, plan_years)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 `,
-                    [userId, totalQR * 99, "pending", order.id, "renewal", "website"]
+                    [userId, totalQR * 99, "pending", order.id, "renewal", "website", 1]
                 );
 
                 res.json({

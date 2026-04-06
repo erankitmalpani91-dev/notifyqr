@@ -40,6 +40,7 @@ CREATE TABLE orders (
   payment_reference TEXT,
   transaction_type TEXT DEFAULT 'purchase',
   order_source TEXT DEFAULT 'website',
+  plan_years INTEGER DEFAULT 1,   -- NEW COLUMN
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   payment_id TEXT,
   FOREIGN KEY(user_id) REFERENCES users(id)
@@ -74,6 +75,7 @@ CREATE TABLE qr_codes (
   asset_name TEXT,
   status TEXT DEFAULT 'inactive',
   expiry_date TEXT,
+  plan_years INTEGER DEFAULT 1,   -- NEW COLUMN
   source TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   claimed_at TEXT,
@@ -124,6 +126,21 @@ CREATE TABLE login_requests (
   FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
+-- SCAN ALERTS (notifications sent to owners)
+CREATE TABLE scan_alerts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  scan_id TEXT,                -- unique identifier for alert
+  qr_id TEXT,                  -- which QR triggered the alert
+  owner_phone TEXT,            -- phone number notified
+  finder_message TEXT,         -- message entered by finder
+  location TEXT,               -- optional location
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  owner_reply TEXT,            -- reply from owner (captured via webhook)
+  replied_at TEXT,             -- timestamp of reply
+  FOREIGN KEY(qr_id) REFERENCES qr_codes(qr_id)
+);
+
+
 -- INDEXES
 CREATE INDEX idx_qr_id ON qr_codes(qr_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
@@ -131,3 +148,6 @@ CREATE INDEX idx_orders_reference ON orders(payment_reference);
 CREATE INDEX idx_scan_qr ON scan_logs(qr_id);
 CREATE INDEX idx_scan_time ON scan_logs(scanned_at);
 CREATE INDEX idx_login_requests_user_time ON login_requests(user_id, requested_at);
+CREATE INDEX idx_alerts_qr ON scan_alerts(qr_id);
+CREATE INDEX idx_alerts_owner ON scan_alerts(owner_phone);
+CREATE INDEX idx_alerts_time ON scan_alerts(created_at);
