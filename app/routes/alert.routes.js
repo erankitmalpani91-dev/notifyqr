@@ -93,7 +93,10 @@ router.post("/send-alert", (req, res) => {
                                 }
 
                                 // Send WhatsApp to primary number using approved template
-                                const assetLabel = qr.asset_name || qr.product_type || "asset";
+                                const assetLabel =
+                                    (qr.asset_name && qr.asset_name.trim()) ||
+                                    (qr.product_type && qr.product_type.trim()) ||
+                                    "Item";
                                 sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
                                     params: [
