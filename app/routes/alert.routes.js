@@ -111,7 +111,7 @@ router.post("/send-alert", (req, res) => {
                                     template: "qr_scan_alert",
                                     params: [
                                         assetLabel,
-                                        message,
+                                        message + "\n\nRef:" + scanId,
                                         location || "Not shared"
                                     ]
                                 });
@@ -123,7 +123,7 @@ router.post("/send-alert", (req, res) => {
                                         template: "qr_scan_alert",
                                         params: [
                                             assetLabel,
-                                            message,
+                                            message + "\n\nRef:" + scanId,
                                             location || "Not shared"
                                         ]
                                     });
@@ -173,7 +173,8 @@ router.get("/whatsapp-webhook", (req, res) => {
     }
 });
 
-// ✅ WhatsApp webhook — receives owner's reply
+//Whatsapp Webhook Code
+
 router.post("/whatsapp-webhook", (req, res) => {
     try {
         const entry = req.body.entry?.[0];
@@ -181,33 +182,49 @@ router.post("/whatsapp-webhook", (req, res) => {
         const message = changes?.value?.messages?.[0];
 
         if (message && message.text) {
-            // Meta sends phone with country code e.g. 919166605152
-            // Strip 91 prefix to match 10-digit stored number
             let from = message.from.replace(/^91/, "");
             const text = message.text.body;
 
             console.log("Owner reply received from:", from, "→", text);
 
-            // Update most recent unread alert for this owner
-            db.run(
-                `UPDATE scan_alerts
-                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                 WHERE id = (
-                   SELECT id FROM scan_alerts
-                   WHERE owner_phone = ? AND owner_reply IS NULL
-                   ORDER BY id DESC LIMIT 1
-                 )`,
-                [text, from],
-                (err) => {
-                    if (err) console.error("Webhook DB error:", err);
-                }
-            );
+            // 🔥 Extract scan_id from message (Ref:xxxx)
+            const scanIdMatch = text.match(/Ref:([a-f0-9]+)/i);
+            const scanId = scanIdMatch ? scanIdMatch[1] : null;
+
+            console.log("Extracted scanId:", scanId);
+
+            if (scanId) {
+                // ✅ Update using scan_id (BEST METHOD)
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                     WHERE scan_id = ?`,
+                    [text, scanId],
+                    (err) => {
+                        if (err) console.error("Webhook DB error:", err);
+                    }
+                );
+            } else {
+                // ⚠️ Fallback (if user deletes Ref:xxxx)
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                     WHERE id = (
+                       SELECT id FROM scan_alerts
+                       WHERE owner_phone = ? AND owner_reply IS NULL
+                       ORDER BY id DESC LIMIT 1
+                     )`,
+                    [text, from],
+                    (err) => {
+                        if (err) console.error("Fallback DB error:", err);
+                    }
+                );
+            }
         }
     } catch (err) {
         console.error("Webhook error:", err);
     }
 
-    // Always respond 200 to Meta — even on error
     res.sendStatus(200);
 });
 
