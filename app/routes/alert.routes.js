@@ -93,36 +93,26 @@ router.post("/send-alert", (req, res) => {
                                 }
 
                                 // Send WhatsApp to primary number using approved template
-                                db.get(
-                                    `SELECT product_type, asset_name FROM qr_numbers WHERE qr_id = ?`,
-                                    [qr_id],
-                                    (err, qr) => {
-                                        if (err || !qr) return console.error("QR lookup failed:", err);
+                                const rawAsset = qr.asset_name || qr.product_type || "Asset";
+                                const formattedAsset = rawAsset.charAt(0).toUpperCase() + rawAsset.slice(1);
 
-                                        const rawAsset = qr.asset_name || qr.product_type || "Asset";
-                                        const formattedAsset = rawAsset.charAt(0).toUpperCase() + rawAsset.slice(1);
+                                // Send WhatsApp to primary
+                                sendWhatsApp(ownerPhone, {
+                                    template: "qr_scan_alert",
+                                    params: [
+                                        formattedAsset,
+                                        message,
+                                        location || "Not shared"
+                                    ]
+                                });
 
-                                        sendWhatsApp(ownerPhone, {
-                                            template: "qr_scan_alert",
-                                            params: [
-                                                formattedAsset,
-                                                message,
-                                                location || "Not shared"
-                                            ]
-                                        });
-                                    }
-                                );
-
-
-
-                                // Send to secondary if exists
-                                // Send to secondary if exists
+                                // Send to secondary
                                 const secondary = rows.find(r => r.type === "secondary");
                                 if (secondary) {
                                     sendWhatsApp(secondary.phone, {
                                         template: "qr_scan_alert",
                                         params: [
-                                            formattedAsset,   // ✅ use the same formatted asset
+                                            formattedAsset,
                                             message,
                                             location || "Not shared"
                                         ]
