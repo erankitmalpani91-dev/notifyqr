@@ -93,15 +93,18 @@ router.post("/send-alert", (req, res) => {
                                 }
 
                                 // Send WhatsApp to primary number using approved template
-                                const assetLabel = qr.asset_name || qr.product_type || "asset";
+                                const assetLabel = (qr.asset_name || qr.product_type || "Asset");
+                                const formattedAsset = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
+
                                 sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
                                     params: [
-                                        assetLabel,
+                                        formattedAsset,
                                         message,
                                         location || "Not shared"
                                     ]
                                 });
+
 
                                 // Send to secondary if exists
                                 const secondary = rows.find(r => r.type === "secondary");
@@ -166,23 +169,17 @@ router.post("/whatsapp-webhook", (req, res) => {
         const changes = entry?.changes?.[0];
         const message = changes?.value?.messages?.[0];
 
-        if (message && message.text) {
-            // Meta sends phone with country code e.g. 919166605152
-            // Strip 91 prefix to match 10-digit stored number
-            let from = message.from.replace(/^91/, "");
+        if (message && message.type === "text") {
+            const from = message.from; // full international format
             const text = message.text.body;
 
             console.log("Owner reply received from:", from, "→", text);
 
-            // Update most recent unread alert for this owner
             db.run(
                 `UPDATE scan_alerts
                  SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                 WHERE id = (
-                   SELECT id FROM scan_alerts
-                   WHERE owner_phone = ? AND owner_reply IS NULL
-                   ORDER BY id DESC LIMIT 1
-                 )`,
+                 WHERE owner_phone = ? AND owner_reply IS NULL
+                 ORDER BY id DESC LIMIT 1`,
                 [text, from],
                 (err) => {
                     if (err) console.error("Webhook DB error:", err);
@@ -193,8 +190,9 @@ router.post("/whatsapp-webhook", (req, res) => {
         console.error("Webhook error:", err);
     }
 
-    // Always respond 200 to Meta — even on error
+    // Always respond 200 to Meta
     res.sendStatus(200);
 });
+
 
 module.exports = router;
