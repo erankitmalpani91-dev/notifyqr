@@ -92,11 +92,21 @@ router.post("/send-alert", (req, res) => {
                                     return res.json({ success: false, message: "Failed to log alert" });
                                 }
 
-                                // Send WhatsApp to primary number using approved template
-                                const assetLabel =
-                                    (qr.asset_name && qr.asset_name.trim()) ||
-                                    (qr.product_type && qr.product_type.trim()) ||
-                                    "Item";
+                                // Send WhatsApp to primary number using approved template Build asset label
+                                let assetLabel = "Item";
+
+                                const assetName = (qr.asset_name || "").trim();
+                                const productType = (qr.product_type || "").trim();
+
+                                if (assetName && assetName.toLowerCase() !== "asset") {
+                                    assetLabel = assetName;
+                                } else if (productType) {
+                                    assetLabel = productType;
+                                }
+
+                                assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
+
+                                // Send WhatsApp to primary
                                 sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
                                     params: [
@@ -118,6 +128,7 @@ router.post("/send-alert", (req, res) => {
                                         ]
                                     });
                                 }
+
 
                                 // Return scan_id so finder can poll for reply
                                 res.json({ success: true, scan_id: scanId });
