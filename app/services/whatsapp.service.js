@@ -1,23 +1,7 @@
-const axios = require("axios");
-
-
-
 async function sendWhatsApp(to, data) {
     try {
-        // CLEAN PHONE NUMBER
         to = to.replace(/\D/g, "");
-
-        // FIX FORMAT STRICTLY
-        if (to.length === 10) {
-            to = "91" + to;
-        } else if (to.length === 12 && to.startsWith("91")) {
-            // correct
-        } else {
-            console.log("❌ INVALID NUMBER:", to);
-        }
-
-        // FINAL LOG
-        console.log("📲 FINAL NUMBER:", to);
+        if (to.length === 10) to = "91" + to;
 
         await axios.post(
             `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -26,15 +10,15 @@ async function sendWhatsApp(to, data) {
                 to: to,
                 type: "template",
                 template: {
-                    name: "qr_purchase_success",
+                    name: data.template, // "qr_scan_alert" or "qr_purchase_success"
                     language: { code: "en" },
                     components: [
                         {
                             type: "body",
-                            parameters: [
-                                { type: "text", text: data.name },
-                                { type: "text", text: data.link }
-                            ]
+                            parameters: data.params.map(p => ({
+                                type: "text",
+                                text: p
+                            }))
                         }
                     ]
                 }
@@ -47,11 +31,8 @@ async function sendWhatsApp(to, data) {
             }
         );
 
-        console.log("✅ WHATSAPP SENT:", to);
-
+        console.log("✅ WHATSAPP SENT:", to, "using template:", data.template);
     } catch (err) {
         console.log("❌ WHATSAPP ERROR:", err.response?.data || err.message);
     }
 }
-
-module.exports = { sendWhatsApp };
