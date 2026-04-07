@@ -93,17 +93,25 @@ router.post("/send-alert", (req, res) => {
                                 }
 
                                 // Send WhatsApp to primary number using approved template
-                                const assetLabel = (qr.asset_name || qr.product_type || "Asset");
-                                const formattedAsset = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
+                                db.get(
+                                    `SELECT product_type, asset_name FROM qr_numbers WHERE id = ?`,
+                                    [qr_id],
+                                    (err, qr) => {
+                                        if (err) return console.error(err);
 
-                                sendWhatsApp(ownerPhone, {
-                                    template: "qr_scan_alert",
-                                    params: [
-                                        formattedAsset,
-                                        message,
-                                        location || "Not shared"
-                                    ]
-                                });
+                                        const rawAsset = qr.asset_name || qr.product_type || "Asset";
+                                        const formattedAsset = rawAsset.charAt(0).toUpperCase() + rawAsset.slice(1);
+
+                                        sendWhatsApp(ownerPhone, {
+                                            template: "qr_scan_alert",
+                                            params: [
+                                                formattedAsset,
+                                                message,
+                                                location || "Not shared"
+                                            ]
+                                        });
+                                    }
+                                );
 
 
                                 // Send to secondary if exists
