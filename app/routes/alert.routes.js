@@ -94,10 +94,10 @@ router.post("/send-alert", (req, res) => {
 
                                 // Send WhatsApp to primary number using approved template
                                 db.get(
-                                    `SELECT product_type, asset_name FROM qr_numbers WHERE id = ?`,
+                                    `SELECT product_type, asset_name FROM qr_numbers WHERE qr_id = ?`,
                                     [qr_id],
                                     (err, qr) => {
-                                        if (err) return console.error(err);
+                                        if (err || !qr) return console.error("QR lookup failed:", err);
 
                                         const rawAsset = qr.asset_name || qr.product_type || "Asset";
                                         const formattedAsset = rawAsset.charAt(0).toUpperCase() + rawAsset.slice(1);
@@ -114,18 +114,21 @@ router.post("/send-alert", (req, res) => {
                                 );
 
 
+
+                                // Send to secondary if exists
                                 // Send to secondary if exists
                                 const secondary = rows.find(r => r.type === "secondary");
                                 if (secondary) {
                                     sendWhatsApp(secondary.phone, {
                                         template: "qr_scan_alert",
                                         params: [
-                                            assetLabel,
+                                            formattedAsset,   // ✅ use the same formatted asset
                                             message,
                                             location || "Not shared"
                                         ]
                                     });
                                 }
+
 
                                 // Return scan_id so finder can poll for reply
                                 res.json({ success: true, scan_id: scanId });
