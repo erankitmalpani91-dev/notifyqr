@@ -64,8 +64,8 @@ app.use("/api/assets", require("./routes/assets.routes"));
 // Alerts
 app.use("/api/alerts", require("./routes/alert.routes"));
 
-// Secure routes
-app.use("/secure", require("./routes/qr.secure.routes"));
+// Secure routes — redirect to scan page
+app.use("/secure", require("./routes/qr.routes"));
 
 // Admin
 app.use("/api/admin", require("./routes/admin.routes"));
