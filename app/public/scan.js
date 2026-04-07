@@ -2,175 +2,255 @@ const params = new URLSearchParams(window.location.search);
 const qrId = params.get("qr");
 
 let selectedMessage = "";
-let cooldownTime = 180; // 3 minutes
-
 let allMessages = [];
+let pollInterval = null;
+let currentScanId = null;
+
+// Predefined messages per asset type
+const messageMap = {
+    car: [
+        "Your car is blocking the way",
+        "Your car lights are on",
+        "Please move your car",
+        "Car parked in no parking zone",
+        "Car alarm is ringing",
+        "Car window is open"
+    ],
+    bike: [
+        "Your bike is blocking the way",
+        "Your bike lights are on",
+        "Please move your bike",
+        "Bike parked in no parking zone",
+        "Bike alarm is ringing"
+    ],
+    bag: [
+        "I found your bag",
+        "Your bag is unattended",
+        "Your bag was left behind"
+    ],
+    laptop: [
+        "I found your laptop",
+        "Your laptop is unattended"
+    ],
+    keys: [
+        "I found your keys",
+        "Your keys were left behind"
+    ],
+    pet: [
+        "I found your pet",
+        "Your pet is unattended",
+        "Your pet seems lost"
+    ],
+    child: [
+        "I found a child with this tag",
+        "A child needs assistance"
+    ],
+    default: [
+        "I found your item",
+        "Your item is unattended",
+        "Please contact me"
+    ]
+};
 
 if (!qrId) {
-    document.getElementById("title").innerText = "Invalid QR";
-    throw new Error("QR missing");
+    document.getElementById("title").innerText = "Invalid QR Code";
+} else {
+    loadQR();
 }
 
-// 🔥 LOAD QR
-fetch("/secure/" + qrId)
-    .then(res => res.json())
-    .then(data => {
+// Load QR info from server
+function loadQR() {
+    fetch("/api/alerts/qr-info/" + qrId)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                document.getElementById("title").innerText = data.message || "QR Not Active";
+                return;
+            }
 
-        if (!data.success) {
-            document.getElementById("title").innerText = "QR Not Active";
-            return;
-        }
+            const assetType = (data.product_type || "default").toLowerCase();
+            const assetLabel = data.asset_name || data.product_type || "Item";
 
-        const asset = data.asset_name || "Item";
+            document.getElementById("title").innerText = "Notify Owner";
+            document.getElementById("mainContent").style.display = "block";
 
-        document.getElementById("title").innerText = "Notify Owner (" + asset + ")";
+            allMessages = messageMap[assetType] || messageMap["default"];
+            renderButtons(allMessages.slice(0, 3));
+        })
+        .catch(() => {
+            document.getElementById("title").innerText = "Unable to load QR";
+        });
+}
 
-        const messages = {
-            Car: [
-                "Your car is blocking the way",
-                "Your car lights are on",
-                "Please move your car",
-                "Car parked in no parking",
-                "Car alarm is ringing",
-                "Car window is open"
-            ]
-        };
-
-        allMessages = messages[asset] || ["Found your item"];
-
-        renderButtons(allMessages.slice(0, 3));
-
-    });
-
-
-// 🔥 RENDER BUTTONS
+// Render predefined message buttons
 function renderButtons(msgs) {
-
     const btnDiv = document.getElementById("buttons");
     btnDiv.innerHTML = "";
 
     msgs.forEach(msg => {
-
         const btn = document.createElement("button");
         btn.className = "btn";
         btn.innerText = msg;
 
         btn.onclick = () => {
-
             selectedMessage = msg;
-
-            document.querySelectorAll(".btn").forEach(b => {
-                b.classList.remove("selected");
-            });
-
+            document.querySelectorAll("#buttons .btn").forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
+
+            // Pre-fill custom box with selected message
+            const customBox = document.getElementById("customMsg");
+            if (!customBox.value || customBox.dataset.prefilled === "true") {
+                customBox.value = msg;
+                customBox.dataset.prefilled = "true";
+                updateCharCount();
+            }
         };
 
         btnDiv.appendChild(btn);
     });
 
-    setTimeout(() => {
-        const first = document.querySelector(".btn");
-        if (first) first.click();
-    }, 100);
+    // Auto-select first
+    const first = btnDiv.querySelector(".btn");
+    if (first) first.click();
 }
 
-
-// 🔥 SHOW MORE
+// Show all messages
 function showMore() {
     renderButtons(allMessages);
     document.getElementById("moreOptions").style.display = "none";
 }
 
+// Update char count
+function updateCharCount() {
+    const val = document.getElementById("customMsg").value.length;
+    document.getElementById("charCount").innerText = val;
+    // Once user edits manually, stop auto-replacing
+    document.getElementById("customMsg").dataset.prefilled = "false";
+}
 
-// 🔥 NOTIFY
+// Main notify function
 function notifyOwner() {
+    const customText = document.getElementById("customMsg").value.trim();
+    const finalMessage = customText || selectedMessage;
 
-    if (!selectedMessage) {
-        alert("Select a message");
+    if (!finalMessage) {
+        alert("Please select an issue or write a message");
         return;
     }
 
-    const btn = document.querySelector(".notify-btn");
-
-    btn.innerText = "Sending...";
+    const btn = document.getElementById("notifyBtn");
     btn.disabled = true;
+    btn.innerText = "Sending...";
 
-    navigator.geolocation.getCurrentPosition(pos => {
+    showStatus("sending", "Sending notification...");
 
-        const location = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
-
-        fetch("/api/alerts/send-alert", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+    // Try to get location — if denied, send without it
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const location = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                sendAlert(finalMessage, location);
             },
-            body: JSON.stringify({
-                qr_id: qrId,
-                message: selectedMessage,
-                location
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-
-                const btn = document.querySelector(".notify-btn");
-                const timer = document.getElementById("timer");
-
-                if (data.success) {
-
-                    // ✅ SHOW SUCCESS MESSAGE
-                    btn.innerText = "✅ Owner Notified";
-                    btn.style.background = "#27ae60";
-
-                    timer.innerText = "Owner has been notified. They may respond shortly.";
-
-                    // 🔥 START COOLDOWN AFTER 2 SEC
-                    setTimeout(() => {
-                        startCooldown();
-                    }, 2000);
-
-                } else {
-                    btn.innerText = "Notify Owner";
-                    btn.disabled = false;
-                    alert("Failed");
-                }
-
-            });
-
-    });
+            () => {
+                // Location denied — send without it
+                sendAlert(finalMessage, null);
+            },
+            { timeout: 5000 }
+        );
+    } else {
+        sendAlert(finalMessage, null);
+    }
 }
 
+// Send alert to server
+function sendAlert(message, location) {
+    fetch("/api/alerts/send-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_id: qrId, message, location })
+    })
+        .then(res => res.json())
+        .then(data => {
+            const btn = document.getElementById("notifyBtn");
 
-// 🔥 COOLDOWN TIMER
+            if (data.success) {
+                currentScanId = data.scan_id;
+
+                btn.innerText = "✅ Owner Notified";
+                showStatus("success", "Owner has been notified. Waiting for reply...");
+
+                // Start polling for reply
+                startPolling(currentScanId);
+
+                // Start 3 min cooldown
+                setTimeout(() => startCooldown(), 2000);
+
+            } else {
+                btn.disabled = false;
+                btn.innerText = "Notify Owner";
+                showStatus("error", data.message || "Failed to notify. Please try again.");
+            }
+        })
+        .catch(() => {
+            const btn = document.getElementById("notifyBtn");
+            btn.disabled = false;
+            btn.innerText = "Notify Owner";
+            showStatus("error", "Network error. Please try again.");
+        });
+}
+
+// Poll for owner reply
+function startPolling(scanId) {
+    if (pollInterval) clearInterval(pollInterval);
+
+    pollInterval = setInterval(() => {
+        fetch("/api/alerts/reply/" + scanId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.reply) {
+                    clearInterval(pollInterval);
+                    showStatus("replied",
+                        `<strong>Owner replied:</strong><br>${data.reply}`
+                    );
+                }
+            })
+            .catch(() => { }); // silent fail — keep polling
+    }, 5000);
+
+    // Stop polling after 10 minutes
+    setTimeout(() => {
+        clearInterval(pollInterval);
+    }, 600000);
+}
+
+// 3 minute cooldown timer
 function startCooldown() {
-
-    const btn = document.querySelector(".notify-btn");
+    const btn = document.getElementById("notifyBtn");
     const timer = document.getElementById("timer");
 
     let time = 180;
-
     btn.disabled = true;
     btn.style.background = "#95a5a6";
 
     const interval = setInterval(() => {
-
         const min = Math.floor(time / 60);
         const sec = time % 60;
-
-        timer.innerText = `Try again in ${min}:${sec < 10 ? '0' + sec : sec}`;
-
+        timer.innerText = `Can notify again in ${min}:${sec < 10 ? "0" + sec : sec}`;
         time--;
 
         if (time < 0) {
             clearInterval(interval);
-
             btn.disabled = false;
-            btn.innerText = "Notify Owner";
+            btn.innerText = "Notify Again";
             btn.style.background = "#27ae60";
-
             timer.innerText = "";
         }
-
     }, 1000);
 }
+
+// Show status message
+function showStatus(type, message) {
+    const box = document.getElementById("statusBox");
+    box.className = "status-box " + type;
+    box.innerHTML = message;
+} 

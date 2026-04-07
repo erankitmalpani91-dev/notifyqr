@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #f5f6fa;
         }
 
@@ -37,49 +41,134 @@
 
         h2 {
             text-align: center;
+            font-size: 18px;
+            margin: 0 0 16px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            color: #666;
+            margin: 12px 0 6px;
         }
 
         .btn {
             width: 100%;
-            padding: 15px;
-            margin: 8px 0;
-            border: none;
+            padding: 13px;
+            margin: 6px 0;
+            border: 1.5px solid #2f80ed;
             border-radius: 12px;
-            background: #2f80ed;
-            color: white;
-            font-size: 15px;
-            transition: 0.2s;
+            background: white;
+            color: #2f80ed;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.15s;
         }
 
             .btn:active {
-                transform: scale(0.96);
+                transform: scale(0.98);
             }
 
-        .selected {
-            background: #1c5ed6;
-            transform: scale(1.05);
-        }
-
-        .notify-btn {
-            background: #27ae60;
-            margin-top: 12px;
-        }
-
-            .notify-btn:disabled {
-                background: #95a5a6;
+            .btn.selected {
+                background: #2f80ed;
+                color: white;
             }
 
         .more {
             text-align: center;
             color: #2f80ed;
-            margin-top: 10px;
+            margin: 6px 0 12px;
             cursor: pointer;
+            font-size: 14px;
         }
+
+        .custom-box {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: none;
+            font-family: Arial, sans-serif;
+            margin-top: 10px;
+        }
+
+            .custom-box:focus {
+                outline: none;
+                border-color: #2f80ed;
+            }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        .notify-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 14px;
+            border: none;
+            border-radius: 12px;
+            background: #27ae60;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .notify-btn:disabled {
+                background: #95a5a6;
+                cursor: not-allowed;
+            }
+
+        .status-box {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+            .status-box.sending {
+                background: #eaf3ff;
+                color: #2f80ed;
+                display: block;
+            }
+
+            .status-box.success {
+                background: #eafaf1;
+                color: #27ae60;
+                display: block;
+            }
+
+            .status-box.error {
+                background: #fdecea;
+                color: #c0392b;
+                display: block;
+            }
+
+            .status-box.replied {
+                background: #eafaf1;
+                color: #1a5c38;
+                display: block;
+                border: 1.5px solid #27ae60;
+            }
 
         .timer {
             text-align: center;
-            color: red;
+            color: #999;
+            font-size: 13px;
             margin-top: 10px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 14px 0;
         }
     </style>
 </head>
@@ -96,13 +185,28 @@
 
             <h2 id="title">Loading...</h2>
 
-            <div id="buttons"></div>
+            <div id="mainContent" style="display:none">
 
-            <div id="moreOptions" class="more" onclick="showMore()">+ More options</div>
+                <p class="section-label">Select issue:</p>
+                <div id="buttons"></div>
+                <div id="moreOptions" class="more" onclick="showMore()">+ More options</div>
 
-            <button class="btn notify-btn" onclick="notifyOwner()">Notify Owner</button>
+                <hr class="divider">
 
-            <div id="timer" class="timer"></div>
+                <p class="section-label">Add details (optional):</p>
+                <textarea id="customMsg" class="custom-box" rows="3"
+                          placeholder="e.g. I found your bag near Gate 3, call me at 98765..."
+                          maxlength="200" oninput="updateCharCount()"></textarea>
+                <div class="char-count"><span id="charCount">0</span>/200</div>
+
+                <button class="notify-btn" id="notifyBtn" onclick="notifyOwner()">
+                    Notify Owner
+                </button>
+
+                <div id="statusBox" class="status-box"></div>
+                <div id="timer" class="timer"></div>
+
+            </div>
 
         </div>
 

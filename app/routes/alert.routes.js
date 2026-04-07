@@ -2,6 +2,32 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 const { sendWhatsApp } = require("../services/whatsapp.service");
+const crypto = require("crypto");
+
+// ✅ QR Info — called by scan page on load
+router.get("/qr-info/:qrId", (req, res) => {
+    const { qrId } = req.params;
+
+    db.get(
+        `SELECT qr_id, product_type, asset_name, status, expiry_date
+         FROM qr_codes WHERE qr_id = ?`,
+        [qrId],
+        (err, qr) => {
+            if (err || !qr) return res.json({ success: false, message: "QR not found" });
+            if (qr.status === "inactive") return res.json({ success: false, message: "QR not activated" });
+            if (qr.status === "disabled") return res.json({ success: false, message: "QR disabled" });
+            if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
+                return res.json({ success: false, message: "QR expired" });
+            }
+            res.json({
+                success: true,
+                qr_id: qr.qr_id,
+                product_type: qr.product_type,
+                asset_name: qr.asset_name
+            });
+        }
+    );
+});
 
 // ✅ Send alert when finder clicks "Notify Owner"
 router.post("/send-alert", (req, res) => {
@@ -11,35 +37,21 @@ router.post("/send-alert", (req, res) => {
         return res.json({ success: false, message: "Missing data" });
     }
 
-    // 🔍 Validate QR and fetch plan_years
     db.get(
-        `SELECT q.qr_id, q.status, q.expiry_date, q.plan_years, u.id as user_id
+        `SELECT q.qr_id, q.status, q.expiry_date, q.plan_years, q.product_type, q.asset_name
          FROM qr_codes q
-         JOIN users u ON q.user_id = u.id
-         WHERE q.qr_id=?`,
+         WHERE q.qr_id = ?`,
         [qr_id],
         (err, qr) => {
-            if (err || !qr) {
-                return res.json({ success: false, message: "Invalid QR" });
+            if (err || !qr) return res.json({ success: false, message: "Invalid QR" });
+
+            if (qr.status === "inactive") return res.json({ success: false, message: "QR not activated" });
+            if (qr.status === "disabled") return res.json({ success: false, message: "QR disabled" });
+            if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
+                return res.json({ success: false, message: "QR expired" });
             }
 
-            // ❌ Status checks
-            if (qr.status === "inactive") {
-                return res.json({ success: false, message: "QR not activated" });
-            }
-            if (qr.status === "disabled") {
-                return res.json({ success: false, message: "QR disabled" });
-            }
-            if (qr.expiry_date) {
-                const today = new Date();
-                const expiry = new Date(qr.expiry_date);
-                if (today > expiry) {
-                    return res.json({ success: false, message: "QR expired" });
-                }
-            }
-
-            // ✅ Get primary + optional secondary numbers
-            db.all(`SELECT phone, type FROM qr_numbers WHERE qr_id=?`, [qr_id], (err2, rows) => {
+            db.all(`SELECT phone, type FROM qr_numbers WHERE qr_id = ?`, [qr_id], (err2, rows) => {
                 if (!rows || rows.length === 0) {
                     return res.json({ success: false, message: "No contact found" });
                 }
@@ -47,51 +59,67 @@ router.post("/send-alert", (req, res) => {
                 const primaryRow = rows.find(r => r.type === "primary") || rows[0];
                 const ownerPhone = primaryRow.phone;
 
-                // 🔒 Enforce alerts/year * plan_years
+                // Enforce 600 alerts per year per plan_year
                 const planYears = qr.plan_years || 1;
                 const maxAlerts = 600 * planYears;
 
                 db.get(
-                    `SELECT COUNT(*) as cnt
-                       FROM scan_alerts
-                       WHERE owner_phone=? AND strftime('%Y', created_at)=strftime('%Y','now')`,
-                    [ownerPhone],
+                    `SELECT COUNT(*) as cnt FROM scan_alerts
+                     WHERE qr_id = ? AND created_at >= DATE('now', '-' || ? || ' years')`,
+                    [qr_id, planYears],
                     (err3, countRow) => {
                         if (countRow && countRow.cnt >= maxAlerts) {
                             return res.json({
                                 success: false,
-                                message: `Annual alert limit reached (${maxAlerts} for ${planYears}-year plan)`
+                                message: "Alert limit reached for this QR"
                             });
                         }
 
-                        // ✅ WhatsApp template format
-                        const fullMsg = `
-                        Reachoutowner Alert ⚠️
+                        // Generate unique scan_id for polling
+                        const scanId = crypto.randomBytes(16).toString("hex");
 
-                        Someone scanned your asset type QR.
-
-                        Message: ${message}
-
-                        📍 Location: ${location || "Not shared"}
-
-                        Reply to this message to respond to the finder.
-                        They will see your reply on their screen.
-                        `;
-
-                        // Send WhatsApp to all numbers (primary + optional secondary)
-                        rows.forEach(r => {
-                            sendWhatsApp(r.phone, fullMsg);
-                        });
-
-                        // Log scan + alert
+                        // Log scan
                         db.run(`INSERT INTO scan_logs (qr_id) VALUES (?)`, [qr_id]);
+
+                        // Save alert record
                         db.run(
                             `INSERT INTO scan_alerts (scan_id, qr_id, owner_phone, finder_message, location)
                              VALUES (?, ?, ?, ?, ?)`,
-                            [Date.now().toString(), qr_id, ownerPhone, message, location]
-                        );
+                            [scanId, qr_id, ownerPhone, message, location || null],
+                            (insertErr) => {
+                                if (insertErr) {
+                                    console.error("Alert insert error:", insertErr);
+                                    return res.json({ success: false, message: "Failed to log alert" });
+                                }
 
-                        res.json({ success: true });
+                                // Send WhatsApp to primary number using approved template
+                                const assetLabel = qr.asset_name || qr.product_type || "asset";
+                                sendWhatsApp(ownerPhone, {
+                                    template: "qr_scan_alert",
+                                    params: [
+                                        assetLabel,
+                                        message,
+                                        location || "Not shared"
+                                    ]
+                                });
+
+                                // Send to secondary if exists
+                                const secondary = rows.find(r => r.type === "secondary");
+                                if (secondary) {
+                                    sendWhatsApp(secondary.phone, {
+                                        template: "qr_scan_alert",
+                                        params: [
+                                            assetLabel,
+                                            message,
+                                            location || "Not shared"
+                                        ]
+                                    });
+                                }
+
+                                // Return scan_id so finder can poll for reply
+                                res.json({ success: true, scan_id: scanId });
+                            }
+                        );
                     }
                 );
             });
@@ -99,41 +127,74 @@ router.post("/send-alert", (req, res) => {
     );
 });
 
-// ✅ Webhook to capture owner replies (free-text)
-router.post("/whatsapp-webhook", (req, res) => {
-    const entry = req.body.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const message = changes?.value?.messages?.[0];
+// ✅ Finder polls for owner reply using scan_id
+router.get("/reply/:scanId", (req, res) => {
+    const { scanId } = req.params;
 
-    if (message && message.text) {
-        const from = message.from; // owner phone
-        const text = message.text.body;
-
-        db.run(
-            `UPDATE scan_alerts
-               SET owner_reply=?, replied_at=CURRENT_TIMESTAMP
-               WHERE owner_phone=? ORDER BY id DESC LIMIT 1`,
-            [text, from]
-        );
-    }
-
-    res.sendStatus(200);
-});
-
-// ✅ Finder can poll for latest owner reply
-router.get("/status/:qrId", (req, res) => {
-    const { qrId } = req.params;
     db.get(
-        `SELECT owner_reply, replied_at
-         FROM scan_alerts
-         WHERE qr_id=?
-         ORDER BY id DESC LIMIT 1`,
-        [qrId],
+        `SELECT owner_reply, replied_at FROM scan_alerts WHERE scan_id = ?`,
+        [scanId],
         (err, row) => {
             if (err || !row) return res.json({ success: false });
-            res.json({ success: true, reply: row.owner_reply, replied_at: row.replied_at });
+            res.json({
+                success: true,
+                reply: row.owner_reply || null,
+                replied_at: row.replied_at || null
+            });
         }
     );
+});
+
+// ✅ WhatsApp webhook verification (GET) — required by Meta
+router.get("/whatsapp-webhook", (req, res) => {
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+
+    if (token === process.env.WEBHOOK_VERIFY_TOKEN) {
+        console.log("WhatsApp webhook verified");
+        res.send(challenge);
+    } else {
+        console.log("Webhook verification failed");
+        res.sendStatus(403);
+    }
+});
+
+// ✅ WhatsApp webhook — receives owner's reply
+router.post("/whatsapp-webhook", (req, res) => {
+    try {
+        const entry = req.body.entry?.[0];
+        const changes = entry?.changes?.[0];
+        const message = changes?.value?.messages?.[0];
+
+        if (message && message.text) {
+            // Meta sends phone with country code e.g. 919166605152
+            // Strip 91 prefix to match 10-digit stored number
+            let from = message.from.replace(/^91/, "");
+            const text = message.text.body;
+
+            console.log("Owner reply received from:", from, "→", text);
+
+            // Update most recent unread alert for this owner
+            db.run(
+                `UPDATE scan_alerts
+                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                 WHERE id = (
+                   SELECT id FROM scan_alerts
+                   WHERE owner_phone = ? AND owner_reply IS NULL
+                   ORDER BY id DESC LIMIT 1
+                 )`,
+                [text, from],
+                (err) => {
+                    if (err) console.error("Webhook DB error:", err);
+                }
+            );
+        }
+    } catch (err) {
+        console.error("Webhook error:", err);
+    }
+
+    // Always respond 200 to Meta — even on error
+    res.sendStatus(200);
 });
 
 module.exports = router;
