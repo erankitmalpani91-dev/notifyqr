@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 async function sendWhatsApp(to, data) {
     try {
         to = to.replace(/\D/g, "");
@@ -36,3 +38,5 @@ async function sendWhatsApp(to, data) {
         console.log("❌ WHATSAPP ERROR:", err.response?.data || err.message);
     }
 }
+
+module.exports = { sendWhatsApp };
