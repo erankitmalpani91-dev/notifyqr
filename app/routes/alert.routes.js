@@ -93,32 +93,28 @@ router.post("/send-alert", (req, res) => {
                                 }
 
                                 // Send WhatsApp to primary number using approved template
-                                const rawAsset = qr.asset_name || qr.product_type || "Asset";
-                                const formattedAsset = rawAsset.charAt(0).toUpperCase() + rawAsset.slice(1);
-
-                                // Send WhatsApp to primary
+                                const assetLabel = qr.asset_name || qr.product_type || "asset";
                                 sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
                                     params: [
-                                        formattedAsset,
+                                        assetLabel,
                                         message,
                                         location || "Not shared"
                                     ]
                                 });
 
-                                // Send to secondary
+                                // Send to secondary if exists
                                 const secondary = rows.find(r => r.type === "secondary");
                                 if (secondary) {
                                     sendWhatsApp(secondary.phone, {
                                         template: "qr_scan_alert",
                                         params: [
-                                            formattedAsset,
+                                            assetLabel,
                                             message,
                                             location || "Not shared"
                                         ]
                                     });
                                 }
-
 
                                 // Return scan_id so finder can poll for reply
                                 res.json({ success: true, scan_id: scanId });
@@ -170,17 +166,23 @@ router.post("/whatsapp-webhook", (req, res) => {
         const changes = entry?.changes?.[0];
         const message = changes?.value?.messages?.[0];
 
-        if (message && message.type === "text") {
-            const from = message.from; // full international format
+        if (message && message.text) {
+            // Meta sends phone with country code e.g. 919166605152
+            // Strip 91 prefix to match 10-digit stored number
+            let from = message.from.replace(/^91/, "");
             const text = message.text.body;
 
             console.log("Owner reply received from:", from, "→", text);
 
+            // Update most recent unread alert for this owner
             db.run(
                 `UPDATE scan_alerts
                  SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                 WHERE owner_phone = ? AND owner_reply IS NULL
-                 ORDER BY id DESC LIMIT 1`,
+                 WHERE id = (
+                   SELECT id FROM scan_alerts
+                   WHERE owner_phone = ? AND owner_reply IS NULL
+                   ORDER BY id DESC LIMIT 1
+                 )`,
                 [text, from],
                 (err) => {
                     if (err) console.error("Webhook DB error:", err);
@@ -191,9 +193,8 @@ router.post("/whatsapp-webhook", (req, res) => {
         console.error("Webhook error:", err);
     }
 
-    // Always respond 200 to Meta
+    // Always respond 200 to Meta — even on error
     res.sendStatus(200);
 });
-
 
 module.exports = router;
