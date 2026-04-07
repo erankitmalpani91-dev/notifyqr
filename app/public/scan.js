@@ -97,14 +97,13 @@ function renderButtons(msgs) {
             document.querySelectorAll("#buttons .btn").forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
 
-            // Pre-fill custom box with selected message
+            // Always overwrite with the selected message
             const customBox = document.getElementById("customMsg");
-            if (!customBox.value || customBox.dataset.prefilled === "true") {
-                customBox.value = msg;
-                customBox.dataset.prefilled = "true";
-                updateCharCount();
-            }
+            customBox.value = msg;
+            customBox.dataset.prefilled = "true";
+            updateCharCount();
         };
+
 
         btnDiv.appendChild(btn);
     });
