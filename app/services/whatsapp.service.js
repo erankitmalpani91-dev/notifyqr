@@ -2,6 +2,7 @@ const axios = require("axios");
 
 async function sendWhatsApp(to, data) {
     try {
+        // Normalize phone
         to = to.replace(/\D/g, "");
         if (to.length === 10) to = "91" + to;
 
@@ -33,15 +34,21 @@ async function sendWhatsApp(to, data) {
             }
         );
 
-        const messageId = response.data.messages?.[0]?.id;
+        const messageId = response.data?.messages?.[0]?.id;
 
-        console.log("✅ WA MESSAGE ID:", messageId);
+        if (!messageId) {
+            console.log("⚠️ No messageId returned from WhatsApp:", response.data);
+            return null;
+        }
+
+        console.log("✅ WHATSAPP SENT:", to);
+        console.log("📩 MESSAGE ID:", messageId);
 
         return messageId;
 
-        console.log("✅ WHATSAPP SENT:", to, "using template:", data.template);
     } catch (err) {
         console.log("❌ WHATSAPP ERROR:", err.response?.data || err.message);
+        return null; // 🔥 IMPORTANT
     }
 }
 

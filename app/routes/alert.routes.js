@@ -31,136 +31,98 @@ router.get("/qr-info/:qrId", (req, res) => {
 
 // ✅ Send alert when finder clicks "Notify Owner"
 router.post("/send-alert", async (req, res) => {
-    const { qr_id, message, location } = req.body;
+    try {
+        const { qr_id, message, location } = req.body;
 
-    if (!qr_id || !message) {
-        return res.json({ success: false, message: "Missing data" });
-    }
+        if (!qr_id || !message) {
+            return res.json({ success: false, message: "Missing data" });
+        }
 
-    db.get(
-        `SELECT q.qr_id, q.status, q.expiry_date, q.plan_years, q.product_type, q.asset_name
-         FROM qr_codes q
-         WHERE q.qr_id = ?`,
-        [qr_id],
-        (err, qr) => {
-            if (err || !qr) return res.json({ success: false, message: "Invalid QR" });
+        const qr = await new Promise((resolve, reject) => {
+            db.get(
+                `SELECT * FROM qr_codes WHERE qr_id = ?`,
+                [qr_id],
+                (err, row) => err ? reject(err) : resolve(row)
+            );
+        });
 
-            if (qr.status === "inactive") return res.json({ success: false, message: "QR not activated" });
-            if (qr.status === "disabled") return res.json({ success: false, message: "QR disabled" });
-            if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
-                return res.json({ success: false, message: "QR expired" });
-            }
+        if (!qr) return res.json({ success: false, message: "Invalid QR" });
 
-            db.all(`SELECT phone, type FROM qr_numbers WHERE qr_id = ?`, [qr_id], (err2, rows) => {
-                if (!rows || rows.length === 0) {
-                    return res.json({ success: false, message: "No contact found" });
-                }
+        const rows = await new Promise((resolve, reject) => {
+            db.all(
+                `SELECT phone, type FROM qr_numbers WHERE qr_id = ?`,
+                [qr_id],
+                (err, rows) => err ? reject(err) : resolve(rows)
+            );
+        });
 
-                const primaryRow = rows.find(r => r.type === "primary") || rows[0];
-                const ownerPhone = primaryRow.phone;
+        const primaryRow = rows.find(r => r.type === "primary") || rows[0];
+        const ownerPhone = primaryRow.phone;
 
-                // Enforce 600 alerts per year per plan_year
-                const planYears = qr.plan_years || 1;
-                const maxAlerts = 600 * planYears;
+        const scanId = crypto.randomBytes(16).toString("hex");
 
-                db.get(
-                    `SELECT COUNT(*) as cnt FROM scan_alerts
-                     WHERE qr_id = ? AND created_at >= DATE('now', '-' || ? || ' years')`,
-                    [qr_id, planYears],
-                    (err3, countRow) => {
-                        if (countRow && countRow.cnt >= maxAlerts) {
-                            return res.json({
-                                success: false,
-                                message: "Alert limit reached for this QR"
-                            });
-                        }
+        // Save alert first
+        await new Promise((resolve, reject) => {
+            db.run(
+                `INSERT INTO scan_alerts 
+                (scan_id, qr_id, owner_phone, finder_message, location)
+                VALUES (?, ?, ?, ?, ?)`,
+                [scanId, qr_id, ownerPhone, message, location || null],
+                err => err ? reject(err) : resolve()
+            );
+        });
 
-                        // Generate unique scan_id for polling
-                        const scanId = crypto.randomBytes(16).toString("hex");
+        // Clean message
+        const cleanMessage = message
+            .replace(/\n/g, " ")
+            .replace(/\t/g, " ")
+            .replace(/\s{2,}/g, " ")
+            .trim();
 
-                        // Log scan
-                        db.run(`INSERT INTO scan_logs (qr_id) VALUES (?)`, [qr_id]);
+        const cleanLocation = (location || "Not shared")
+            .replace(/\n/g, " ")
+            .replace(/\s{2,}/g, " ")
+            .trim();
 
-                        // Save alert record
-                        db.run(
-                            `INSERT INTO scan_alerts (scan_id, qr_id, owner_phone, finder_message, location)
-                             VALUES (?, ?, ?, ?, ?)`,
-                            [scanId, qr_id, ownerPhone, message, location || null],
-                            (insertErr) => {
-                                if (insertErr) {
-                                    console.error("Alert insert error:", insertErr);
-                                    return res.json({ success: false, message: "Failed to log alert" });
-                                }
+        const finalMessage = cleanMessage.toUpperCase();
 
-                                // Send WhatsApp to primary number using approved template Build asset label
-                                let assetLabel = "Item";
+        let assetLabel = qr.asset_name || qr.product_type || "Item";
+        assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
 
-                                const assetName = (qr.asset_name || "").trim();
-                                const productType = (qr.product_type || "").trim();
+        // 🔥 Send to primary
+        const primaryMsgId = await sendWhatsApp(ownerPhone, {
+            template: "qr_scan_alert",
+            params: [assetLabel, finalMessage, cleanLocation]
+        });
 
-                                if (assetName && assetName.toLowerCase() !== "asset") {
-                                    assetLabel = assetName;
-                                } else if (productType) {
-                                    assetLabel = productType;
-                                }
+        // 🔥 Send to secondary
+        let secondaryMsgId = null;
+        const secondary = rows.find(r => r.type === "secondary");
 
-                                assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
-
-                                // Send WhatsApp to primary
-                                const cleanMessage = message
-                                    .replace(/\n/g, " ")
-                                    .replace(/\t/g, " ")
-                                    .replace(/\s{2,}/g, " ")
-                                    .trim();
-
-                                const cleanLocation = (location || "Not shared")
-                                    .replace(/\n/g, " ")
-                                    .replace(/\s{2,}/g, " ")
-                                    .trim();
-
-                             
-                                const primaryMessageId = await sendWhatsApp(ownerPhone, {
-                                    template: "qr_scan_alert",
-                                    params: [assetLabel, finalMessage, cleanLocation]
-                                });
-
-                                // Save message ID
-
-                                db.run(
-                                    `UPDATE scan_alerts SET wa_message_id = ? WHERE scan_id = ?`,
-                                    [primaryMessageId, scanId]
-                                );
-
-                                
-                                // Send to secondary if exists
-                                const secondary = rows.find(r => r.type === "secondary");
-
-                                if (secondary) {
-                                    const secondaryPhone = secondary.phone.replace(/\D/g, "");
-
-                                    const secondaryMessageId = await sendWhatsApp(secondaryPhone, {
-                                        template: "qr_scan_alert",
-                                        params: [assetLabel, finalMessage, cleanLocation]
-                                    });
-
-                                    db.run(
-                                        `UPDATE scan_alerts 
-                                         SET wa_message_id_secondary = ? 
-                                         WHERE scan_id = ?`,
-                                        [secondaryMessageId, scanId]
-                                    );
-                                }
-
-
-                                // Return scan_id so finder can poll for reply
-                                res.json({ success: true, scan_id: scanId });
-                            }
-                        );
-                    }
-                );
+        if (secondary) {
+            secondaryMsgId = await sendWhatsApp(secondary.phone, {
+                template: "qr_scan_alert",
+                params: [assetLabel, finalMessage, cleanLocation]
             });
         }
-    );
+
+        // 🔥 Save message IDs
+        await new Promise((resolve, reject) => {
+            db.run(
+                `UPDATE scan_alerts 
+                 SET wa_message_id = ?, wa_message_id_secondary = ?
+                 WHERE scan_id = ?`,
+                [primaryMsgId, secondaryMsgId, scanId],
+                err => err ? reject(err) : resolve()
+            );
+        });
+
+        res.json({ success: true, scan_id: scanId });
+
+    } catch (err) {
+        console.error("Send alert error:", err);
+        res.json({ success: false, message: "Server error" });
+    }
 });
 
 // ✅ Finder polls for owner reply using scan_id
@@ -205,11 +167,9 @@ router.post("/whatsapp-webhook", (req, res) => {
 
         if (message && message.text) {
             const text = message.text.body;
-
-            // 🔥 THIS IS THE KEY
             const contextId = message.context?.id;
 
-            console.log("Incoming reply:", text);
+            console.log("Reply:", text);
             console.log("Context ID:", contextId);
 
             if (contextId) {
@@ -225,12 +185,10 @@ router.post("/whatsapp-webhook", (req, res) => {
                         } else if (this.changes === 0) {
                             console.log("❌ No matching messageId found");
                         } else {
-                            console.log("✅ Reply saved (primary/secondary)");
+                            console.log("✅ Reply saved correctly");
                         }
                     }
                 );
-            } else {
-                console.log("⚠️ No context ID found (user didn't reply properly)");
             }
         }
     } catch (err) {
