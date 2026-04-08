@@ -118,13 +118,12 @@ router.post("/send-alert", (req, res) => {
                                     .replace(/\s{2,}/g, " ")
                                     .trim();
 
-                                const finalMessage = `${cleanMessage.toUpperCase()} (Ref:${scanId})`;
-
+                             
                                 sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
                                     params: [
                                         assetLabel,
-                                        finalMessage,
+                                        cleanMessage,
                                         cleanLocation
                                     ]
                                 });
@@ -137,7 +136,7 @@ router.post("/send-alert", (req, res) => {
                                         template: "qr_scan_alert",
                                         params: [
                                             assetLabel,
-                                            finalMessage,   // ✅ SAME sanitized message
+                                            cleanMessage,   // ✅ SAME sanitized message
                                             cleanLocation   // ✅ SAME sanitized location
                                         ]
                                     });
@@ -196,44 +195,32 @@ router.post("/whatsapp-webhook", (req, res) => {
         const message = changes?.value?.messages?.[0];
 
         if (message && message.text) {
+            // Strip country code — Meta sends 919166605152, we store 9166605152
             let from = message.from.replace(/^91/, "");
             const text = message.text.body;
 
-            console.log("Owner reply received from:", from, "→", text);
+            console.log("Owner reply from:", from, "→", text);
 
-            // 🔥 Extract scan_id from message (Ref:xxxx)
-            const scanIdMatch = text.match(/Ref:([a-f0-9]+)/i);
-            const scanId = scanIdMatch ? scanIdMatch[1] : null;
-
-            console.log("Extracted scanId:", scanId);
-
-            if (scanId) {
-                // ✅ Update using scan_id (BEST METHOD)
-                db.run(
-                    `UPDATE scan_alerts
-                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                     WHERE scan_id = ?`,
-                    [text, scanId],
-                    (err) => {
-                        if (err) console.error("Webhook DB error:", err);
+            // Match most recent unanswered alert for this owner's phone
+            db.run(
+                `UPDATE scan_alerts
+                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                 WHERE id = (
+                   SELECT id FROM scan_alerts
+                   WHERE owner_phone = ? AND owner_reply IS NULL
+                   ORDER BY id DESC LIMIT 1
+                 )`,
+                [text, from],
+                function (err) {
+                    if (err) {
+                        console.error("Webhook DB error:", err);
+                    } else if (this.changes === 0) {
+                        console.log("No matching alert found for phone:", from);
+                    } else {
+                        console.log("Reply saved for phone:", from);
                     }
-                );
-            } else {
-                // ⚠️ Fallback (if user deletes Ref:xxxx)
-                db.run(
-                    `UPDATE scan_alerts
-                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                     WHERE id = (
-                       SELECT id FROM scan_alerts
-                       WHERE owner_phone = ? AND owner_reply IS NULL
-                       ORDER BY id DESC LIMIT 1
-                     )`,
-                    [text, from],
-                    (err) => {
-                        if (err) console.error("Fallback DB error:", err);
-                    }
-                );
-            }
+                }
+            );
         }
     } catch (err) {
         console.error("Webhook error:", err);

@@ -208,12 +208,16 @@ function startPolling(scanId) {
             .then(data => {
                 if (data.success && data.reply) {
                     clearInterval(pollInterval);
-                    showStatus("replied",
-                        `<strong>Owner replied:</strong><br>${data.reply}`
-                    );
+
+                    // Show reply in dedicated box
+                    document.getElementById("replyText").innerText = data.reply;
+                    document.getElementById("replyBox").style.display = "block";
+
+                    // Update status box
+                    showStatus("success", "✅ Owner has responded!");
                 }
             })
-            .catch(() => { }); // silent fail — keep polling
+            .catch(() => { });
     }, 5000);
 
     // Stop polling after 10 minutes
