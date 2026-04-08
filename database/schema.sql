@@ -137,6 +137,8 @@ CREATE TABLE scan_alerts (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   owner_reply TEXT,            -- reply from owner (captured via webhook)
   replied_at TEXT,             -- timestamp of reply
+  wa_message_id TEXT,
+  wa_message_id_secondary TEXT,
   FOREIGN KEY(qr_id) REFERENCES qr_codes(qr_id)
 );
 

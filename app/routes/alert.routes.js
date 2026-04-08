@@ -30,7 +30,7 @@ router.get("/qr-info/:qrId", (req, res) => {
 });
 
 // ✅ Send alert when finder clicks "Notify Owner"
-router.post("/send-alert", (req, res) => {
+router.post("/send-alert", async (req, res) => {
     const { qr_id, message, location } = req.body;
 
     if (!qr_id || !message) {
@@ -119,27 +119,36 @@ router.post("/send-alert", (req, res) => {
                                     .trim();
 
                              
-                                sendWhatsApp(ownerPhone, {
+                                const primaryMessageId = await sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
-                                    params: [
-                                        assetLabel,
-                                        cleanMessage,
-                                        cleanLocation
-                                    ]
+                                    params: [assetLabel, finalMessage, cleanLocation]
                                 });
 
+                                // Save message ID
+
+                                db.run(
+                                    `UPDATE scan_alerts SET wa_message_id = ? WHERE scan_id = ?`,
+                                    [primaryMessageId, scanId]
+                                );
+
+                                
                                 // Send to secondary if exists
                                 const secondary = rows.find(r => r.type === "secondary");
 
                                 if (secondary) {
-                                    sendWhatsApp(secondary.phone, {
+                                    const secondaryPhone = secondary.phone.replace(/\D/g, "");
+
+                                    const secondaryMessageId = await sendWhatsApp(secondaryPhone, {
                                         template: "qr_scan_alert",
-                                        params: [
-                                            assetLabel,
-                                            cleanMessage,   // ✅ SAME sanitized message
-                                            cleanLocation   // ✅ SAME sanitized location
-                                        ]
+                                        params: [assetLabel, finalMessage, cleanLocation]
                                     });
+
+                                    db.run(
+                                        `UPDATE scan_alerts 
+                                         SET wa_message_id_secondary = ? 
+                                         WHERE scan_id = ?`,
+                                        [secondaryMessageId, scanId]
+                                    );
                                 }
 
 
@@ -195,32 +204,34 @@ router.post("/whatsapp-webhook", (req, res) => {
         const message = changes?.value?.messages?.[0];
 
         if (message && message.text) {
-            // Strip country code — Meta sends 919166605152, we store 9166605152
-            let from = message.from.replace(/^91/, "");
             const text = message.text.body;
 
-            console.log("Owner reply from:", from, "→", text);
+            // 🔥 THIS IS THE KEY
+            const contextId = message.context?.id;
 
-            // Match most recent unanswered alert for this owner's phone
-            db.run(
-                `UPDATE scan_alerts
-                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                 WHERE id = (
-                   SELECT id FROM scan_alerts
-                   WHERE owner_phone = ? AND owner_reply IS NULL
-                   ORDER BY id DESC LIMIT 1
-                 )`,
-                [text, from],
-                function (err) {
-                    if (err) {
-                        console.error("Webhook DB error:", err);
-                    } else if (this.changes === 0) {
-                        console.log("No matching alert found for phone:", from);
-                    } else {
-                        console.log("Reply saved for phone:", from);
+            console.log("Incoming reply:", text);
+            console.log("Context ID:", contextId);
+
+            if (contextId) {
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                     WHERE wa_message_id = ?
+                        OR wa_message_id_secondary = ?`,
+                    [text, contextId, contextId],
+                    function (err) {
+                        if (err) {
+                            console.error("Webhook DB error:", err);
+                        } else if (this.changes === 0) {
+                            console.log("❌ No matching messageId found");
+                        } else {
+                            console.log("✅ Reply saved (primary/secondary)");
+                        }
                     }
-                }
-            );
+                );
+            } else {
+                console.log("⚠️ No context ID found (user didn't reply properly)");
+            }
         }
     } catch (err) {
         console.error("Webhook error:", err);
