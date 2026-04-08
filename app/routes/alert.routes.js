@@ -107,24 +107,38 @@ router.post("/send-alert", (req, res) => {
                                 assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
 
                                 // Send WhatsApp to primary
+                                const cleanMessage = message
+                                    .replace(/\n/g, " ")
+                                    .replace(/\t/g, " ")
+                                    .replace(/\s{2,}/g, " ")
+                                    .trim();
+
+                                const cleanLocation = (location || "Not shared")
+                                    .replace(/\n/g, " ")
+                                    .replace(/\s{2,}/g, " ")
+                                    .trim();
+
+                                const finalMessage = `${cleanMessage.toUpperCase()} (Ref:${scanId})`;
+
                                 sendWhatsApp(ownerPhone, {
                                     template: "qr_scan_alert",
                                     params: [
                                         assetLabel,
-                                        message + "\n\nRef:" + scanId,
-                                        location || "Not shared"
+                                        finalMessage,
+                                        cleanLocation
                                     ]
                                 });
 
                                 // Send to secondary if exists
                                 const secondary = rows.find(r => r.type === "secondary");
+
                                 if (secondary) {
                                     sendWhatsApp(secondary.phone, {
                                         template: "qr_scan_alert",
                                         params: [
                                             assetLabel,
-                                            message + "\n\nRef:" + scanId,
-                                            location || "Not shared"
+                                            finalMessage,   // ✅ SAME sanitized message
+                                            cleanLocation   // ✅ SAME sanitized location
                                         ]
                                     });
                                 }
