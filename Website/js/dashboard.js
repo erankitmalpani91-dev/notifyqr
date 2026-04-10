@@ -34,17 +34,29 @@ fetch("/api/dashboard", { credentials: "include" })
     data.qrs.forEach(qr => {
       if (qr.status === "inactive") {
         // INACTIVE → SETUP TABLE
-        setupRows += `
-          <tr>
-            <td>${setupIndex++}</td>
-            <td>${qr.product_type || "-"}</td>
-            <td>${qr.qr_id}</td>
-            <td>${formatDate(qr.created_at) || "-"}</td>
-            <td><input id="p_${qr.qr_id}" placeholder="Primary"></td>
-            <td><input id="s_${qr.qr_id}" placeholder="Secondary"></td>
-            <td><button onclick="activate('${qr.qr_id}')">Activate</button></td>
-          </tr>`;
-      } else {
+          const labelPlaceholder = {
+              car: "e.g. Honda City RJ45 6789",
+              bike: "e.g. Royal Enfield DL12 AB",
+              pet: "e.g. Labrador Brown",
+              bag: "e.g. Black Laptop Bag",
+              laptop: "e.g. Dell XPS Silver",
+              keys: "e.g. Home Keys",
+              child: "e.g. Riya Age 6",
+              luggage: "e.g. Blue Trolley"
+          }[qr.product_type?.toLowerCase()] || "e.g. Describe your asset";
+
+          setupRows += `
+                  <tr>
+                    <td>${setupIndex++}</td>
+                    <td>${qr.product_type || "-"}</td>
+                    <td>${qr.qr_id}</td>
+                    <td>${formatDate(qr.created_at) || "-"}</td>
+                    <td><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" style="min-width:160px"></td>
+                    <td><input id="p_${qr.qr_id}" placeholder="Primary No."></td>
+                    <td><input id="s_${qr.qr_id}" placeholder="Secondary No."></td>
+                    <td><button onclick="activate('${qr.qr_id}')">Activate</button></td>
+                  </tr>`;
+            } else {
         // ACTIVE / EXPIRED / DISABLED TABLE
         const isDisabled = qr.status === "disabled";
         const isExpired = qr.status === "expired";
@@ -132,9 +144,10 @@ function addSecondary(qrId) {
 
 /* ACTIVATE QR */
 function activate(qrId) {
-  const asset = "Asset";
-  const p = document.getElementById("p_" + qrId).value.trim();
-  const s = document.getElementById("s_" + qrId).value.trim();
+    const asset = "Asset";
+    const label = document.getElementById("label_" + qrId).value.trim();
+    const p = document.getElementById("p_" + qrId).value.trim();
+    const s = document.getElementById("s_" + qrId).value.trim();
 
   if (!/^[6-9]\d{9}$/.test(p)) {
     alert("Enter valid 10 digit primary number");
@@ -153,7 +166,7 @@ function activate(qrId) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ qr_id: qrId, asset_name: asset, primary: p, secondary: s })
+    body: JSON.stringify({ qr_id: qrId, asset_name: asset, asset_label: label, primary: p, secondary: s })
   })
     .then(res => res.json())
         .then(data => {

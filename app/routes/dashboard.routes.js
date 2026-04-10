@@ -28,7 +28,7 @@ router.get("/", async (req, res) => {
         // Fetch QR codes
         const rows = await allQuery(
             `SELECT 
-             q.qr_id, q.status, q.asset_name, q.product_type, q.order_id,
+             q.qr_id, q.status, q.asset_name, q.asset_label, q.product_type, q.order_id,
              q.source, DATE(q.expiry_date) as expiry_date,
              DATE(q.created_at) as created_at,
              DATE(q.activated_at) as activated_at,
@@ -48,6 +48,7 @@ router.get("/", async (req, res) => {
                     qr_id: r.qr_id,
                     status: r.status || "inactive",
                     asset_name: r.asset_name,
+                    asset_label: r.asset_label,
                     product_type: r.product_type,
                     order_id: r.order_id,
                     primary: null,

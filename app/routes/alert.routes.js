@@ -84,10 +84,16 @@ router.post("/send-alert", async (req, res) => {
             .replace(/\s{2,}/g, " ")
             .trim();
 
-        const finalMessage = cleanMessage.toUpperCase();
+        const finalMessage =
+            cleanMessage.charAt(0).toUpperCase() + cleanMessage.slice(1);
 
-        let assetLabel = qr.asset_name || qr.product_type || "Item";
+        let assetLabel = qr.product_type || "Item";
         assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
+
+        // Add owner's custom label if available e.g. "Car (Honda City RJ45 6789)"
+        if (qr.asset_label && qr.asset_label.trim()) {
+            assetLabel = `${assetLabel} (${qr.asset_label.trim()})`;
+        }
 
         // 🔥 Send to primary
         const primaryMsgId = await sendWhatsApp(ownerPhone, {

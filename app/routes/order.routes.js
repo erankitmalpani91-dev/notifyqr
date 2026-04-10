@@ -356,11 +356,12 @@ router.post("/verify-payment", async (req, res) => {
                                 `;
 
                                 await Promise.all([
-                                    sendWhatsApp(phone, { name, link: loginLink }),
+                                    sendWhatsApp(phone, {
+                                        template: "qr_purchase_success",
+                                        params: [name, loginLink]
+                                    }),
                                     sendEmail(email, "ReachOutOwner Activated", message)
                                 ]);
-
-                               
 
                             } catch (err) {
                                 console.error("BACKGROUND ERROR:", err);

@@ -29,7 +29,7 @@ router.post("/activate", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ error: "Not logged in" });
     }
-    const { qr_id, asset_name, primary, secondary } = req.body;
+    const { qr_id, asset_name, asset_label, primary, secondary } = req.body;
 
     if (!qr_id || !asset_name || !primary) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -60,11 +60,12 @@ router.post("/activate", async (req, res) => {
                SET 
                  status = 'active',
                  asset_name = ?,
+                 asset_label = ?,
                  activated_at = CURRENT_TIMESTAMP,
                  expiry_date = DATE('now', '+' || plan_years || ' years'),
                  claimed_at = CURRENT_TIMESTAMP
                WHERE qr_id = ? AND user_id = ?`,
-            [asset_name, qr_id, req.session.userId]
+            [asset_name, asset_label || null, qr_id, req.session.userId]
         );
 
         // Remove old numbers
