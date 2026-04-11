@@ -22,7 +22,7 @@ async function sendEmail(email, subject, message) {
             from: `"ReachOutOwner" <${process.env.EMAIL_USER}>`,
             to: email,
             subject,
-            html: `<pre style="font-family:Arial">${message}</pre>`,
+            html: message,
         });
 
         console.log("EMAIL SENT TO:", email);

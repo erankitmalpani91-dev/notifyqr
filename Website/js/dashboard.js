@@ -51,7 +51,7 @@ fetch("/api/dashboard", { credentials: "include" })
                     <td>${qr.product_type || "-"}</td>
                     <td>${qr.qr_id}</td>
                     <td>${formatDate(qr.created_at) || "-"}</td>
-                    <td><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" style="min-width:160px"></td>
+                    <td><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" maxlength="30" title="Max 25 characters" style="min-width:160px"></td>
                     <td><input id="p_${qr.qr_id}" placeholder="Primary No."></td>
                     <td><input id="s_${qr.qr_id}" placeholder="Secondary No."></td>
                     <td><button onclick="activate('${qr.qr_id}')">Activate</button></td>
@@ -70,9 +70,10 @@ fetch("/api/dashboard", { credentials: "include" })
                 } else {
                     secondarySection = qr.secondary
                         ? `<small id="secondary_${qr.qr_id}">S: ${qr.secondary}</small><br>
-                   <button onclick="editSecondary('${qr.qr_id}')">Edit</button>`
-                        : `<input id="sec_${qr.qr_id}" placeholder="Add Secondary"><br>
-                   <button onclick="addSecondary('${qr.qr_id}')">Add</button>`;
+                           <button onclick="editSecondary('${qr.qr_id}')">Edit</button>`
+                        : `<input id="sec_${qr.qr_id}" placeholder="Add Secondary" type="tel" maxlength="10" 
+                            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"><br>
+                           <button onclick="addSecondary('${qr.qr_id}')">Add</button>`;
                 }
 
         activeRows += `
@@ -80,10 +81,12 @@ fetch("/api/dashboard", { credentials: "include" })
             <td>${activeIndex++}</td>
               <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">${qr.qr_id}</td>
               <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">
-                ${qr.asset_name || "Not Assigned"}<br>
-                <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
-                ${secondarySection}
-              </td>
+              <strong>${qr.product_type ? qr.product_type.charAt(0).toUpperCase() + qr.product_type.slice(1) : "-"}</strong><br>
+              <small style="color:#555;display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" 
+                title="${qr.asset_label || ''}">${qr.asset_label || "-"}</small><br>
+              <small id="primary_${qr.qr_id}">P: ${qr.primary || "-"}</small><br>
+              ${secondarySection}
+            </td>
               <td class="${isDisabled || isExpired ? 'disabled-text' : ''}">
                 ${formatDate(qr.activated_at) || "-"}
               </td>
@@ -149,6 +152,15 @@ function activate(qrId) {
     const p = document.getElementById("p_" + qrId).value.trim();
     const s = document.getElementById("s_" + qrId).value.trim();
 
+
+    if (!label) {
+        alert("Please enter an asset label (e.g. Honda City RJ45 6789)");
+        return;
+    }
+    if (label.length > 30) {
+        alert("Asset label must be 30 characters or less");
+        return;
+    }
   if (!/^[6-9]\d{9}$/.test(p)) {
     alert("Enter valid 10 digit primary number");
     return;

@@ -35,6 +35,12 @@ router.post("/activate", async (req, res) => {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
+    if (!asset_label || !asset_label.trim()) {
+        return res.status(400).json({ error: "Asset label is required" });
+    }
+    if (asset_label.trim().length > 30) {
+        return res.status(400).json({ error: "Asset label must be 25 characters or less" });
+    }
     // Phone validation
     if (!/^[6-9][0-9]{9}$/.test(primary)) {
         return res.status(400).json({ error: "Invalid primary phone" });

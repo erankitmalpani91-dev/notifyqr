@@ -338,22 +338,74 @@ router.post("/verify-payment", async (req, res) => {
 
                                 //Genrate Message
                                 let message = `
-                                <div style="font-family:Arial">
-                                  <p>Dear ${name},</p>
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <body style="margin:0;padding:0;background:#f5f6fa;font-family:Arial,sans-serif;">
+                                      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f6fa;padding:30px 0;">
+                                        <tr>
+                                          <td align="center">
+                                            <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          
+                                              <!-- Header -->
+                                              <tr>
+                                                <td style="background:#2f80ed;padding:28px 40px;text-align:center;">
+                                                  <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">ReachOutOwner</h1>
+                                                  <p style="margin:6px 0 0;color:#cce0ff;font-size:13px;">QR Safety Protection</p>
+                                                </td>
+                                              </tr>
 
-                                  <p>Your QR purchase is successful 🎉</p>
+                                              <!-- Body -->
+                                              <tr>
+                                                <td style="padding:36px 40px;">
+                                                  <p style="margin:0 0 16px;font-size:16px;color:#333;">Dear <strong>${name}</strong>,</p>
+                                                  <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+                                                    Your QR purchase is successful! 🎉<br>
+                                                    Your protection is now active. Click below to access your dashboard and activate your QR stickers.
+                                                  </p>
 
-                                  <p>
-                                    Access your dashboard:
-                                    <br><br>
-                                    <a href="${loginLink}">Open Dashboard</a>
-                                  </p>
+                                                  <!-- Button -->
+                                                  <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+                                                    <tr>
+                                                      <td style="background:#2f80ed;border-radius:8px;padding:14px 32px;">
+                                                        <a href="${loginLink}" style="color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
+                                                          Open Dashboard →
+                                                        </a>
+                                                      </td>
+                                                    </tr>
+                                                  </table>
 
-                                  <p>You can use this link anytime to login.</p>
+                                                  <p style="margin:0 0 8px;font-size:13px;color:#888;">
+                                                    Or copy this link into your browser:
+                                                  </p>
+                                                  <p style="margin:0 0 24px;font-size:12px;color:#aaa;word-break:break-all;">
+                                                    ${loginLink}
+                                                  </p>
 
-                                  <p>Regards,<br>ReachOutOwner Team</p>
-                                </div>
-                                `;
+                                                  <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+
+                                                  <p style="margin:0;font-size:13px;color:#aaa;line-height:1.6;">
+                                                    This link is valid for your account access. Keep it safe.<br>
+                                                    If you didn't make this purchase, please ignore this email.
+                                                  </p>
+                                                </td>
+                                              </tr>
+
+                                              <!-- Footer -->
+                                              <tr>
+                                                <td style="background:#f9f9f9;padding:20px 40px;text-align:center;border-top:1px solid #eee;">
+                                                  <p style="margin:0;font-size:12px;color:#aaa;">
+                                                    © 2026 ReachOutOwner · <a href="https://reachoutowner.com" style="color:#2f80ed;text-decoration:none;">reachoutowner.com</a>
+                                                  </p>
+                                                </td>
+                                              </tr>
+
+                                            </table>
+                                          </td>
+                                        </tr>
+                                      </table>
+                                    </body>
+                                    </html>
+                                    `;
 
                                 await Promise.all([
                                     sendWhatsApp(phone, {
