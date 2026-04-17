@@ -70,10 +70,10 @@ CREATE TABLE qr_inventory (
   assigned_to_order_id INTEGER,
   shipped INTEGER DEFAULT 0,
   shipped_at TEXT,
-  source TEXT DEFAULT 'inventory' -- website / inventory
-  courier TEXT;
-  tracking_no TEXT;
-  remarks TEXT;
+  source TEXT DEFAULT 'inventory', -- website / inventory
+  courier TEXT,
+  tracking_no TEXT,
+  remarks TEXT
 );
 
 -- QR CODES
