@@ -22,6 +22,7 @@ const allQuery = (sql, params = []) =>
         db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
     });
 
+
 /* ===============================
    ACTIVATE QR
 ================================ */
@@ -29,7 +30,8 @@ router.post("/activate", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ error: "Not logged in" });
     }
-    const { qr_id, asset_name, asset_label, primary, secondary } = req.body;
+    // 🔥 Added pin (only used for retail QR)
+    const { qr_id, pin, asset_name, asset_label, primary, secondary } = req.body;
 
     if (!qr_id || !asset_name || !primary) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -38,7 +40,7 @@ router.post("/activate", async (req, res) => {
     if (!asset_label || !asset_label.trim()) {
         return res.status(400).json({ error: "Asset label is required" });
     }
-    if (asset_label.trim().length > 30) {
+    if (asset_label.trim().length > 25) {
         return res.status(400).json({ error: "Asset label must be 25 characters or less" });
     }
     // Phone validation
@@ -48,6 +50,24 @@ router.post("/activate", async (req, res) => {
 
     if (secondary && !/^[6-9][0-9]{9}$/.test(secondary)) {
         return res.status(400).json({ error: "Invalid secondary phone" });
+    }
+
+    // 🔥 ADD HERE — inventory + PIN check
+    const inventory = await getQuery(
+        `SELECT * FROM qr_inventory WHERE qr_id=?`,
+        [qr_id]
+    );
+
+    if (!inventory) {
+        return res.status(400).json({ error: "QR not found" });
+    }
+
+    if (inventory.source === 'inventory') {
+        if (!pin) return res.status(400).json({ error: "PIN required" });
+
+        if (inventory.activation_pin !== pin || inventory.pin_used === 1) {
+            return res.status(400).json({ error: "Invalid PIN" });
+        }
     }
 
     try {
@@ -93,6 +113,15 @@ router.post("/activate", async (req, res) => {
             );
         }
 
+        // 🔥 ADD HERE — mark PIN used
+        if (inventory.source === 'inventory') {
+            await runQuery(`
+        UPDATE qr_inventory
+        SET pin_used = 1, status = 'activated'
+        WHERE qr_id = ?
+            `, [qr_id]);
+        }
+
         await runQuery("COMMIT");
 
         res.json({ success: true });
@@ -103,6 +132,8 @@ router.post("/activate", async (req, res) => {
         res.status(500).json({ error: "Failed to activate QR" });
     }
 });
+
+
 
 /* ===============================
    DEACTIVATE QR

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const db = require("../config/db");
 const verifyToken = require("../middlewares/auth.middleware");
 const { createQr } = require("../services/qr.service");
 const checkSubscription = require("../middlewares/subscription.middleware");
@@ -31,8 +32,8 @@ router.post("/claim/:qrId", verifyToken, (req, res) => {
 
     db.run(
         `UPDATE qr_codes
-SET user_id=?, status='active'
-WHERE qr_id=? AND status='inactive'`,
+            SET user_id=?, status='active'
+            WHERE qr_id=? AND status='inactive'`,
         [req.user.id, qrId],
         function (err) {
 
@@ -46,8 +47,6 @@ WHERE qr_id=? AND status='inactive'`,
 
 });
 
-const db = require("../config/db");
-
 router.get("/:qr_id", (req, res) => {
 
     const { qr_id } = req.params;
@@ -56,9 +55,9 @@ router.get("/:qr_id", (req, res) => {
         `
         SELECT q.qr_id, q.status, q.asset_name,
                u.subscription_expiry
-        FROM qr_codes q
-        JOIN users u ON q.user_id = u.id
-        WHERE q.qr_id=?
+                FROM qr_codes q
+                JOIN users u ON q.user_id = u.id
+                WHERE q.qr_id=?
         `,
         [qr_id],
         (err, qr) => {

@@ -18,6 +18,5 @@ const db = new sqlite3.Database(dbPath, (err) => {
         db.run("PRAGMA foreign_keys = ON");
     }
 });
-db.run(`ALTER TABLE qr_codes ADD COLUMN asset_label TEXT`, () => { });
 
 module.exports = db;

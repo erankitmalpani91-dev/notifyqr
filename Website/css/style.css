@@ -12,7 +12,7 @@ body {
     line-height: 1.6;
 }
 
-/* ================= NAVBAR (Premium Glass) ================= */
+/** ================= NAVBAR (Premium Glass) ================= **/
 
 .navbar {
     position: fixed;
@@ -30,7 +30,7 @@ body {
     z-index: 1000;
 }
 
-    /* Scroll State */
+    /*1. Scroll State */
     .navbar.scrolled {
         background: rgba(15,23,42,0.92);
         backdrop-filter: blur(18px) saturate(180%);
@@ -2537,3 +2537,175 @@ section {
     border-radius: 25px;
     cursor: pointer;
 }
+
+/*Pricing Card CSS*/
+
+.product-slider {
+    display: none;
+    flex-wrap: nowrap; /* keep cards in one row */
+    overflow-x: auto; /* allow horizontal scroll */
+    overflow-y: hidden;
+    gap: 20px;
+    padding: 80px;
+    scroll-snap-type: x mandatory;
+    margin-bottom: -80px;
+    margin-top: -50px;
+}
+
+.product-card {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 260px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+
+.offer-ribbon {
+    position: absolute;
+    top: 10px;
+    left: -20px;
+    background: #ff3b30;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8em;
+    padding: 5px 20px;
+    transform: rotate(-45deg);
+    border-radius: 2px;
+}
+
+    .offer-ribbon.best {
+        background: #ff9800;
+    }
+
+.product-image {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.price-box {
+    margin: 10px 0;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 1.5em;
+    display: block;
+}
+
+.discounted-price {
+    font-weight: 700;
+    color: #e53935;
+    font-size: 1.7em;
+}
+
+.save-text {
+    color: #388e3c;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.qty-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+    .qty-box button {
+        background: #eee;
+        border: none;
+        padding: 5px 10px;
+        font-size: 1em;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+.add-cart-btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+    .add-cart-btn:hover {
+        background: #1565c0;
+    }
+
+.featured {
+    border: 2px solid #ff9800;
+    box-shadow: 0 0 12px rgba(255,152,0,0.3);
+}
+
+@media (max-width: 768px) {
+    .product-slider {
+        display: none;
+        flex-wrap: nowrap; /* keep cards in one row */
+        overflow-x: auto; /* allow horizontal scroll */
+        height: 550px; /* reduced height */
+        overflow-y: hidden;
+        gap: 20px;
+        padding: 150px;
+        scroll-snap-type: x mandatory;
+        margin-bottom: -80px;
+        margin-top: -10px;
+    }
+
+    .product-card {
+        flex: 0 0 220px; /* smaller fixed width */
+        height: 500px; /* reduced height */
+        padding: 16px;
+        border-radius: 14px;
+        scroll-snap-align: start;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease;
+        margin-top: -120px;
+        margin-bottom: -80px;
+    }
+    .cart-wrapper {
+        max-width: 90%; /* shrink width */
+        /* desktop limit */
+        margin-top: 150px;
+        margin-bottom: -10px;
+        max-width: 800px;
+        padding: -220px;
+        text-align: center;
+    }
+
+    .cart-summary {
+        flex-direction: column; /* stack items */
+        gap: 10px;
+        text-align: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .checkout-btn {
+        width: 80%; /* full width button */
+        padding: 12px;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+      
+  }

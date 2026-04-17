@@ -2,9 +2,25 @@ const axios = require("axios");
 
 async function sendWhatsApp(to, data) {
     try {
-        // Normalize phone
         to = to.replace(/\D/g, "");
         if (to.length === 10) to = "91" + to;
+
+        // Determine template name and parameters
+        // Format A: { template, params[] } — used by alert.routes.js
+        // Format B: { name, link } — used by activate.routes.js and auth.routes.js
+        let templateName, parameters;
+
+        if (data.template && data.params) {
+            templateName = data.template;
+            parameters = data.params.map(p => ({ type: "text", text: String(p) }));
+        } else {
+            // Magic login / purchase success template
+            templateName = "qr_purchase_success";
+            parameters = [
+                { type: "text", text: data.name || "" },
+                { type: "text", text: data.link || "" }
+            ];
+        }
 
         const response = await axios.post(
             `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -13,15 +29,12 @@ async function sendWhatsApp(to, data) {
                 to: to,
                 type: "template",
                 template: {
-                    name: data.template,
+                    name: templateName,
                     language: { code: "en" },
                     components: [
                         {
                             type: "body",
-                            parameters: data.params.map(p => ({
-                                type: "text",
-                                text: p
-                            }))
+                            parameters
                         }
                     ]
                 }

@@ -234,21 +234,20 @@ function toggleMenu() {
 const defaultCart = {
         car: 0,
         bike: 0,
-        carcombo: 0,
-        bikecombo: 0,
+        auto: 0,
+        CV: 0,
         bag: 0,
         laptop: 0,
         mobile: 0,
-        keys: 0,
-        luggage: 0,
-        child: 0,
+        schoolbag: 0,
+        kids: 0,
+        elderly: 0,
         pet: 0,
-        senior: 0,
-        doorbell: 0,
-        apartment: 0,
-        rental: 0,
-        office: 0,
-        equipment: 0
+        homedelivery: 0,
+        key: 0,
+        fleet: 0,
+        employee: 0,
+        shop: 0,
     };
 
     let cart = Object.assign({}, defaultCart, JSON.parse(localStorage.getItem("cart")) || {});

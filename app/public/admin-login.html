@@ -1,63 +1,379 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Login | ReachOutOwner</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/app/admin.css">
+    <title>Admin Login | ReachOutOwner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0f1e;
+            overflow: hidden;
+        }
+
+            /* Subtle animated background */
+            body::before {
+                content: '';
+                position: fixed;
+                width: 600px;
+                height: 600px;
+                background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+                top: -100px;
+                left: -100px;
+                animation: drift 12s ease-in-out infinite alternate;
+                pointer-events: none;
+            }
+
+            body::after {
+                content: '';
+                position: fixed;
+                width: 500px;
+                height: 500px;
+                background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
+                bottom: -100px;
+                right: -100px;
+                animation: drift 15s ease-in-out infinite alternate-reverse;
+                pointer-events: none;
+            }
+
+        @keyframes drift {
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(60px, 40px);
+            }
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            margin: 20px;
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 44px 40px 40px;
+            text-align: center;
+            animation: rise 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo */
+        .logo-wrap {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 20px;
+            border-radius: 16px;
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%,100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .logo-wrap img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 32px;
+            font-family: 'DM Mono', monospace, system-ui;
+            letter-spacing: 0.04em;
+        }
+
+        /* Inputs */
+        .field {
+            position: relative;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+            .field label {
+                display: block;
+                font-size: 11px;
+                font-weight: 500;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                margin-bottom: 6px;
+            }
+
+            .field input {
+                width: 100%;
+                padding: 13px 16px;
+                background: rgba(255,255,255,0.04);
+                border: 1px solid rgba(255,255,255,0.09);
+                border-radius: 12px;
+                color: #f1f5f9;
+                font-size: 14px;
+                font-family: inherit;
+                transition: border-color 0.2s, background 0.2s;
+                outline: none;
+            }
+
+                .field input:focus {
+                    border-color: rgba(59,130,246,0.5);
+                    background: rgba(59,130,246,0.05);
+                }
+
+                .field input::placeholder {
+                    color: #475569;
+                }
+
+        /* Options row */
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 4px 0 22px;
+            font-size: 13px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+            .remember input[type="checkbox"] {
+                width: 15px;
+                height: 15px;
+                accent-color: #3b82f6;
+                cursor: pointer;
+            }
+
+        .options a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+            .options a:hover {
+                color: #60a5fa;
+            }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            letter-spacing: 0.01em;
+        }
+
+            .btn:hover {
+                opacity: 0.92;
+            }
+
+            .btn:active {
+                transform: scale(0.98);
+            }
+
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            /* Loading spinner inside button */
+            .btn .spinner {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border: 2px solid rgba(255,255,255,0.3);
+                border-top-color: white;
+                border-radius: 50%;
+                animation: spin 0.6s linear infinite;
+                vertical-align: middle;
+                margin-right: 8px;
+            }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error */
+        #loginError {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #f87171;
+            min-height: 18px;
+            transition: opacity 0.2s;
+        }
+
+        /* Divider */
+        .divider {
+            margin: 28px 0 0;
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .footer-text {
+            margin-top: 16px;
+            font-size: 11px;
+            color: #ffffff;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 36px 24px 32px;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
-<body class="login-body">
+<body>
 
-    <div class="login-card fade-in">
+    <div class="card">
 
-        <img src="/assets/images/reachoutowner_logo.png" class="brand-logo logo-animate">
-
-        <h1>ReachOutOwner</h1>
-        <p>Admin Control Panel</p>
-
-        <input id="username" placeholder="Username">
-        <input id="password" type="password" placeholder="Password">
-
-        <div class="login-options">
-            <label for="rememberMe">
-                <input type="checkbox" id="rememberMe" />
-                Remember me
-            </label>
-            <a href="#" onclick="forgotPassword()">Forgot password?</a>
+        <div class="logo-wrap">
+            <img src="/assets/images/reachoutowner_logo.png" alt="ReachOutOwner">
         </div>
 
-        <button onclick="login()">Login</button>
+        <h1>ReachOutOwner</h1>
+        <p class="subtitle">ADMIN CONTROL PANEL</p>
+
+        <div class="field">
+            <label>Email</label>
+            <input id="username" type="email" placeholder="admin@reachoutowner.com" autocomplete="username">
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <input id="password" type="password" placeholder="••••••••••" autocomplete="current-password">
+        </div>
+
+        <div class="options">
+            <label class="remember">
+                <input type="checkbox" id="rememberMe">
+                Remember me
+            </label>
+            <a href="#" onclick="forgotPassword(); return false;">Forgot password?</a>
+        </div>
+
+        <button class="btn" id="loginBtn" onclick="login()">Login</button>
 
         <p id="loginError"></p>
+
+        <hr class="divider">
+        <p class="footer-text">© 2026 ReachOutOwner · Secure admin access only</p>
 
     </div>
 
     <script>
+        // Allow Enter key to submit
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') login();
+        });
+
         function login() {
-            fetch("/admin/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const btn = document.getElementById('loginBtn');
+            const errEl = document.getElementById('loginError');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            errEl.innerText = '';
+
+            if (!username || !password) {
+                errEl.innerText = 'Please enter your email and password.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Signing in...';
+
+            fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: username.value,
-                    password: password.value,
-                    remember: rememberMe.checked
+                    username,
+                    password,
+                    remember: document.getElementById('rememberMe').checked
                 })
             })
                 .then(r => r.json())
                 .then(res => {
                     if (!res.success) {
-                        loginError.innerText = "Invalid credentials";
+                        errEl.innerText = 'Invalid email or password.';
+                        btn.disabled = false;
+                        btn.innerHTML = 'Login';
                         return;
                     }
-
-                    window.location = "/admin/dashboard";
+                    btn.innerHTML = '✓ Redirecting...';
+                    window.location = '/admin/dashboard';
                 })
                 .catch(() => {
-                    loginError.innerText = "Server error";
+                    errEl.innerText = 'Server error. Please try again.';
+                    btn.disabled = false;
+                    btn.innerHTML = 'Login';
                 });
         }
 
         function forgotPassword() {
-            alert("Password reset flow will be implemented soon.");
+            alert('Contact your system administrator to reset the admin password.');
         }
     </script>
 

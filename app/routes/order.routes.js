@@ -21,115 +21,113 @@ const { sendEmail } = require("../services/email.service");
 // CREATE RAZORPAY ORDER
 
 
-    router.post("/create-order", async (req, res) => {
-        const { quantity, name, phone, email, cart, address, city, state, pincode } = req.body;
+router.post("/create-order", async (req, res) => {
+    const { quantity, name, phone, email, cart, address, city, state, pincode } = req.body;
 
-        // ✅ Input validation
-        if (!quantity || quantity < 1) return res.status(400).json({ error: "Invalid quantity" });
-        if (!cart || typeof cart !== "object") return res.status(400).json({ error: "Invalid cart" });
-        if (!address || !city || !state || !pincode) return res.status(400).json({ error: "Shipping address is incomplete" });
-        if (!/^[0-9]{6}$/.test(pincode)) return res.status(400).json({ error: "Invalid pincode" });
+    // ✅ Input validation
+    if (!quantity || quantity < 1) return res.status(400).json({ error: "Invalid quantity" });
+    if (!cart || typeof cart !== "object") return res.status(400).json({ error: "Invalid cart" });
+    if (!address || !city || !state || !pincode) return res.status(400).json({ error: "Shipping address is incomplete" });
+    if (!/^[0-9]{6}$/.test(pincode)) return res.status(400).json({ error: "Invalid pincode" });
 
-        const PRICES = {
-            car: 299, bike: 299, carcombo: 699, bikecombo: 599,
-            bag: 299, laptop: 299, mobile: 299, keys: 299,
-            luggage: 299, child: 299, pet: 299, senior: 299,
-            doorbell: 299, apartment: 299, rental: 299,
-            office: 299, equipment: 299
-        };
+    const PRICES = {
+        car: 399, bike: 249, auto: 249, CV: 399,
+        bag: 249, laptop: 299, mobile: 249, schoolbag: 249,
+        kids: 299, elderly: 299, pet: 249,
+        homedelivery: 299, key: 199,
+        employee: 249, shop: 299
+    };
 
-        let amount = 0;
+    let amount = 0;
 
-        for (const [type, qty] of Object.entries(cart)) {
+    for (const [type, qty] of Object.entries(cart)) {
 
-            // Skip items with 0 quantity
-            if (!qty || qty === 0) continue;
+        // Skip items with 0 quantity
+        if (!qty || qty === 0) continue;
 
-            if (!PRICES[type]) {
-                return res.status(400).json({ error: "Invalid item: " + type });
-            }
-
-            if (!Number.isInteger(qty) || qty < 0) {
-                return res.status(400).json({ error: "Invalid quantity for " + type });
-            }
-
-            amount += PRICES[type] * qty;
+        if (!PRICES[type]) {
+            return res.status(400).json({ error: "Invalid item: " + type });
         }
 
-        if (amount === 0) {
-            return res.status(400).json({ error: "Cart is empty" });
+        if (!Number.isInteger(qty) || qty < 0) {
+            return res.status(400).json({ error: "Invalid quantity for " + type });
         }
 
-        const razorAmount = amount * 100;
+        amount += PRICES[type] * qty;
+    }
 
-        try {
-            // ✅ Create Razorpay order
-            const order = await razorpay.orders.create({
-                amount: razorAmount,
-                currency: "INR",
-                receipt: "receipt_" + Date.now()
+    if (amount === 0) {
+        return res.status(400).json({ error: "Cart is empty" });
+    }
+
+    const razorAmount = amount * 100;
+
+    try {
+        // ✅ Create Razorpay order
+        const order = await razorpay.orders.create({
+            amount: razorAmount,
+            currency: "INR",
+            receipt: "receipt_" + Date.now()
+        });
+
+        const shippingAddress = `${address}, ${city}, ${state} - ${pincode}`;
+
+        // Helper to promisify db.run
+        const runQuery = (sql, params = []) =>
+            new Promise((resolve, reject) => {
+                db.run(sql, params, function (err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
             });
 
-            const shippingAddress = `${address}, ${city}, ${state} - ${pincode}`;
+        try {
+            await runQuery("BEGIN TRANSACTION");
 
-            // Helper to promisify db.run
-            const runQuery = (sql, params = []) =>
-                new Promise((resolve, reject) => {
-                    db.run(sql, params, function(err) {
-                        if (err) reject(err);
-                        else resolve(this.lastID);
-                    });
-                });
+            // ✅ Insert order
+            const planYears = req.body.planYears || 1;
 
-            db.serialize(async () => {
-                try {
-                    await runQuery("BEGIN TRANSACTION");
-
-                    // ✅ Insert order
-                    const planYears = req.body.planYears || 1;
-
-                    const orderDbId = await runQuery(
-                        `INSERT INTO orders
+            const orderDbId = await runQuery(
+                `INSERT INTO orders
                            (owner_name, owner_email, owner_phone, shipping_address, city, state, pincode,
                             amount, payment_status, payment_reference, transaction_type, order_source, plan_years)
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [name, email, phone, shippingAddress, city, state, pincode,
-                            amount, "pending", order.id, "purchase", "website", planYears]
-                    );
+                [name, email, phone, shippingAddress, city, state, pincode,
+                    amount, "pending", order.id, "purchase", "website", planYears]
+            );
 
-                    // ✅ Insert order items
-                    const insertItems = Object.entries(cart)
-                    .filter(([type, qty]) => qty > 0)
-                    .map(([type, qty]) =>
-                        runQuery(
-                            `INSERT INTO order_items (order_id, product_type, quantity, price)
+            // ✅ Insert order items
+            const insertItems = Object.entries(cart)
+                .filter(([type, qty]) => qty > 0)
+                .map(([type, qty]) =>
+                    runQuery(
+                        `INSERT INTO order_items (order_id, product_type, quantity, price)
                          VALUES (?, ?, ?, ?)`,
-                            [orderDbId, type, qty, PRICES[type]]
-                        )
-                    );
-                    await Promise.all(insertItems);
+                        [orderDbId, type, qty, PRICES[type]]
+                    )
+                );
+            await Promise.all(insertItems);
 
-                    // ✅ Commit transaction
-                    await runQuery("COMMIT");
+            // ✅ Commit transaction
+            await runQuery("COMMIT");
 
-                    res.json({
-                        success: true,
-                        orderId: order.id,
-                        key: process.env.RAZORPAY_KEY_ID,
-                        amount
-                    });
-                } catch (err) {
-                    console.error("Transaction failed:", err);
-                    await runQuery("ROLLBACK");
-                    res.status(500).json({ error: "Order creation failed" });
-                }
+            res.json({
+                success: true,
+                orderId: order.id,
+                key: process.env.RAZORPAY_KEY_ID,
+                amount
             });
         } catch (err) {
-            console.error("Razorpay error:", err);
-            res.status(500).json({ error: "Razorpay order creation failed" });
+            console.error("Transaction failed:", err);
+            await runQuery("ROLLBACK");
+            res.status(500).json({ error: "Order creation failed" });
         }
-    });
 
+    } catch (err) {
+        console.error("Razorpay error:", err);
+        res.status(500).json({ error: "Razorpay order creation failed" });
+    }
+});
 
 //VERIFY PAYMENT//
 
@@ -234,9 +232,10 @@ router.post("/verify-payment", async (req, res) => {
                                     `INSERT INTO users (name, email, phone)
                                     VALUES (?, ?, ?)`,
                                     [name, email, phone],
-                                    function(err) {
+                                    function (err) {
                                         if (err) reject(err);
-                                        resolve(this.lastID);
+                                        else if (!this.lastID) reject(new Error("Insert returned no ID"));
+                                        else resolve(this.lastID);
                                     }
                                 );
                             });
@@ -306,8 +305,12 @@ router.post("/verify-payment", async (req, res) => {
 
                                             const existing = await new Promise((resolve) => {
                                                 db.get(
-                                                    `SELECT qr_id FROM qr_codes WHERE qr_id=?`,
-                                                    [qrId],
+                                                    // 🔥 Correct SQL (single string, no quotes around UNION)
+                                                    `SELECT qr_id FROM qr_codes WHERE qr_id = ?
+                                                     UNION
+                                                     SELECT qr_id FROM qr_inventory WHERE qr_id = ?`,
+                                                    // 🔥 Pass qrId twice
+                                                    [qrId, qrId],
                                                     (err, row) => resolve(row)
                                                 );
                                             });
@@ -319,12 +322,33 @@ router.post("/verify-payment", async (req, res) => {
                                         const qrPath = path.join(qrFolder, `${qrId}.png`);
                                         await QRCode.toFile(qrPath, qrUrl);
 
-                                        db.run(
-                                            `INSERT INTO qr_codes 
-                                        (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years)
-                                        VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?)`,
-                                            [qrId, userId, order.id, type, type, expiryString, planYears]
-                                        );
+                                        // 🔥 Insert into qr_codes FIRST
+                                        await new Promise((resolve, reject) => {
+                                            db.run(
+                                                `INSERT INTO qr_codes 
+                                                (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years)
+                                                VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?)`,
+                                                [qrId, userId, order.id, type, type, expiryString, planYears],
+                                                function (err) {
+                                                    if (err) reject(err);
+                                                    else resolve();
+                                                }
+                                            );
+                                        });
+
+                                        // 🔥 Then insert into inventory
+                                        await new Promise((resolve, reject) => {
+                                            db.run(
+                                                `INSERT INTO qr_inventory 
+                                                (qr_id, product_type, status, assigned_to_order_id, source, activation_pin, pin_used)
+                                                VALUES (?, ?, 'assigned', ?, 'website', NULL, 1)`,
+                                                [qrId, type, order.id],
+                                                function (err) {
+                                                    if (err) reject(err);
+                                                    else resolve();
+                                                }
+                                            );
+                                        });
                                     }
                                 }
 

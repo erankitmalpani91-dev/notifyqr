@@ -18,6 +18,8 @@ CREATE TABLE users (
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,
+  role TEXT DEFAULT 'user',
+  password_hash TEXT,
   login_token TEXT,
   subscription_expiry TEXT,
   subscription_status TEXT DEFAULT 'inactive',
@@ -62,7 +64,16 @@ CREATE TABLE qr_inventory (
   qr_id TEXT UNIQUE,
   product_type TEXT,
   status TEXT DEFAULT 'available',
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  activation_pin TEXT,     -- PIN for retail QR
+  pin_used INTEGER DEFAULT 0,
+  assigned_to_order_id INTEGER,
+  shipped INTEGER DEFAULT 0,
+  shipped_at TEXT,
+  source TEXT DEFAULT 'inventory' -- website / inventory
+  courier TEXT;
+  tracking_no TEXT;
+  remarks TEXT;
 );
 
 -- QR CODES
@@ -154,3 +165,5 @@ CREATE INDEX idx_login_requests_user_time ON login_requests(user_id, requested_a
 CREATE INDEX idx_alerts_qr ON scan_alerts(qr_id);
 CREATE INDEX idx_alerts_owner ON scan_alerts(owner_phone);
 CREATE INDEX idx_alerts_time ON scan_alerts(created_at);
+CREATE INDEX idx_inv_product ON qr_inventory(product_type);
+CREATE INDEX idx_inv_status ON qr_inventory(status);

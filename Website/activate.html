@@ -1,0 +1,381 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate QR | ReachOutOwner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin: 20px 0 30px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2f80ed;
+        }
+
+            .logo img {
+                height: 32px;
+                vertical-align: middle;
+                margin-right: 8px;
+            }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 460px;
+        }
+
+            .card h2 {
+                font-size: 20px;
+                color: #1a1a2e;
+                margin-bottom: 6px;
+            }
+
+            .card .subtitle {
+                font-size: 13px;
+                color: #888;
+                margin-bottom: 24px;
+            }
+
+        /* Step indicators */
+        .steps {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 24px;
+        }
+
+        .step-dot {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: #e0e0e0;
+            transition: background 0.3s;
+        }
+
+            .step-dot.active {
+                background: #2f80ed;
+            }
+
+            .step-dot.done {
+                background: #27ae60;
+            }
+
+        /* QR ID lookup section */
+        .lookup-section {
+            display: block;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .success-section {
+            display: none;
+        }
+
+        .qr-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eaf3ff;
+            color: #2f80ed;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 5px;
+            margin-top: 14px;
+        }
+
+            label span.req {
+                color: #e74c3c;
+            }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fafafa;
+            font-family: Arial, sans-serif;
+        }
+
+            input:focus, select:focus {
+                outline: none;
+                border-color: #2f80ed;
+                background: white;
+            }
+
+            input.error {
+                border-color: #e74c3c;
+            }
+
+        .input-note {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .wa-note {
+            font-size: 12px;
+            color: #27ae60;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #2f80ed;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #1c6ed6;
+            }
+
+            .btn-primary:disabled {
+                background: #95a5a6;
+                cursor: not-allowed;
+            }
+
+        .btn-green {
+            background: #27ae60;
+            color: white;
+        }
+
+            .btn-green:hover {
+                background: #1e8449;
+            }
+
+            .btn-green:disabled {
+                background: #95a5a6;
+                cursor: not-allowed;
+            }
+
+        .status-box {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+        }
+
+            .status-box.error {
+                background: #fdecea;
+                color: #c0392b;
+                display: block;
+            }
+
+            .status-box.info {
+                background: #eaf3ff;
+                color: #2f80ed;
+                display: block;
+            }
+
+            .status-box.success {
+                background: #eafaf1;
+                color: #1e8449;
+                display: block;
+            }
+
+        /* PIN input styling */
+        .pin-row {
+            display: flex;
+            gap: 10px;
+        }
+
+            .pin-row input {
+                text-align: center;
+                font-size: 22px;
+                font-weight: bold;
+                letter-spacing: 4px;
+                padding: 12px;
+            }
+
+        /* Success screen */
+        .success-icon {
+            text-align: center;
+            font-size: 56px;
+            margin: 10px 0 16px;
+        }
+
+        .success-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e8449;
+            margin-bottom: 8px;
+        }
+
+        .success-msg {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px 16px;
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">
+            <img src="/assets/images/reachoutowner_logo.png" alt="ReachOutOwner" onerror="this.style.display='none'">
+            ReachOutOwner
+        </div>
+    </div>
+
+    <div class="card">
+
+        <!-- Step dots -->
+        <div class="steps">
+            <div class="step-dot active" id="dot1"></div>
+            <div class="step-dot" id="dot2"></div>
+            <div class="step-dot" id="dot3"></div>
+        </div>
+
+        <!-- STEP 1: QR ID + PIN Lookup -->
+        <div class="lookup-section" id="lookupSection">
+            <h2>Activate Your QR</h2>
+            <p class="subtitle">Enter the QR ID and PIN from your sticker to get started.</p>
+
+            <label>QR ID <span class="req">*</span></label>
+            <input id="qrIdInput" placeholder="e.g. RO5684D7AB1A" maxlength="20"
+                   oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+            <p class="input-note">Found on your QR sticker or packaging</p>
+
+            <label>Activation PIN <span class="req">*</span></label>
+            <div class="pin-row">
+                <input id="pinInput" placeholder="6-digit PIN" maxlength="6" type="tel"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
+            </div>
+            <p class="input-note">6-digit PIN printed on your sticker (scratch to reveal)</p>
+
+            <div class="status-box" id="lookupStatus"></div>
+
+            <button class="btn btn-primary" id="lookupBtn" onclick="verifyQR()">
+                Verify QR →
+            </button>
+        </div>
+
+        <!-- STEP 2: Owner Details Form -->
+        <div class="form-section" id="formSection">
+            <h2>Your Details</h2>
+            <p class="subtitle">Fill in your information to complete activation.</p>
+
+            <!-- QR type badge shown after lookup -->
+            <div class="qr-type-badge" id="qrTypeBadge">
+                <span id="qrTypeEmoji">📦</span>
+                <span id="qrTypeText">Loading...</span>
+                <span style="color:#aaa;font-size:12px" id="qrIdDisplay"></span>
+            </div>
+
+            <label>Full Name <span class="req">*</span></label>
+            <input id="ownerName" placeholder="Your full name" maxlength="60"
+                   oninput="this.value=this.value.replace(/[^A-Za-z ]/g,'')">
+
+            <label>Email Address <span class="req">*</span></label>
+            <input id="ownerEmail" type="email" placeholder="you@example.com">
+
+            <label>WhatsApp Number <span class="req">*</span></label>
+            <input id="ownerPhone" type="tel" placeholder="10-digit WhatsApp number" maxlength="10"
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+            <p class="wa-note">📱 Enter your WhatsApp number — alerts will be sent here</p>
+
+            <label>Secondary WhatsApp Number <span style="color:#aaa;font-size:11px">(optional)</span></label>
+            <input id="ownerPhone2" type="tel" placeholder="Secondary number (optional)" maxlength="10"
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+            <p class="input-note">Family member or emergency contact on WhatsApp</p>
+
+            <label>Asset Label <span class="req">*</span></label>
+            <input id="assetLabel" placeholder="" maxlength="30">
+            <p class="input-note">Max 30 characters — helps identify this specific asset</p>
+
+            <div class="status-box" id="formStatus"></div>
+
+            <button class="btn btn-green" id="activateBtn" onclick="submitActivation()">
+                Activate QR ✓
+            </button>
+        </div>
+
+        <!-- STEP 3: Success -->
+        <div class="success-section" id="successSection">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">QR Activated!</div>
+            <p class="success-msg">
+                Your QR is now active and ready to protect your asset.<br><br>
+                A login link has been sent to your <strong>WhatsApp</strong> and <strong>Email</strong>.<br>
+                Click the link to access your dashboard.
+            </p>
+            <hr class="divider">
+            <p style="font-size:12px;color:#aaa;text-align:center">
+                Keep your sticker on the asset at all times.<br>
+                Anyone who scans it will be able to notify you.
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        console.log("HTML LOADED");
+    </script>
+
+    <script src="/app/activate.js"></script>
+
+</body>
+</html>

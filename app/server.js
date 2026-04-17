@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
     session({
-        secret: "notifyqr-secret",
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -25,14 +25,16 @@ app.use(
 );
 
 /* -------------------- STATIC FILES -------------------- */
+// Public assets
+app.use("/app", express.static(path.join(__dirname, "public")));
+
+
 // Website pages
 app.use("/", express.static(path.join(__dirname, "../Website")));
 
 // QR images
 app.use("/qrcodes", express.static(path.join(__dirname, "../storage/qrcodes")));
 
-// Public assets
-app.use("/app", express.static(path.join(__dirname, "public")));
 
 
 /* -------------------- ROUTES -------------------- */
@@ -67,14 +69,20 @@ app.use("/api/alerts", require("./routes/alert.routes"));
 // Secure routes — redirect to scan page
 app.use("/secure", require("./routes/qr.routes"));
 
+//Actiavte QR Retail//
+app.use("/activate", require("./routes/activate.routes"));
+app.use("/api/activate", require("./routes/activate.routes"));
+
 // Admin
-app.use("/api/admin", require("./routes/admin.routes"));
+app.use("/admin", require("./routes/admin.routes"));
 
 // Retail / bulk
 app.use("/api/retail", require("./routes/retail.routes"));
 
 // QR scan route (public scanning)
 app.use("/", require("./routes/qr.routes"));
+
+
 
 
 /* -------------------- START SERVER -------------------- */
