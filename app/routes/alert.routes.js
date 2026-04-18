@@ -171,30 +171,44 @@ router.post("/whatsapp-webhook", (req, res) => {
         const changes = entry?.changes?.[0];
         const message = changes?.value?.messages?.[0];
 
-        if (message && message.text) {
-            const text = message.text.body;
+        if (message) {
+            let from = message.from.replace(/^91/, "");
+            let text = null;
+
+            if (message.type === "text" && message.text?.body) {
+                text = message.text.body;
+            } else if (message.type === "button") {
+                // Owner tapped Quick Reply button — ignore, wait for real text
+                console.log("Button tap from:", from, "— ignoring");
+                return res.sendStatus(200);
+            }
+
+            if (!text) return res.sendStatus(200);
+
+            console.log("📨 Reply from:", from, "→", text);
+
             const contextId = message.context?.id;
 
-            console.log("Reply:", text);
-            console.log("Context ID:", contextId);
-
             if (contextId) {
+                // Try exact message ID match first (owner used reply gesture)
                 db.run(
                     `UPDATE scan_alerts
                      SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
-                     WHERE wa_message_id = ?
-                        OR wa_message_id_secondary = ?`,
+                     WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
+                     AND owner_reply IS NULL`,
                     [text, contextId, contextId],
                     function (err) {
-                        if (err) {
-                            console.error("Webhook DB error:", err);
-                        } else if (this.changes === 0) {
-                            console.log("❌ No matching messageId found");
-                        } else {
-                            console.log("✅ Reply saved correctly");
+                        if (!err && this.changes > 0) {
+                            console.log("✅ Matched by message ID");
+                            return;
                         }
+                        // Context match failed — fall to phone match
+                        matchByPhone(text, from);
                     }
                 );
+            } else {
+                // No context — owner typed freely, use phone match
+                matchByPhone(text, from);
             }
         }
     } catch (err) {
@@ -203,5 +217,46 @@ router.post("/whatsapp-webhook", (req, res) => {
 
     res.sendStatus(200);
 });
+
+function matchByPhone(text, from) {
+    db.run(
+        `UPDATE scan_alerts
+         SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+         WHERE id = (
+           SELECT id FROM scan_alerts
+           WHERE owner_phone = ?
+           AND owner_reply IS NULL
+           AND created_at >= DATETIME('now', '-30 minutes')
+           ORDER BY id DESC LIMIT 1
+         )`,
+        [text, from],
+        function (err) {
+            if (err) {
+                console.error("Phone match error:", err);
+            } else if (this.changes > 0) {
+                console.log("✅ Matched by phone:", from);
+            } else {
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                     WHERE id = (
+                       SELECT id FROM scan_alerts
+                       WHERE owner_phone = ?
+                       AND owner_reply IS NULL
+                       ORDER BY id DESC LIMIT 1
+                     )`,
+                    [text, from],
+                    function (err2) {
+                        if (!err2 && this.changes > 0) {
+                            console.log("✅ Matched by phone (no time limit):", from);
+                        } else {
+                            console.log("❌ No alert found for phone:", from);
+                        }
+                    }
+                );
+            }
+        }
+    );
+}
 
 module.exports = router;

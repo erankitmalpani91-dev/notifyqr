@@ -8,49 +8,124 @@ let currentScanId = null;
 
 // Predefined messages per asset type
 const messageMap = {
-    car: [
-        "Your car is blocking the way",
-        "Your car lights are on",
-        "Please move your car",
-        "Car parked in no parking zone",
-        "Car alarm is ringing",
-        "Car window is open"
-    ],
-    bike: [
-        "Your bike is blocking the way",
-        "Your bike lights are on",
-        "Please move your bike",
-        "Bike parked in no parking zone",
-        "Bike alarm is ringing"
-    ],
-    bag: [
-        "I found your bag",
-        "Your bag is unattended",
-        "Your bag was left behind"
-    ],
-    laptop: [
-        "I found your laptop",
-        "Your laptop is unattended"
-    ],
-    keys: [
-        "I found your keys",
-        "Your keys were left behind"
-    ],
-    pet: [
-        "I found your pet",
-        "Your pet is unattended",
-        "Your pet seems lost"
-    ],
-    child: [
-        "I found a child with this tag",
-        "A child needs assistance"
-    ],
-    default: [
-        "I found your item",
-        "Your item is unattended",
-        "Please contact me"
-    ]
-};
+        car: [
+            "Your car is blocking the way",
+            "Your car lights are on",
+            "Please move your car",
+            "Car parked in a no parking zone",
+            "Car alarm is ringing",
+            "Car window is open",
+            "Smoke or fire seen in your car",
+            "Fluid leaking from your car",
+            "Your car was hit or damaged"
+        ],
+
+        bike: [
+            "Your bike is blocking the way",
+            "Your bike lights are on",
+            "Please move your bike",
+            "Bike parked in a no parking zone",
+            "Bike alarm is ringing",
+            "Bike has fallen or tipped over",
+            "Fuel or oil leaking from your bike"
+        ],
+
+        auto: [
+            "Your auto is blocking the way",
+            "Please move your auto",
+            "Auto parked in a no parking zone",
+            "Your auto lights are on",
+            "Auto seems to have an issue"
+        ],
+
+        CV: [
+            "Your vehicle is blocking the way",
+            "Please move your vehicle",
+            "Vehicle parked in a restricted area",
+            "Your vehicle lights are on",
+            "Possible issue noticed in your vehicle"
+        ],
+
+        bag: [
+            "I found your bag",
+            "Your bag is unattended",
+            "Your bag was left behind",
+            "Bag found at this location"
+        ],
+
+        schoolbag: [
+            "I found a school bag",
+            "School bag left behind",
+            "Your child's bag is unattended"
+        ],
+
+        laptop: [
+            "I found your laptop",
+            "Your laptop is unattended",
+            "Laptop left behind at this location"
+        ],
+
+        mobile: [
+            "I found your mobile phone",
+            "Mobile phone left behind",
+            "Your phone is unattended"
+        ],
+
+        key: [
+            "I found your keys",
+            "Your keys were left behind",
+            "Keys found at this location"
+        ],
+
+        pet: [
+            "I found your pet",
+            "Your pet seems lost",
+            "Your pet is unattended",
+            "Pet found roaming nearby"
+        ],
+
+        kids: [
+            "I found a child with this tag",
+            "Child needs assistance",
+            "Child appears lost",
+            "Child is alone and needs help"
+        ],
+
+        elderly: [
+            "An elderly person needs assistance",
+            "Elderly person seems lost",
+            "Found elderly person with this tag",
+            "Elderly person needs help"
+        ],
+
+        homedelivery: [
+            "Delivery attempt failed",
+            "Package could not be delivered",
+            "Please contact regarding your delivery",
+            "Delivery person tried to reach you"
+        ],
+
+        employee: [
+            "Employee ID found",
+            "Employee needs assistance",
+            "ID card was found",
+            "Please contact regarding employee ID"
+        ],
+
+        shop: [
+            "Shop is closed, customer waiting",
+            "Issue at your shop location",
+            "Please contact regarding your shop",
+            "Customer needs assistance at your shop"
+        ],
+
+        default: [
+            "I found your item",
+            "Your item is unattended",
+            "Please contact me",
+            "Item found at this location"
+        ]
+    };
 
 if (!qrId) {
     document.getElementById("title").innerText = "Invalid QR Code";
