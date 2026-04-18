@@ -30,7 +30,7 @@ async function sendWhatsApp(to, data) {
                 type: "template",
                 template: {
                     name: templateName,
-                    language: { code: "en" },
+                    language: { code: "en_US" },
                     components: [
                         {
                             type: "body",
