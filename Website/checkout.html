@@ -186,23 +186,21 @@
    
     <script>
         const prices = {
-            car: 299,
-            bike: 299,
-            carcombo: 699,
-            bikecombo: 599,
-            bag: 299,
+            car: 399,
+            bike: 249,
+            auto: 249,
+            CV: 399,
+            bag: 249,
             laptop: 299,
-            mobile: 299,
-            keys: 299,
-            luggage: 299,
-            child: 299,
-            pet: 299,
-            senior: 299,
-            doorbell: 299,
-            apartment: 299,
-            rental: 299,
-            office: 299,
-            equipment: 299
+            mobile: 249,
+            schoolbag: 249,
+            kids: 299,
+            elderly: 299,
+            pet: 249,
+            homedelivery: 299,
+            key: 199,
+            employee: 249,
+            shop: 299,
         };
         let cart = JSON.parse(localStorage.getItem("cart")) || {};
 
@@ -283,7 +281,7 @@
 
             const btn = document.getElementById("payButton");
             btn.disabled = true;
-            btn.innerText = "Processing...";
+            btn.innerText = "Opening payment...";
 
             const name = document.getElementById("name");
             const phone = document.getElementById("phone");
@@ -342,7 +340,16 @@
                 name: "ReachOutOwner",
                 description: "QR Protection",
                 order_id: data.orderId,
+                modal: {
+                    ondismiss: function () {
+                        const btn = document.getElementById("payButton");
+                        btn.innerText = "Proceed to Payment";
+                        btn.disabled = false;
+                    }
+                },
                 handler: async function (response) {
+                    const btn = document.getElementById("payButton");
+                    btn.innerText = "Processing...";
 
                     const verify = await fetch("/api/order/verify-payment", {
                         method: "POST",
@@ -357,7 +364,30 @@
                         })
                     });
 
-                    const result = await verify.json();
+                    let result;
+
+                    try {
+                        const verify = await fetch("/api/order/verify-payment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                phone: phone.value,
+                                email: email.value,
+                                name: name.value
+                            })
+                        });
+
+                        result = await verify.json();
+
+                    } catch (err) {
+                        alert("Network error. Please try again.");
+                        btn.disabled = false;
+                        btn.innerText = "Proceed to Payment";
+                        return;
+                    }
 
                     if (result.success) {
                         localStorage.removeItem("cart");
@@ -372,6 +402,12 @@
             };
 
             const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function () {
+                const btn = document.getElementById("payButton");
+                btn.innerText = "Proceed to Payment";
+                btn.disabled = false;
+                alert("Payment failed. Please try again.");
+            });
             rzp.open();
         });
     </script>
