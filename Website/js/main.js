@@ -347,3 +347,24 @@ function showCategory(category, el) {
         el.classList.add("active");
     }
 }
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const slides = document.querySelectorAll(".slide");
+
+    if (slides.length === 0) {
+        console.log("❌ No slides found");
+        return;
+    }
+
+    let current = 0;
+
+    function nextSlide() {
+        slides[current].classList.remove("active");
+        current = (current + 1) % slides.length;
+        slides[current].classList.add("active");
+    }
+
+    setInterval(nextSlide, 4000);
+});
