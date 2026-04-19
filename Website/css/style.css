@@ -2710,27 +2710,4 @@ section {
       
   }
 
-/*SCanQR button updataed CSS*/
 
-.mobile-bottom-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-}
-
-.scan-circle {
-    width: 60px; /* adjust size */
-    height: 60px;
-    border-radius: 50%;
-    background-color: #007bff; /* your brand color */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.scan-icon svg {
-    width: 35px; /* scale icon */
-    height: 35px;
-    color: #fff; /* icon color */
-}
