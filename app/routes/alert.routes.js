@@ -165,7 +165,12 @@ router.get("/whatsapp-webhook", (req, res) => {
 
 //Whatsapp Webhook Code
 
+/Whatsapp Webhook Code
+
 router.post("/whatsapp-webhook", (req, res) => {
+
+    // ✅ FIX: Respond 200 IMMEDIATELY — Meta requires < 5s response or it retries/disables
+    res.sendStatus(200);
 
     console.log("🔥 WEBHOOK HIT:", JSON.stringify(req.body, null, 2));
 
@@ -175,7 +180,9 @@ router.post("/whatsapp-webhook", (req, res) => {
         const message = changes?.value?.messages?.[0];
 
         if (message) {
-            let from = message.from.replace(/^91/, "");
+            // ✅ FIX: Normalize to 10-digit to match how owner_phone is stored in DB
+            let from = message.from.replace(/\D/g, "");
+            if (from.startsWith("91") && from.length === 12) from = from.slice(2);
             let text = null;
 
             if (message.type === "text" && message.text?.body) {
@@ -183,10 +190,10 @@ router.post("/whatsapp-webhook", (req, res) => {
             } else if (message.type === "button") {
                 // Owner tapped Quick Reply button — ignore, wait for real text
                 console.log("Button tap from:", from, "— ignoring");
-                return res.sendStatus(200);
+                return; // res already sent above
             }
 
-            if (!text) return res.sendStatus(200);
+            if (!text) return; // res already sent above
 
             console.log("📨 Reply from:", from, "→", text);
 
@@ -217,8 +224,7 @@ router.post("/whatsapp-webhook", (req, res) => {
     } catch (err) {
         console.error("Webhook error:", err);
     }
-
-    res.sendStatus(200);
+    // ✅ res.sendStatus(200) already called at top of handler
 });
 
 function matchByPhone(text, from) {
@@ -261,5 +267,6 @@ function matchByPhone(text, from) {
         }
     );
 }
+
 
 module.exports = router;
