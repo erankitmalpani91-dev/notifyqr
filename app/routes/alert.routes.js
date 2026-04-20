@@ -166,6 +166,9 @@ router.get("/whatsapp-webhook", (req, res) => {
 //Whatsapp Webhook Code
 
 router.post("/whatsapp-webhook", (req, res) => {
+
+    console.log("🔥 WEBHOOK HIT:", JSON.stringify(req.body, null, 2));
+
     try {
         const entry = req.body.entry?.[0];
         const changes = entry?.changes?.[0];
