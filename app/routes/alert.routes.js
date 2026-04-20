@@ -165,8 +165,6 @@ router.get("/whatsapp-webhook", (req, res) => {
 
 //Whatsapp Webhook Code
 
-/Whatsapp Webhook Code
-
 router.post("/whatsapp-webhook", (req, res) => {
 
     // ✅ FIX: Respond 200 IMMEDIATELY — Meta requires < 5s response or it retries/disables
