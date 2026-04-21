@@ -6,6 +6,14 @@ let allMessages = [];
 let pollInterval = null;
 let currentScanId = null;
 
+// Single source of truth for what has been rendered
+// Initialised here at module level so sendFollowup() can access it too
+const rendered = {
+    ownerReply: false,
+    finderFollowup: false,
+    ownerReply2: false
+};
+
 // Predefined messages per asset type
 const messageMap = {
     car: [
@@ -19,7 +27,6 @@ const messageMap = {
         "Fluid leaking from your car",
         "Your car was hit or damaged"
     ],
-
     bike: [
         "Your bike is blocking the way",
         "Your bike lights are on",
@@ -29,7 +36,6 @@ const messageMap = {
         "Bike has fallen or tipped over",
         "Fuel or oil leaking from your bike"
     ],
-
     auto: [
         "Your auto is blocking the way",
         "Please move your auto",
@@ -37,7 +43,6 @@ const messageMap = {
         "Your auto lights are on",
         "Auto seems to have an issue"
     ],
-
     CV: [
         "Your vehicle is blocking the way",
         "Please move your vehicle",
@@ -45,80 +50,68 @@ const messageMap = {
         "Your vehicle lights are on",
         "Possible issue noticed in your vehicle"
     ],
-
     bag: [
         "I found your bag",
         "Your bag is unattended",
         "Your bag was left behind",
         "Bag found at this location"
     ],
-
     schoolbag: [
         "I found a school bag",
         "School bag left behind",
         "Your child's bag is unattended"
     ],
-
     laptop: [
         "I found your laptop",
         "Your laptop is unattended",
         "Laptop left behind at this location"
     ],
-
     mobile: [
         "I found your mobile phone",
         "Mobile phone left behind",
         "Your phone is unattended"
     ],
-
     key: [
         "I found your keys",
         "Your keys were left behind",
         "Keys found at this location"
     ],
-
     pet: [
         "I found your pet",
         "Your pet seems lost",
         "Your pet is unattended",
         "Pet found roaming nearby"
     ],
-
     kids: [
         "I found a child with this tag",
         "Child needs assistance",
         "Child appears lost",
         "Child is alone and needs help"
     ],
-
     elderly: [
         "An elderly person needs assistance",
         "Elderly person seems lost",
         "Found elderly person with this tag",
         "Elderly person needs help"
     ],
-
     homedelivery: [
         "Delivery attempt failed",
         "Package could not be delivered",
         "Please contact regarding your delivery",
         "Delivery person tried to reach you"
     ],
-
     employee: [
         "Employee ID found",
         "Employee needs assistance",
         "ID card was found",
         "Please contact regarding employee ID"
     ],
-
     shop: [
         "Shop is closed, customer waiting",
         "Issue at your shop location",
         "Please contact regarding your shop",
         "Customer needs assistance at your shop"
     ],
-
     default: [
         "I found your item",
         "Your item is unattended",
@@ -133,7 +126,6 @@ if (!qrId) {
     loadQR();
 }
 
-// Load QR info from server
 function loadQR() {
     fetch("/api/alerts/qr-info/" + qrId)
         .then(res => res.json())
@@ -142,13 +134,9 @@ function loadQR() {
                 document.getElementById("title").innerText = data.message || "QR Not Active";
                 return;
             }
-
             const assetType = (data.product_type || "default").toLowerCase();
-            const assetLabel = data.asset_name || data.product_type || "Item";
-
             document.getElementById("title").innerText = "Notify Owner";
             document.getElementById("mainContent").style.display = "block";
-
             allMessages = messageMap[assetType] || messageMap["default"];
             renderButtons(allMessages.slice(0, 3));
         })
@@ -157,52 +145,39 @@ function loadQR() {
         });
 }
 
-// Render predefined message buttons
 function renderButtons(msgs) {
     const btnDiv = document.getElementById("buttons");
     btnDiv.innerHTML = "";
-
     msgs.forEach(msg => {
         const btn = document.createElement("button");
         btn.className = "btn";
         btn.innerText = msg;
-
         btn.onclick = () => {
             selectedMessage = msg;
             document.querySelectorAll("#buttons .btn").forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
-
-            // Always overwrite with the selected message
             const customBox = document.getElementById("customMsg");
             customBox.value = msg;
             customBox.dataset.prefilled = "true";
             updateCharCount();
         };
-
-
         btnDiv.appendChild(btn);
     });
-
-    // Auto-select first
     const first = btnDiv.querySelector(".btn");
     if (first) first.click();
 }
 
-// Show all messages
 function showMore() {
     renderButtons(allMessages);
     document.getElementById("moreOptions").style.display = "none";
 }
 
-// Update char count
 function updateCharCount() {
     const val = document.getElementById("customMsg").value.length;
     document.getElementById("charCount").innerText = val;
-    // Once user edits manually, stop auto-replacing
     document.getElementById("customMsg").dataset.prefilled = "false";
 }
 
-// Main notify function
 function notifyOwner() {
     const customText = document.getElementById("customMsg").value.trim();
     const finalMessage = customText || selectedMessage;
@@ -215,20 +190,15 @@ function notifyOwner() {
     const btn = document.getElementById("notifyBtn");
     btn.disabled = true;
     btn.innerText = "Sending...";
-
     showStatus("sending", "Sending notification...");
 
-    // Try to get location — if denied, send without it
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             pos => {
                 const location = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
                 sendAlert(finalMessage, location);
             },
-            () => {
-                // Location denied — send without it
-                sendAlert(finalMessage, null);
-            },
+            () => sendAlert(finalMessage, null),
             { timeout: 5000 }
         );
     } else {
@@ -236,7 +206,6 @@ function notifyOwner() {
     }
 }
 
-// Send alert to server
 function sendAlert(message, location) {
     fetch("/api/alerts/send-alert", {
         method: "POST",
@@ -249,19 +218,20 @@ function sendAlert(message, location) {
 
             if (data.success) {
                 currentScanId = data.scan_id;
-
                 btn.innerText = "✅ Owner Notified";
                 showStatus("success", "Owner has been notified. Waiting for reply...");
 
-                // Show the conversation thread with finder's message immediately
-                const finalMsg = document.getElementById("customMsg").value.trim() || selectedMessage;
+                // ✅ Add finder's bubble ONCE here using the `message` param
+                // (not customMsg.value which may have changed or be the default)
                 document.getElementById("convoThread").style.display = "flex";
-                addBubble("finder", finalMsg);
+                addBubble("finder", message);
 
-                // Start polling for reply
+                // Reset rendered flags for this new conversation
+                rendered.ownerReply = false;
+                rendered.finderFollowup = false;
+                rendered.ownerReply2 = false;
+
                 startPolling(currentScanId);
-
-                // Start 3 min cooldown
                 setTimeout(() => startCooldown(), 2000);
 
             } else {
@@ -278,18 +248,8 @@ function sendAlert(message, location) {
         });
 }
 
-// Poll for owner reply
 function startPolling(scanId) {
     if (pollInterval) clearInterval(pollInterval);
-
-    // Track what we've already rendered so we don't re-render on every poll
-    window._rendered = {
-        finderMsg: true,  // ← true from start — already added in sendAlert()
-        ownerReply: false,
-        finderFollowup: false,
-        ownerReply2: false
-    };
-    let rendered = window._rendered;
 
     pollInterval = setInterval(() => {
         fetch("/api/alerts/reply/" + scanId)
@@ -297,21 +257,18 @@ function startPolling(scanId) {
             .then(data => {
                 if (!data.success) return;
 
-                
-
-                // ── Step 2: Owner replied ──
+                // Owner's first reply
                 if (data.reply && !rendered.ownerReply) {
                     rendered.ownerReply = true;
                     addBubble("owner", data.reply);
                     showStatus("success", "✅ Owner has responded!");
-
-                    // Show follow-up box (only if no follow-up sent yet)
-                    if (!data.finder_followup) {
+                    // Only show follow-up box if finder hasn't sent one yet
+                    if (!rendered.finderFollowup) {
                         document.getElementById("followupBox").style.display = "block";
                     }
                 }
 
-                // ── Step 3: Finder's follow-up appeared (they sent it, now confirm in thread) ──
+                // Finder's follow-up — only add from poll if NOT already added by sendFollowup()
                 if (data.finder_followup && !rendered.finderFollowup) {
                     rendered.finderFollowup = true;
                     document.getElementById("followupBox").style.display = "none";
@@ -319,23 +276,23 @@ function startPolling(scanId) {
                     showStatus("success", "✅ Follow-up sent. Waiting for owner...");
                 }
 
-                // ── Step 4: Owner replied a second time ──
+                // Owner's second reply
                 if (data.owner_reply2 && !rendered.ownerReply2) {
                     rendered.ownerReply2 = true;
                     addBubble("owner", data.owner_reply2);
                     showStatus("success", "✅ Owner replied again!");
-                    clearInterval(pollInterval); // Conversation complete
+                    clearInterval(pollInterval);
                 }
             })
             .catch(() => { });
     }, 5000);
 
-    // Stop polling after 15 minutes
     setTimeout(() => clearInterval(pollInterval), 900000);
 }
 
-// Add a chat bubble to the conversation thread
 function addBubble(who, text) {
+    if (!text || !text.trim()) return; // guard against empty bubbles
+
     const thread = document.getElementById("convoThread");
 
     const wrapper = document.createElement("div");
@@ -349,17 +306,14 @@ function addBubble(who, text) {
 
     const bubble = document.createElement("div");
     bubble.className = "bubble bubble-" + who;
-    bubble.innerText = text;
+    bubble.innerText = text.trim();
 
     wrapper.appendChild(label);
     wrapper.appendChild(bubble);
     thread.appendChild(wrapper);
-
-    // Scroll into view smoothly
     wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-// Send follow-up message
 function sendFollowup() {
     const msg = document.getElementById("followupMsg").value.trim();
     if (!msg) { alert("Please type a follow-up message"); return; }
@@ -368,6 +322,10 @@ function sendFollowup() {
     const btn = document.getElementById("followupBtn");
     btn.disabled = true;
     btn.innerText = "Sending...";
+
+    // Mark as rendered IMMEDIATELY before the fetch
+    // so polling can never add it even if it fires during the request
+    rendered.finderFollowup = true;
 
     fetch("/api/alerts/send-followup", {
         method: "POST",
@@ -380,22 +338,22 @@ function sendFollowup() {
                 document.getElementById("followupBox").style.display = "none";
                 addBubble("finder", msg);
                 showStatus("success", "✅ Follow-up sent. Waiting for owner...");
-                // Mark as rendered so polling doesn't add it again
-                if (window._rendered) window._rendered.finderFollowup = true;
             } else {
+                // Failed — unmark so user can try again
+                rendered.finderFollowup = false;
                 btn.disabled = false;
                 btn.innerText = "Send Follow-up";
                 alert(data.message || "Failed to send. Please try again.");
             }
         })
         .catch(() => {
+            rendered.finderFollowup = false;
             btn.disabled = false;
             btn.innerText = "Send Follow-up";
             alert("Network error. Please try again.");
         });
 }
 
-// 3 minute cooldown timer
 function startCooldown() {
     const btn = document.getElementById("notifyBtn");
     const timer = document.getElementById("timer");
@@ -409,7 +367,6 @@ function startCooldown() {
         const sec = time % 60;
         timer.innerText = `Can notify again in ${min}:${sec < 10 ? "0" + sec : sec}`;
         time--;
-
         if (time < 0) {
             clearInterval(interval);
             btn.disabled = false;
@@ -420,7 +377,6 @@ function startCooldown() {
     }, 1000);
 }
 
-// Show status message
 function showStatus(type, message) {
     const box = document.getElementById("statusBox");
     box.className = "status-box " + type;
