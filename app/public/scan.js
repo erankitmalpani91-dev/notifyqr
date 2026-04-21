@@ -283,12 +283,13 @@ function startPolling(scanId) {
     if (pollInterval) clearInterval(pollInterval);
 
     // Track what we've already rendered so we don't re-render on every poll
-    let rendered = {
-        finderMsg: false,
+    window._rendered = {
+        finderMsg: true,  // ← true from start — already added in sendAlert()
         ownerReply: false,
         finderFollowup: false,
         ownerReply2: false
     };
+    let rendered = window._rendered;
 
     pollInterval = setInterval(() => {
         fetch("/api/alerts/reply/" + scanId)
@@ -296,12 +297,7 @@ function startPolling(scanId) {
             .then(data => {
                 if (!data.success) return;
 
-                // ── Step 1: Show finder's own message in thread ──
-                if (!rendered.finderMsg) {
-                    rendered.finderMsg = true;
-                    addBubble("finder", selectedMessage || document.getElementById("customMsg").value.trim());
-                    document.getElementById("convoThread").style.display = "flex";
-                }
+                
 
                 // ── Step 2: Owner replied ──
                 if (data.reply && !rendered.ownerReply) {
@@ -381,10 +377,11 @@ function sendFollowup() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Immediately add to thread, hide input box
                 document.getElementById("followupBox").style.display = "none";
                 addBubble("finder", msg);
                 showStatus("success", "✅ Follow-up sent. Waiting for owner...");
+                // Mark as rendered so polling doesn't add it again
+                if (window._rendered) window._rendered.finderFollowup = true;
             } else {
                 btn.disabled = false;
                 btn.innerText = "Send Follow-up";
