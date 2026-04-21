@@ -272,8 +272,9 @@ function startPolling(scanId) {
                 if (data.finder_followup && !rendered.finderFollowup) {
                     rendered.finderFollowup = true;
                     document.getElementById("followupBox").style.display = "none";
-                    addBubble("finder", data.finder_followup);
-                    showStatus("success", "✅ Follow-up sent. Waiting for owner...");
+                    // ❌ DO NOT addBubble here
+                    // Only acknowledge
+                    showStatus("success", "✅ Follow-up delivered");
                 }
 
                 // Owner's second reply
@@ -294,6 +295,9 @@ function addBubble(who, text) {
     if (!text || !text.trim()) return; // guard against empty bubbles
 
     const thread = document.getElementById("convoThread");
+
+    const key = who + "|" + text.trim();
+    if (messageCache.has(key)) return;
 
     const wrapper = document.createElement("div");
     wrapper.style.display = "flex";
