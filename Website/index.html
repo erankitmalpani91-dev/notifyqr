@@ -9,25 +9,24 @@
 </head>
 
 <body>
-    <!-- Mobile Menu -->
+
+    <!--NAVBAR Mobile Menu -->
     <header class="mobile-header">
         <div onclick="toggleMenu()">☰</div>
         <div class="brand-center">
-            <img src="assets/images/reachoutowner_logo.png" height="36">
+            <img src="assets/images/reachoutowner_logo.png" height="65">
             <span>ReachOutOwner</span>
         </div>
-        <div class="user-icon">👤</div>
+
     </header>
 
     <div class="mobile-menu" id="mobileMenu">
         <a href="#how-section">How It Works</a>
         <a href="#pricing-section">Pricing</a>
         <a href="#assets-section">Use Cases</a>
-        <a href="/owner/login">Owner Login</a>
         <a href="#" onclick="openSalesModal()">Contact Sales</a>
+        <a href="/login.html">Resend Login Link</a>
     </div>
-
-
 
     <!-- NAVBAR -->
     <header class="navbar" id="navbar">
@@ -43,7 +42,7 @@
 
             <div class="login-dropdown">
                 <button class="user-btn">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                    <svg width="40" height="30" fill="none" stroke="currentColor" stroke-width="2"
                          viewBox="0 0 24 24">
                         <circle cx="12" cy="8" r="4" />
                         <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
@@ -51,7 +50,7 @@
                 </button>
 
                 <div class="dropdown-menu">
-                    <a href="/login.html">Owner Login</a>
+                    <a href="/login.html" class="dropdown-menu">Resend Login Link</a>
 
                 </div>
             </div>
@@ -61,7 +60,6 @@
 
     <!-- HERO -->
     <section id="hero" class="hero">
-
         <!-- Slider -->
         <div class="hero-slider">
             <div class="slide active" style="background-image: url('assets/images/slide1.png');"></div>
@@ -70,26 +68,49 @@
             <div class="slide" style="background-image: url('assets/images/slide4.png');"></div>
             <div class="slide" style="background-image: url('assets/images/slide5.png');"></div>
         </div>
-
-        <!-- Dark overlay -->
-        <div class="hero-overlay"></div>
-
         <!-- Content -->
         <div class="hero-content">
-            
-
             <div class="hero-buttons">
-                <a href="#pricing-section" class="btn-primary">Buy - Starts @ ₹249/year</a>
-                <a href="#how-section" class="btn-outline">How It Works</a>
+                <a href="#pricing-section" class="btn-primary">Buy - Starts @ <br />₹249/year</a>
             </div>
         </div>
+    </section>
 
+    <!-- How reach out owner works -->
+    <section id="how-section" class="how-section">
+        <p class="how-title">How ReachOutOwner Works</p>
+        <p class="how-subtitle">No app needed. No account required for the finder. Just scan, notify, done.</p>
+
+            <div class="how-steps">
+
+                <div class="how-step">
+                    <div class="step-circle">1</div>
+                    <span class="step-icon">📱</span>
+                    <h3>Finder Scans Your QR</h3>
+                    <p>Anyone can scan the QR on your vehicle or asset. No app needed — just a phone camera</p>
+                </div>
+
+                <div class="how-step">
+                    <div class="step-circle">2</div>
+                    <span class="step-icon">💬</span>
+                    <h3>You Get a WhatsApp Alert</h3>
+                    <p>Instant notification on WhatsApp with their message and location — within seconds.</p>
+                </div>
+
+                <div class="how-step">
+                    <div class="step-circle">3</div>
+                    <span class="step-icon">🔐</span>
+                    <h3>Reply Securely</h3>
+                    <p>You can reply through WhatsApp. Your phone number is never revealed to the finder.</p>
+                </div>
+            </div>
+        </div>
     </section>
 
 
-    <!-- When Someone Reaches You -->
+    <!-- Real World Scenarios -->
     <section id="reach-section" class="reach-section">
-        <h2>When Someone Needs to <span>Reach You</span>…</h2>
+        <p class="reach-title">Real World Scenarios</p>
         <div class="reach-grid">
             <div class="reach-card">
                 <div class="card-top">
@@ -113,11 +134,11 @@
 
             <div class="reach-card">
                 <div class="card-top">
-                    <div class="icon">🔧</div>
-                    <h3>Equipment Problem</h3>
+                    <div class="icon">🔑</div>
+                    <h3>Lost Keys</h3>
                     <span class="arrow">›</span>
                 </div>
-                <p>Report malfunctioning machines instantly.</p>
+                <p>Finder can alert you the moment they find your keys or wallet.</p>
                 <span class="ripple"></span>
             </div>
 
@@ -134,7 +155,7 @@
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">🚨</div>
-                    <h3>Emergency</h3>
+                    <h3>Emergency Alert</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Emergency responders can reach you instantly.</p>
@@ -144,35 +165,34 @@
 
             <div class="reach-card">
                 <div class="card-top">
-                    <div class="icon">🚓</div>
-                    <h3>Security Alert</h3>
-                    <span class="arrow">›</span>
-                </div>
-                <p>Security teams can notify you about threats or issues.</p>
-                <span class="ripple"></span>
-            </div>
-
-            <div class="reach-card">
-                <div class="card-top">
-                    <div class="icon">🏍</div>
-                    <h3>Vehicle Accident</h3>
-                    <span class="arrow">›</span>
-                </div>
-                <p>Accident responders can alert family instantly.</p>
-                <span class="ripple"></span>
-            </div>
-
-            <div class="reach-card">
-                <div class="card-top">
                     <div class="icon">🧒</div>
                     <h3>Child Safety</h3>
                     <span class="arrow">›</span>
                 </div>
-                <p>Teachers or guardians can reach parents securely.</p>
+                <p> Teachers or bystanders can reach parents in seconds if a child needs help.</p>
                 <span class="ripple"></span>
             </div>
 
-        </div>
+            <div class="reach-card">
+                <div class="card-top">
+                    <div class="icon">🐶</div>
+                    <h3>Lost Pet</h3>
+                    <span class="arrow">›</span>
+                </div>
+                <p>Anyone who finds your pet can contact you without your number.</p>
+                <span class="ripple"></span>
+            </div>
+
+            <div class="reach-card">
+                <div class="card-top">
+                    <div class="icon">👴</div>
+                    <h3>Elderly Safety</h3>
+                    <span class="arrow">›</span>
+                </div>
+                <p>Family can be reached immediately if an elderly person needs assistance.</p>
+                <span class="ripple"></span>
+            </div>
+             </div>
     </section>
 
     <!----Alert Message----->
@@ -212,8 +232,6 @@
         </div>
         </div>
     </section>
-
-
 
 
     <!-- Built for real world assets -->
@@ -275,44 +293,12 @@
     </section>
 
 
-
-
-
-    <!-- How reach out owner works -->
-    <section id="how-section" class="how-section">
-        <div class="container">
-            <h2>How ReachOutOwner Works</h2>
-
-            <div class="how-steps">
-
-                <div class="how-step">
-                    <div class="step-circle">1</div>
-                    <h4>Scan QR</h4>
-                    <p>Someone scans your QR on vehicle or asset.</p>
-                </div>
-
-                <div class="how-step">
-                    <div class="step-circle">2</div>
-                    <h4>Instant Alert</h4>
-                    <p>You receive WhatsApp and missed call alert.</p>
-                </div>
-
-                <div class="how-step">
-                    <div class="step-circle">3</div>
-                    <h4>Reply Securely</h4>
-                    <p>Respond without exposing your number.</p>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
     <!-----Pricing Section--->
 
     <section id="pricing-section" class="catalog-section">
 
-        <h2 class="catalog-title">Simple Pricing. Maximum Protection</h2>
-        <p>Buy QR codes and enjoy complete control with alerts and a secure dashboard</p>
+        <h2 class="catalog-title">Starts @ 70 paisa/day. Less than the Price of Daily Chai</h2>
+
 
         <!-- CATEGORY TABS -->
         <div class="category-tabs">
@@ -321,6 +307,15 @@
             <button class="tab" onclick="showCategory('family', this)">Family</button>
             <button class="tab" onclick="showCategory('home', this)">Home</button>
             <button class="tab" onclick="showCategory('business', this)">Business</button>
+        </div>
+
+        <div class="cart-wrapper">
+            <div class="cart-items" id="cartItems"></div>
+
+            <div class="cart-summary">
+                Total <span id="cartTotal">0</span>
+                <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
+            </div>
         </div>
 
         <!-- VEHICLE -->
@@ -622,17 +617,12 @@
                 <button onclick="addToCart('shop')" class="add-cart-btn">Add to Cart</button>
             </div>
         </div>
+
+
+
+
+
     </section>
-
-
-    <div class="cart-wrapper">
-        <div class="cart-items" id="cartItems"></div>
-
-        <div class="cart-summary">
-            Total <span id="cartTotal">0</span>
-            <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
-        </div>
-    </div>
 
     <!-- TESTIMONIALS -->
     <section class="testimonials-section">
@@ -699,9 +689,7 @@
         </div>
     </section>
 
-
-    <!-- Scan QR Scanner -->
-
+    <!-- Mobile Scan QR Scanner -->
 
     <div class="mobile-bottom-bar">
         <div class="bottom-item center-scan">
@@ -724,11 +712,6 @@
             <span class="bottom-text">Scan to Connect</span>
         </div>
     </div>
-
-
-
-
-
 
 
     <!-- FOOTER -->

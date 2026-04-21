@@ -124,97 +124,6 @@
                 cursor: not-allowed;
             }
 
-        /* ── Conversation thread ── */
-        .convo-thread {
-            margin-top: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .bubble {
-            max-width: 88%;
-            padding: 11px 14px;
-            border-radius: 14px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .bubble-finder {
-            background: #2f80ed;
-            color: white;
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
-        }
-
-        .bubble-owner {
-            background: #eafaf1;
-            color: #1a5c38;
-            border: 1.5px solid #27ae60;
-            border-bottom-right-radius: 4px;
-            align-self: flex-end;
-        }
-
-        .bubble-label {
-            font-size: 11px;
-            color: #999;
-            margin-bottom: 3px;
-        }
-
-            .bubble-label.right {
-                text-align: right;
-            }
-
-        .followup-box {
-            margin-top: 14px;
-            padding: 14px;
-            background: #f0f4ff;
-            border: 1.5px solid #2f80ed;
-            border-radius: 12px;
-        }
-
-            .followup-box p {
-                font-size: 13px;
-                color: #2f80ed;
-                margin: 0 0 10px;
-                font-weight: 600;
-            }
-
-        .followup-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #c5d5f5;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-            resize: none;
-            outline: none;
-            background: white;
-        }
-
-            .followup-input:focus {
-                border-color: #2f80ed;
-            }
-
-        .followup-send-btn {
-            width: 100%;
-            margin-top: 10px;
-            padding: 11px;
-            background: #2f80ed;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-            .followup-send-btn:disabled {
-                background: #95a5a6;
-                cursor: not-allowed;
-            }
-
         .status-box {
             margin-top: 14px;
             padding: 14px;
@@ -296,18 +205,10 @@
 
                 <div id="statusBox" class="status-box"></div>
 
-                <!-- Conversation thread — built dynamically by scan.js -->
-                <div id="convoThread" class="convo-thread" style="display:none"></div>
-
-                <!-- Follow-up box — shown after owner's first reply -->
-                <div id="followupBox" class="followup-box" style="display:none">
-                    <p>💬 Send a follow-up to the owner:</p>
-                    <textarea id="followupMsg" class="followup-input" rows="2"
-                              placeholder="e.g. I'm at Gate 2, please hurry..."
-                              maxlength="200"></textarea>
-                    <button class="followup-send-btn" id="followupBtn" onclick="sendFollowup()">
-                        Send Follow-up
-                    </button>
+                <div id="replyBox" style="display:none; margin-top:14px; padding:16px;
+                    background:#eafaf1; border:2px solid #27ae60; border-radius:12px;">
+                    <p style="font-size:12px; color:#666; margin:0 0 6px;">Owner replied:</p>
+                    <p id="replyText" style="font-size:15px; color:#1a5c38; margin:0; font-weight:500;"></p>
                 </div>
 
                 <div id="timer" class="timer"></div>

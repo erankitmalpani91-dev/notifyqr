@@ -12,13 +12,13 @@ body {
     line-height: 1.6;
 }
 
-/** ================= NAVBAR (Premium Glass) ================= **/
+/** ==========NAVBAR=========== **/
 
 .navbar {
     position: fixed;
     top: 0;
     width: 100%;
-    padding: 16px 8%;
+    padding: 15px 2%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -28,181 +28,153 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.3);
     transition: all 0.35s ease;
     z-index: 1000;
+    height: 80px;
 }
+           
+    /* BRAND */
 
-    /*1. Scroll State */
-    .navbar.scrolled {
-        background: rgba(15,23,42,0.92);
-        backdrop-filter: blur(18px) saturate(180%);
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
-        .navbar.scrolled .nav-links > a ,
-        .navbar.scrolled .brand-name {
-            color: #ffffff;
-        }
-        /* Make user icon white when navbar is dark */
-        .navbar.scrolled .user-btn {
-            color: #ffffff;
-        }
-            .navbar.scrolled .user-btn svg {
-                fill: #ffffff;
-            }
-           
-/* BRAND */
+    .logo-img {
+        height: 120px;
+    }
 
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-img {
-    height: 32px;
-}
-
-.brand-name {
-    font-weight: 800;
-    font-size: 30px;
-    letter-spacing: -0.4px;
-    color: #111827;
-    transition: 0.3s ease;
-}
-
-
-
-/* NAV LINKS */
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-
-    .nav-links a {
-        text-decoration: none;
-        font-weight: 500;
+    .brand-name {
+        font-weight: 700;
+        font-size: 30px;
+        letter-spacing: -0.4px;
         color: #111827;
         transition: 0.3s ease;
-        position: relative;
     }
 
-        /* Elegant underline animation */
-        .nav-links a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -6px;
-            width: 0%;
-            height: 2px;
-            background: #2e5bff;
+    /* NAV LINKS */
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 22px;
+            color: #111827;
             transition: 0.3s ease;
+            position: relative;
+        }
+        .nav-links a.dropdown-menu {
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            color: #111827;
+            transition: 0.3s ease;
+            position: relative;
         }
 
-        .nav-links a:hover::after {
-            width: 100%;
-        }
+            /* Elegant underline animation */
+            .nav-links a::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: -6px;
+                width: 0%;
+                height: 2px;
+                background: #2e5bff;
+                transition: 0.3s ease;
+            }
 
-        .nav-links a:hover {
-            color: #2e5bff;
-        }
+            .nav-links a:hover::after {
+                width: 100%;
+            }
 
-/* USER ICON BUTTON */
+            .nav-links a:hover {
+                color: #2e5bff;
+            }
 
-.user-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    border-radius: 50%;
-    transition: 0.3s ease;
-}
+    /* USER ICON BUTTON */
 
-    .user-btn:hover {
-        background: rgba(0,0,0,0.05);
+    .user-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-radius: 50%;
+        transition: 0.3s ease;
     }
 
-.navbar.scrolled .user-btn:hover {
-    background: rgba(255,255,255,0.1);
-}
+        .user-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
 
-/* DROPDOWN */
+    .navbar.scrolled .user-btn:hover {
+        background: rgba(255,255,255,0.1);
+    }
 
-/* DROPDOWN CONTAINER */
-.login-dropdown {
-    position: relative;
-    z-index: 2000;
-}
+    /* DROPDOWN */
 
-/* DROPDOWN MENU */
-.dropdown-menu {
-    position: absolute;
-    right: 0;
-    top: 120%;
-    min-width: 190px;
-    background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-    padding: 8px 0;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: all 0.25s ease;
-    z-index: 3000;
-}
+    /* DROPDOWN CONTAINER */
+    .login-dropdown {
+        position: relative;
+        z-index: 1000;
+    }
 
+    /* DROPDOWN MENU */
+    .dropdown-menu {
+        position: absolute;
+        right: 0;
+        top: 120%;
+        min-width: 200px;
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        padding: 8px 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.25s ease;
+        z-index: 3000;
+    }
+
+        .dropdown-menu a {
+            color: #111827;
+        }
+
+
+    /* SHOW ON HOVER */
+    .login-dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* DROPDOWN LINKS */
     .dropdown-menu a {
+        display: block;
+        padding: 12px 18px;
+        text-decoration: none;
         color: #111827;
+        font-weight: 500;
+        transition: background 0.2s ease;
     }
 
-
-/* SHOW ON HOVER */
-.login-dropdown:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-/* DROPDOWN LINKS */
-.dropdown-menu a {
-    display: block;
-    padding: 12px 18px;
-    text-decoration: none;
-    color: #111827;
-    font-weight: 500;
-    transition: background 0.2s ease;
-}
-
-    .dropdown-menu a:hover {
-        background: #f3f4f6;
-    }
-
-
-/* ================= RESPONSIVE ================= */
-
-/* ===============================
-   DEFAULT (DESKTOP FIRST)
-================================= */
+        .dropdown-menu a:hover {
+            background: #f3f4f6;
+        }
 
 /* Hide mobile header on desktop */
 .mobile-header {
     display: none;
 }
 
-/* Keep your original desktop navbar as is */
-.navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* ===============================
-   MOBILE VIEW
-================================= */
+/* NAVBAR MOBILE VIEW */
 
 @media (max-width: 768px) {
 
@@ -236,7 +208,7 @@ body {
         align-items: center;
         gap: 8px;
         font-weight: 700;
-        font-size: 18px;
+        font-size: 22px;
     }
 
     /* Prevent content hiding behind fixed header */
@@ -301,21 +273,21 @@ body {
         pointer-events: none;
     }
 
-.hero-content {
-    position: relative;
-    z-index: 1;
-    max-width: 720px;
-    margin: 0 auto;
-}
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 720px;
+        margin: 0 auto;
+    }
 
-/* ── Situation pills ── */
-.hero-situations {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-}
+    /* ── Situation pills ── */
+    .hero-situations {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+    }
 
     .hero-situations span {
         background: rgba(46,91,255,0.12);
@@ -342,37 +314,24 @@ body {
 .btn-primary {
     background: #2e5bff;
     color: #fff;
-    padding: 14px 28px;
-    border-radius: 10px;
-    font-size: 15px;
+    padding: 10px 28px;
+    border-radius: 20px;
+    font-size: 25px;
+    text-align: center; /* ✅ keep it centered */
+    line-height: 1.3;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.25s ease;
-    white-space: nowrap;
+    white-space: wrap;
+    flex: 1;
+    margin-top: 80px;
+    margin-bottom:-10px;
 }
 
     .btn-primary:hover {
         transform: translateY(-2px);
         background: #1d4aee;
         box-shadow: 0 12px 28px rgba(46,91,255,0.4);
-    }
-
-/* Outline button */
-.btn-outline {
-    border: 1.8px solid rgba(255,255,255,0.4);
-    color: #fff;
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.25s ease;
-    white-space: nowrap;
-}
-
-    .btn-outline:hover {
-        border-color: #fff;
-        background: rgba(255,255,255,0.06);
     }
 
 /* ── Trust signals ── */
@@ -393,7 +352,7 @@ body {
     }
 
 
-/* ================= HERO MOBILE ================= */
+/*HERO MOBILE */
 
 @media (max-width: 768px) {
 
@@ -454,8 +413,7 @@ body {
         margin-top: 24px;
     }
 
-    .btn-primary,
-    .btn-outline {
+    .btn-primary {
         flex: 1; /* equal width */
         max-width: 180px; /* optional limit */
         padding: 10px 8px;
@@ -519,9 +477,6 @@ body {
     z-index: 2;
 }
 
-
-
-
 /* SECTIONS */
 section {
     padding: 80px 10%;
@@ -533,9 +488,176 @@ section {
         margin-bottom: 40px;
     }
 
-/* PROBLEM GRID */
+/* ================= HOW IT WORKS ================= */
+
+.how-section {
+    background: #ffffff;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    padding: 30px 8% 40px 8%;
+    margin-bottom: 8px;
+}
+
+    .how-title {
+        font-size: 40px;
+        font-weight: 700;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    .how-subtitle {
+        font-size: 25px;
+        font-weight: 600;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+    .step-icon {
+        font-size: 28px;
+        margin-bottom: 12px;
+        display: block;
+    }
+/* Timeline container */
+.how-steps {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+    /* Blue line animation */
+    .how-steps::before {
+        content: "";
+        position: absolute;
+        top: 30px;
+        left: 0;
+        height: 3px;
+        width: 0;
+        background: linear-gradient(to right, #2e5bff, #7c3aed);
+        transition: width 1.2s ease;
+    }
+
+.how-section.active .how-steps::before {
+    width: 100%;
+}
+/* Each step */
+.how-step {
+    width: 30%;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1.0s ease;
+}
+
+.how-section.active .how-step {
+    opacity: 1;
+    transform: translateY(0);
+}
+    /* Stagger effect */
+    .how-section.active .how-step:nth-child(1) {
+        transition-delay: 0.3s;
+    }
+
+    .how-section.active .how-step:nth-child(2) {
+        transition-delay: 0.6s;
+    }
+
+    .how-section.active .how-step:nth-child(3) {
+        transition-delay: 0.9s;
+    }
+/* Circle */
+.step-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid #2e5bff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin: 0 auto 20px;
+    background: white;
+    transition: all 0.3s ease;
+    animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 rgba(46,91,255,0);
+    }
+
+    50% {
+        box-shadow: 0 0 18px rgba(46,91,255,0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(46,91,255,0);
+    }
+}
+/* Glow on hover */
+.step-circle:hover {
+    box-shadow: 0 0 20px rgba(46,91,255,0.5);
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .how-section {
+        padding: 24px 5%; /* slimmer padding */
+    }
+
+        .how-section h2 {
+            font-size: 20px;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+            .how-section h2::after {
+                height: 3px;
+                margin: 10px auto 0;
+                width: 60px; /* shorter underline */
+            }
+
+    /* Keep horizontal layout but tighter */
+    .how-steps {
+        margin-top: 40px; /* reduce spacing above steps */
+        gap: 12px; /* add gap control between steps */
+    }
+
+        .how-steps::before {
+            top: 20px; /* move line closer to circles */
+            height: 2px; /* thinner line */
+        }
+
+    .how-step {
+        width: 32%; /* slightly wider so text fits better */
+        margin: 0; /* remove extra margins */
+    }
+
+    .step-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .how-step p {
+        font-size: 13px;
+        line-height: 1.4;
+        margin: 0 auto;
+        max-width: 90%; /* keep text contained */
+    }
+}
+
+
+/* ==========Real World Scenarios=========== */
+
 .reach-section {
     position: relative;
+    padding: 80px 8%;
+    background: #f8fafc;
+    text-align: center;
+    padding: 20px 8% 40px 8%;
+    margin-top: -30px; /* gently lifts it upward */
+    margin-bottom: 8px;
 }
 
     .reach-section::before {
@@ -546,28 +668,20 @@ section {
         width: 100%;
         height: 30px;
         background: linear-gradient(to bottom, rgba(15,23,42,1), rgba(248,250,252,1));
-    }
+    } 
 
-
-.reach-section {
-    padding: 80px 8%;
-    background: #f8fafc;
-    text-align: center;
-    padding: 20px 8% 60px 8%;
-    margin-top: -30px; /* gently lifts it upward */
-}
-
-    .reach-section h2 {
+    .reach-title {
         font-size: 30px;
         font-weight: 700;
-        margin-top: 40px;
-        margin-bottom: 40px;
+        margin-top: 30px;
+        margin-bottom: 25px;
+        text-align: left;   
     }
 
-        .reach-section h2 span {
+        .reach-title span {
             color: #2e5bff;
         }
-
+    
 
 /* GRID */
 .reach-grid {
@@ -582,11 +696,11 @@ section {
     position: relative;
     background: #ffffff;
     border-radius: 14px;
-    padding: 22px 20px;
+    padding: -12px 7px;
     cursor: pointer;
     transition: all 0.3s ease;
     overflow: hidden;
-    border: 1px solid transparent;
+    border: 3px solid transparent;
     height: auto;
 }
 
@@ -606,14 +720,14 @@ section {
 
 /* Icon */
 .reach-card .icon {
-    font-size: 38px;
+    font-size: 60px;
 }
 
 /* Title */
 .reach-card h3 {
     flex: 1;
     margin-left: 12px;
-    font-size: 17px;
+    font-size: 20px;
     font-weight: 600;
     text-align: left;
 }
@@ -886,10 +1000,7 @@ section {
     
 }
 
-        /*Use Cases*/
-        /* =========================================
-   BUILT FOR REAL WORLD ASSETS SECTION
-========================================= */
+/* ===============BUILT FOR REAL WORLD ASSETS SECTION================= */
 
         .assets-section {
             padding: 35px 8%;
@@ -902,9 +1013,8 @@ section {
             align-items: center;
             gap: 70px;
         }
-        /* =========================================
-   LEFT IMAGE
-========================================= */
+
+        /*LEFT IMAGE*/
 
         .assets-image {
             display: flex;
@@ -928,9 +1038,8 @@ section {
                 transform: translateY(-12px);
             }
         }
-        /* =========================================
-   RIGHT CONTENT HEADER
-========================================= */
+
+        /*RIGHT CONTENT HEADER*/
 
 
         .assets-content {
@@ -969,9 +1078,7 @@ section {
                 margin-top: 10;
                 margin-bottom: 24px;
             }
-        /* =========================================
-   CIRCULAR GRID
-========================================= */
+        /*CIRCULAR GRID*/
 
         .assets-grid {
             display: grid;
@@ -979,9 +1086,7 @@ section {
             gap: 40px;
             justify-content: start;
         }
-        /* =========================================
-   CIRCLE CARD
-========================================= */
+        /*CIRCLE CARD*/
 
         .asset-circle {
             width: 160px;
@@ -1031,9 +1136,7 @@ section {
                 margin-top: 10px;
                 color: #111827;
             }
-            /* =========================================
-   TOOLTIP
-========================================= */
+            /*TOOLTIP*/
 
             .asset-circle::after {
                 content: attr(data-text);
@@ -1143,169 +1246,12 @@ section {
         .asset-circle:hover::after {
             opacity: 1;
         }
-
-
             .assets-section,
             .assets-wrapper,
             .assets-grid {
                 overflow: visible !important;
             }
         }
-
-
-
-        /* ================= HOW IT WORKS ================= */
-
-        .how-section {
-            padding: 40px 8%;
-            background: #ffffff;
-            text-align: center;
-            overflow: hidden;
-        }
-            /* Heading underline animation */
-            .how-section h2::after {
-                content: "";
-                display: block;
-                width: 0;
-                height: 4px;
-                background: #2e5bff;
-                margin: 14px auto 0;
-                border-radius: 4px;
-                transition: width 0.8s ease;
-            }
-
-            .how-section.active h2::after {
-                width: 80px;
-            }
-        /* Timeline container */
-        .how-steps {
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 70px;
-        }
-            /* Blue line animation */
-            .how-steps::before {
-                content: "";
-                position: absolute;
-                top: 30px;
-                left: 0;
-                height: 3px;
-                width: 0;
-                background: linear-gradient(to right, #2e5bff, #7c3aed);
-                transition: width 1.2s ease;
-            }
-
-        .how-section.active .how-steps::before {
-            width: 100%;
-        }
-        /* Each step */
-        .how-step {
-            width: 30%;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 1.0s ease;
-        }
-
-        .how-section.active .how-step {
-            opacity: 1;
-            transform: translateY(0);
-        }
-            /* Stagger effect */
-            .how-section.active .how-step:nth-child(1) {
-                transition-delay: 0.3s;
-            }
-
-            .how-section.active .how-step:nth-child(2) {
-                transition-delay: 0.6s;
-            }
-
-            .how-section.active .how-step:nth-child(3) {
-                transition-delay: 0.9s;
-            }
-        /* Circle */
-        .step-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid #2e5bff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            margin: 0 auto 20px;
-            background: white;
-            transition: all 0.3s ease;
-            animation: pulseGlow 2.5s infinite ease-in-out;
-        }
-
-        @keyframes pulseGlow {
-            0% {
-                box-shadow: 0 0 0 rgba(46,91,255,0);
-            }
-
-            50% {
-                box-shadow: 0 0 18px rgba(46,91,255,0.35);
-            }
-
-            100% {
-                box-shadow: 0 0 0 rgba(46,91,255,0);
-            }
-        }
-        /* Glow on hover */
-        .step-circle:hover {
-            box-shadow: 0 0 20px rgba(46,91,255,0.5);
-            transform: scale(1.1);
-        }
-
-@media (max-width: 768px) {
-    .how-section {
-        padding: 24px 5%; /* slimmer padding */
-    }
-
-        .how-section h2 {
-            font-size: 20px;
-            line-height: 1.3;
-            margin-bottom: 6px;
-        }
-
-            .how-section h2::after {
-                height: 3px;
-                margin: 10px auto 0;
-                width: 60px; /* shorter underline */
-            }
-
-    /* Keep horizontal layout but tighter */
-    .how-steps {
-        margin-top: 40px; /* reduce spacing above steps */
-        gap: 12px; /* add gap control between steps */
-    }
-
-        .how-steps::before {
-            top: 20px; /* move line closer to circles */
-            height: 2px; /* thinner line */
-        }
-
-    .how-step {
-        width: 32%; /* slightly wider so text fits better */
-        margin: 0; /* remove extra margins */
-    }
-
-    .step-circle {
-        width: 50px;
-        height: 50px;
-        font-size: 16px;
-        margin-bottom: 10px;
-    }
-
-    .how-step p {
-        font-size: 13px;
-        line-height: 1.4;
-        margin: 0 auto;
-        max-width: 90%; /* keep text contained */
-    }
-}
-
 
         /* ------------------PRICING ----------------------*/
         .pricing-section {
@@ -1731,6 +1677,8 @@ section {
             display: flex;
             align-items: flex-start; /* align to top */
             gap: 60px;
+            height: 180px;
+            margin-top: -20px;
         }
 
         .testimonials-left {
@@ -2237,10 +2185,10 @@ section {
 }
 
 .catalog-title {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 700;
     margin-bottom: 0px;
-    margin-top: -45px;
+    margin-top: -35px;
     color: #1a1a2e;
 }
 
@@ -2257,7 +2205,7 @@ section {
     margin: 5px;
     border-radius: 25px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 20px;
     font-weight: 500;
     transition: all 0.3s ease;
 }
