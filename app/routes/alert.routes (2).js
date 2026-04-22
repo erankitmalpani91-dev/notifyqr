@@ -48,6 +48,16 @@ router.post("/send-alert", async (req, res) => {
 
         if (!qr) return res.json({ success: false, message: "Invalid QR" });
 
+        // 🚫 Check alert limit — must be inside route, after qr is fetched
+        const alertsUsed = qr.alerts_used || 0;
+        const alertsLimit = qr.alerts_limit || 600;
+        if (alertsUsed >= alertsLimit) {
+            return res.json({
+                success: false,
+                message: "🚫 Notification limit reached. Please recharge your plan."
+            });
+        }
+
         const rows = await new Promise((resolve, reject) => {
             db.all(
                 `SELECT phone, type FROM qr_numbers WHERE qr_id = ?`,
@@ -55,6 +65,16 @@ router.post("/send-alert", async (req, res) => {
                 (err, rows) => err ? reject(err) : resolve(rows)
             );
         });
+
+        // 🚫 Check expiry
+        if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
+            return res.json({
+                success: false,
+                message: "QR expired. Please renew."
+            });
+        }
+
+
 
         const primaryRow = rows.find(r => r.type === "primary") || rows[0];
         const ownerPhone = primaryRow.phone;
@@ -101,15 +121,27 @@ router.post("/send-alert", async (req, res) => {
             params: [assetLabel, finalMessage, cleanLocation]
         });
 
+        if (!primaryMsgId) {
+            return res.json({
+                success: false,
+                message: "Failed to send alert"
+            });
+        }
+
         // 🔥 Send to secondary
         let secondaryMsgId = null;
+
         const secondary = rows.find(r => r.type === "secondary");
 
         if (secondary) {
-            secondaryMsgId = await sendWhatsApp(secondary.phone, {
-                template: "qr_scan_alert",
-                params: [assetLabel, finalMessage, cleanLocation]
-            });
+            try {
+                secondaryMsgId = await sendWhatsApp(secondary.phone, {
+                    template: "qr_scan_alert",
+                    params: [assetLabel, finalMessage, cleanLocation]
+                });
+            } catch (err) {
+                console.log("⚠️ Secondary send failed:", err.message);
+            }
         }
 
         // 🔥 Save message IDs
@@ -119,6 +151,16 @@ router.post("/send-alert", async (req, res) => {
                  SET wa_message_id = ?, wa_message_id_secondary = ?
                  WHERE scan_id = ?`,
                 [primaryMsgId, secondaryMsgId, scanId],
+                err => err ? reject(err) : resolve()
+            );
+        });
+
+        await new Promise((resolve, reject) => {
+            db.run(
+                `UPDATE qr_codes 
+         SET alerts_used = alerts_used + 1 
+         WHERE qr_id = ?`,
+                [qr_id],
                 err => err ? reject(err) : resolve()
             );
         });

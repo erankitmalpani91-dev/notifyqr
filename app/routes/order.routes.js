@@ -182,17 +182,19 @@ router.post("/verify-payment", async (req, res) => {
 
                     db.run(
                         `UPDATE qr_codes
-                   SET status='active',
-                       expiry_date = DATE(
-                         CASE
-                           WHEN expiry_date IS NULL OR expiry_date < DATE('now')
-                           THEN DATE('now')
-                           ELSE expiry_date
-                         END,
-                         ?
-                       )
-                   WHERE user_id=?`,
-                        [interval, order.user_id]
+                           SET status='active',
+                               expiry_date = DATE(
+                                 CASE
+                                   WHEN expiry_date IS NULL OR expiry_date < DATE('now')
+                                   THEN DATE('now')
+                                   ELSE expiry_date
+                                 END,
+                                 ?
+                               ),
+                               alerts_limit = alerts_limit + (? * 600),
+                               alerts_used = 0
+                           WHERE user_id=?`,
+                        [`+${planYears} years`, planYears, order.user_id]
                     );
 
                     db.run(
@@ -215,11 +217,11 @@ router.post("/verify-payment", async (req, res) => {
                         if (err) return res.status(500).json({ error: "User lookup failed" });
 
                         let userId;
-                        
+
 
                         if (user) {
                             userId = user.id;
-                            
+
 
                             db.run(
                                 `UPDATE users SET email=?, name=? WHERE id=?`,
@@ -249,7 +251,7 @@ router.post("/verify-payment", async (req, res) => {
                         // 🧠 BACKGROUND PROCESS STARTS HERE
                         (async () => {
 
-                            
+
                             // 🔐 CREATE / REPLACE MAGIC LOGIN TOKEN
                             const token = crypto.randomBytes(32).toString("hex");
 
@@ -279,7 +281,7 @@ router.post("/verify-payment", async (req, res) => {
                             });
 
                             try {
-                                
+
                                 const planYears = order.plan_years || 1;
                                 const expiryDate = new Date();
                                 expiryDate.setFullYear(expiryDate.getFullYear() + planYears);
@@ -324,11 +326,12 @@ router.post("/verify-payment", async (req, res) => {
 
                                         // 🔥 Insert into qr_codes FIRST
                                         await new Promise((resolve, reject) => {
+                                            const alertsLimit = planYears * 600;
                                             db.run(
                                                 `INSERT INTO qr_codes 
-                                                (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years)
-                                                VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?)`,
-                                                [qrId, userId, order.id, type, type, expiryString, planYears],
+                                                (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years, alerts_limit)
+                                                VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?, ?)`,
+                                                [qrId, userId, order.id, type, type, expiryString, planYears, alertsLimit],
                                                 function (err) {
                                                     if (err) reject(err);
                                                     else resolve();
