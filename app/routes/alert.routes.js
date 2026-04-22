@@ -255,10 +255,21 @@ router.post("/send-followup", async (req, res) => {
 
         const targetPhone = alert.reply_from || alert.owner_phone;
 
-        await sendWhatsApp(targetPhone, {
+        const followupMsgId = await sendWhatsApp(targetPhone, {
             template: "qr_scan_alert",
             params: [assetLabel, `Follow-up: ${finalMsg}`, "—"]
         });
+
+        // Save follow-up message ID so owner's reply2 can be matched by context
+        if (followupMsgId) {
+            await new Promise((resolve, reject) => {
+                db.run(
+                    `UPDATE scan_alerts SET wa_followup_msg_id = ? WHERE scan_id = ?`,
+                    [followupMsgId, scan_id],
+                    err => err ? reject(err) : resolve()
+                );
+            });
+        }
 
         console.log("✅ Follow-up sent for scan_id:", scan_id);
         res.json({ success: true });
@@ -330,15 +341,15 @@ router.post("/whatsapp-webhook", (req, res) => {
                             console.log("✅ Matched by message ID (reply 1)");
                             return;
                         }
-                        // Try as second reply — finder sent a follow-up and owner is replying to it
+                        // Try as second reply — owner replying to the follow-up message
                         db.run(
                             `UPDATE scan_alerts
                              SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
-                             WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
+                             WHERE (wa_followup_msg_id = ? OR wa_message_id = ? OR wa_message_id_secondary = ?)
                              AND owner_reply IS NOT NULL
                              AND finder_followup IS NOT NULL
                              AND owner_reply2 IS NULL`,
-                            [text, contextId, contextId],
+                            [text, contextId, contextId, contextId],
                             function (err2) {
                                 if (!err2 && this.changes > 0) {
                                     console.log("✅ Matched by message ID (reply 2)");
@@ -361,52 +372,57 @@ router.post("/whatsapp-webhook", (req, res) => {
 
 function matchByPhone(text, from) {
     // First try to match as reply2 (owner already replied once, finder sent follow-up, now owner replies again)
+    // Match against BOTH owner_phone (primary) and reply_from (whoever replied first — could be secondary)
     db.run(
         `UPDATE scan_alerts
          SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
          WHERE id = (
            SELECT id FROM scan_alerts
-           WHERE owner_phone = ?
+           WHERE (owner_phone = ? OR reply_from = ?)
            AND owner_reply IS NOT NULL
            AND finder_followup IS NOT NULL
            AND owner_reply2 IS NULL
            AND created_at >= DATETIME('now', '-60 minutes')
            ORDER BY id DESC LIMIT 1
          )`,
-        [text, from],
+        [text, from, from],
         function (err) {
             if (!err && this.changes > 0) {
                 console.log("✅ Matched as reply2 by phone:", from);
                 return;
             }
             // Fall through to first reply match
+            // Match owner_phone (primary) OR secondary number via qr_numbers join
             db.run(
                 `UPDATE scan_alerts
                  SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
                  WHERE id = (
-                   SELECT id FROM scan_alerts
-                   WHERE owner_phone = ?
-                   AND owner_reply IS NULL
-                   AND created_at >= DATETIME('now', '-30 minutes')
-                   ORDER BY id DESC LIMIT 1
+                   SELECT sa.id FROM scan_alerts sa
+                   LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
+                   WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
+                   AND sa.owner_reply IS NULL
+                   AND sa.created_at >= DATETIME('now', '-30 minutes')
+                   ORDER BY sa.id DESC LIMIT 1
                  )`,
-                [text, from, from],
+                [text, from, from, from],
                 function (err2) {
                     if (err2) {
                         console.error("Phone match error:", err2);
                     } else if (this.changes > 0) {
                         console.log("✅ Matched by phone:", from);
                     } else {
+                        // No time limit fallback
                         db.run(
                             `UPDATE scan_alerts
                              SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
                              WHERE id = (
-                               SELECT id FROM scan_alerts
-                               WHERE owner_phone = ?
-                               AND owner_reply IS NULL
-                               ORDER BY id DESC LIMIT 1
+                               SELECT sa.id FROM scan_alerts sa
+                               LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
+                               WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
+                               AND sa.owner_reply IS NULL
+                               ORDER BY sa.id DESC LIMIT 1
                              )`,
-                            [text, from, from],
+                            [text, from, from, from],
                             function (err3) {
                                 if (!err3 && this.changes > 0) {
                                     console.log("✅ Matched by phone (no time limit):", from);

@@ -247,8 +247,21 @@ function sendAlert(message, location) {
                     btn.innerText = "✅ Owner Notified";
                     showStatus("success", "Owner has been notified. Waiting for reply...");
 
+                    // ✅ FIX: Clear conversation thread and cache for new notification round
+                    const thread = document.getElementById("convoThread");
+                    thread.innerHTML = "";
+                    messageCache.clear();
+
                     document.getElementById("convoThread").style.display = "flex";
                     addBubble("finder", message);
+
+                    // ✅ FIX: Reset follow-up box fully — clear text, re-enable button
+                    const followupBox = document.getElementById("followupBox");
+                    followupBox.style.display = "none";
+                    document.getElementById("followupMsg").value = "";
+                    const followupBtn = document.getElementById("followupBtn");
+                    followupBtn.disabled = false;
+                    followupBtn.innerText = "Send Follow-up";
 
                     rendered.ownerReply = false;
                     rendered.finderFollowup = false;
@@ -258,7 +271,6 @@ function sendAlert(message, location) {
                     setTimeout(() => startCooldown(), 2000);
                 } catch (uiErr) {
                     console.error("UI update error after send-alert:", uiErr);
-                    // Keep success state; do not show network error
                 }
             } else {
                 btn.disabled = false;
