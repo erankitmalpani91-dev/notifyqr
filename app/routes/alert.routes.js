@@ -367,9 +367,9 @@ router.post("/whatsapp-webhook", (req, res) => {
                 db.run(
                     `UPDATE scan_alerts
                      SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
-                     WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
+                     WHERE (owner_phone = ? OR reply_from = ?)
                      AND owner_reply IS NULL`,
-                    [text, from, contextId, contextId],
+                    [text, from, from, from],
                     function (err) {
                         if (!err && this.changes > 0) {
                             console.log("✅ Matched by message ID (reply 1)");
@@ -389,13 +389,13 @@ router.post("/whatsapp-webhook", (req, res) => {
                         db.run(
                             `UPDATE scan_alerts
                              SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
-                             WHERE (wa_followup_msg_id = ? OR wa_message_id = ? OR wa_message_id_secondary = ?)
+                             WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
                              AND owner_reply IS NOT NULL
                              AND finder_followup IS NOT NULL
                              AND owner_reply2 IS NULL
                              AND reply_from = ?`,
 
-                            [text, contextId, contextId, contextId, from],
+                            [text, contextId, contextId, from],
                             function (err2) {
                                 if (!err2 && this.changes > 0) {
                                     console.log("✅ Matched by message ID (reply 2)");
