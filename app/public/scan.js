@@ -247,25 +247,26 @@ function sendAlert(message, location) {
                     btn.innerText = "✅ Owner Notified";
                     showStatus("success", "Owner has been notified. Waiting for reply...");
 
-                    // ✅ FIX: Clear conversation thread and cache for new notification round
+                    // ✅ Reset entire conversation thread for new round
                     const thread = document.getElementById("convoThread");
                     thread.innerHTML = "";
                     messageCache.clear();
+                    thread.style.display = "flex";
 
-                    document.getElementById("convoThread").style.display = "flex";
-                    addBubble("finder", message);
-
-                    // ✅ FIX: Reset follow-up box fully — clear text, re-enable button
-                    const followupBox = document.getElementById("followupBox");
-                    followupBox.style.display = "none";
+                    // ✅ Reset follow-up box fully
+                    document.getElementById("followupBox").style.display = "none";
                     document.getElementById("followupMsg").value = "";
                     const followupBtn = document.getElementById("followupBtn");
                     followupBtn.disabled = false;
                     followupBtn.innerText = "Send Follow-up";
 
+                    // ✅ Reset all rendered flags
                     rendered.ownerReply = false;
                     rendered.finderFollowup = false;
                     rendered.ownerReply2 = false;
+
+                    // ✅ Show finder's message in thread
+                    addBubble("finder", message);
 
                     startPolling(currentScanId);
                     setTimeout(() => startCooldown(), 2000);
@@ -309,13 +310,14 @@ function startPolling(scanId) {
                     }
                 }
 
-                // Finder's follow-up — only add from poll if NOT already added by sendFollowup()
+                // Finder's follow-up — add bubble if not already shown
                 if (data.finder_followup && !rendered.finderFollowup) {
                     rendered.finderFollowup = true;
                     document.getElementById("followupBox").style.display = "none";
-                    // ❌ DO NOT addBubble here
-                    // Only acknowledge
-                    showStatus("success", "✅ Follow-up delivered");
+                    // addBubble is safe here — messageCache prevents duplicates
+                    // if sendFollowup() already added it, the cache key blocks re-render
+                    addBubble("finder", data.finder_followup);
+                    showStatus("success", "✅ Follow-up delivered. Waiting for owner...");
                 }
 
                 // Owner's second reply
