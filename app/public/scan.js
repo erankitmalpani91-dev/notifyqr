@@ -1,5 +1,7 @@
 const params = new URLSearchParams(window.location.search);
 const qrId = params.get("qr");
+const messageCache = new Set();
+
 
 let selectedMessage = "";
 let allMessages = [];
@@ -206,44 +208,71 @@ function notifyOwner() {
     }
 }
 
+
+// Replace existing sendAlert with this version
 function sendAlert(message, location) {
+    const btn = document.getElementById("notifyBtn");
+
     fetch("/api/alerts/send-alert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qr_id: qrId, message, location })
     })
-        .then(res => res.json())
-        .then(data => {
+        .then(async res => {
+            // Try to parse JSON, but handle parse errors
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (e) {
+                console.error("Failed to parse JSON from /send-alert:", e);
+            }
+            return { ok: res.ok, status: res.status, data };
+        })
+        .then(({ ok, status, data }) => {
+            // Ensure button reference exists
             const btn = document.getElementById("notifyBtn");
 
+            if (!ok || !data) {
+                console.error("Bad response from /send-alert", status, data);
+                btn.disabled = false;
+                btn.innerText = "Notify Owner";
+                showStatus("error", "Network error. Please try again.");
+                return;
+            }
+
             if (data.success) {
-                currentScanId = data.scan_id;
-                btn.innerText = "✅ Owner Notified";
-                showStatus("success", "Owner has been notified. Waiting for reply...");
+                // Wrap UI updates so DOM errors don't fall into network catch
+                try {
+                    currentScanId = data.scan_id;
+                    btn.innerText = "✅ Owner Notified";
+                    showStatus("success", "Owner has been notified. Waiting for reply...");
 
-                // ✅ Add finder's bubble ONCE here using the `message` param
-                // (not customMsg.value which may have changed or be the default)
-                document.getElementById("convoThread").style.display = "flex";
-                addBubble("finder", message);
+                    document.getElementById("convoThread").style.display = "flex";
+                    addBubble("finder", message);
 
-                // Reset rendered flags for this new conversation
-                rendered.ownerReply = false;
-                rendered.finderFollowup = false;
-                rendered.ownerReply2 = false;
+                    rendered.ownerReply = false;
+                    rendered.finderFollowup = false;
+                    rendered.ownerReply2 = false;
 
-                startPolling(currentScanId);
-                setTimeout(() => startCooldown(), 2000);
-
+                    startPolling(currentScanId);
+                    setTimeout(() => startCooldown(), 2000);
+                } catch (uiErr) {
+                    console.error("UI update error after send-alert:", uiErr);
+                    // Keep success state; do not show network error
+                }
             } else {
                 btn.disabled = false;
                 btn.innerText = "Notify Owner";
                 showStatus("error", data.message || "Failed to notify. Please try again.");
             }
         })
-        .catch(() => {
+        .catch(err => {
+            console.error("sendAlert fetch error:", err);
             const btn = document.getElementById("notifyBtn");
-            btn.disabled = false;
-            btn.innerText = "Notify Owner";
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = "Notify Owner";
+            }
             showStatus("error", "Network error. Please try again.");
         });
 }
@@ -292,31 +321,36 @@ function startPolling(scanId) {
 }
 
 function addBubble(who, text) {
-    if (!text || !text.trim()) return; // guard against empty bubbles
+    try {
+        if (!text || !text.trim()) return;
 
-    const thread = document.getElementById("convoThread");
+        const thread = document.getElementById("convoThread");
+        const key = who + "|" + text.trim();
+        if (messageCache.has(key)) return;
+        messageCache.add(key);
 
-    const key = who + "|" + text.trim();
-    if (messageCache.has(key)) return;
+        const wrapper = document.createElement("div");
+        wrapper.style.display = "flex";
+        wrapper.style.flexDirection = "column";
+        wrapper.style.alignItems = who === "owner" ? "flex-end" : "flex-start";
 
-    const wrapper = document.createElement("div");
-    wrapper.style.display = "flex";
-    wrapper.style.flexDirection = "column";
-    wrapper.style.alignItems = who === "owner" ? "flex-end" : "flex-start";
+        const label = document.createElement("div");
+        label.className = "bubble-label" + (who === "owner" ? " right" : "");
+        label.innerText = who === "owner" ? "Owner" : "You";
 
-    const label = document.createElement("div");
-    label.className = "bubble-label" + (who === "owner" ? " right" : "");
-    label.innerText = who === "owner" ? "Owner" : "You";
+        const bubble = document.createElement("div");
+        bubble.className = "bubble bubble-" + who;
+        bubble.innerText = text.trim();
 
-    const bubble = document.createElement("div");
-    bubble.className = "bubble bubble-" + who;
-    bubble.innerText = text.trim();
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(bubble);
-    thread.appendChild(wrapper);
-    wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        wrapper.appendChild(label);
+        wrapper.appendChild(bubble);
+        thread.appendChild(wrapper);
+        wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (err) {
+        console.error("addBubble error:", err);
+    }
 }
+
 
 function sendFollowup() {
     const msg = document.getElementById("followupMsg").value.trim();
