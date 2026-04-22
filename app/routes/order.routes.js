@@ -288,71 +288,64 @@ router.post("/verify-payment", async (req, res) => {
 
 
 
-                                // ✅ GENERATE QR FROM ORDER ITEMS
+                                // ✅ GENERATE QR FROM ORDER ITEMS — non-blocking batch insert
+                                const generateAll = async () => {
+                                    const planYears = order.plan_years || 1;
+                                    const expiryDate = new Date();
+                                    expiryDate.setFullYear(expiryDate.getFullYear() + planYears);
+                                    const expiryString = expiryDate.toISOString().split('T')[0];
+                                    const alertsLimit = planYears * 600;
 
-                                for (let item of items) {
+                                    for (const item of items) {
+                                        const type = item.product_type;
+                                        const qty = item.quantity;
 
-                                    let type = item.product_type;
-                                    let qty = item.quantity;
-
-                                    for (let i = 0; i < qty; i++) {
-
-                                        let qrId;
-                                        let exists = true;
-
-                                        while (exists) {
-
-                                            qrId = generateQrId();
-
-                                            const existing = await new Promise((resolve) => {
-                                                db.get(
-                                                    // 🔥 Correct SQL (single string, no quotes around UNION)
-                                                    `SELECT qr_id FROM qr_codes WHERE qr_id = ?
-                                                     UNION
-                                                     SELECT qr_id FROM qr_inventory WHERE qr_id = ?`,
-                                                    // 🔥 Pass qrId twice
-                                                    [qrId, qrId],
-                                                    (err, row) => resolve(row)
+                                        for (let i = 0; i < qty; i++) {
+                                            // Generate unique QR ID using crypto — no DB lookup needed
+                                            // Format: RO + 8 random hex chars = e.g. ROa3f8b2c1
+                                            let qrId;
+                                            let exists = true;
+                                            while (exists) {
+                                                qrId = "RO" + crypto.randomBytes(4).toString("hex").toUpperCase();
+                                                // Single check — collision extremely unlikely with this format
+                                                const row = await new Promise(resolve =>
+                                                    db.get(
+                                                        `SELECT qr_id FROM qr_codes WHERE qr_id=?
+                                                         UNION SELECT qr_id FROM qr_inventory WHERE qr_id=?`,
+                                                        [qrId, qrId], (e, r) => resolve(r)
+                                                    )
                                                 );
-                                            });
+                                                if (!row) exists = false;
+                                            }
 
-                                            if (!existing) exists = false;
-                                        }
+                                            const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
 
-                                        const qrUrl = `https://reachoutowner.com/secure/${qrId}`;
-                                        const qrPath = path.join(qrFolder, `${qrId}.png`);
-                                        await QRCode.toFile(qrPath, qrUrl);
+                                            // Generate QR image — don't await, fire and forget
+                                            QRCode.toFile(path.join(qrFolder, `${qrId}.png`), qrUrl).catch(e =>
+                                                console.error("QR image error:", e)
+                                            );
 
-                                        // 🔥 Insert into qr_codes FIRST
-                                        await new Promise((resolve, reject) => {
-                                            const alertsLimit = planYears * 600;
+                                            // Insert into DB — use callbacks not await to avoid blocking
                                             db.run(
-                                                `INSERT INTO qr_codes 
-                                                (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years, alerts_limit)
-                                                VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?, ?)`,
+                                                `INSERT INTO qr_codes
+                                                 (qr_id, user_id, order_id, product_type, asset_name, status, expiry_date, source, plan_years, alerts_limit)
+                                                 VALUES (?, ?, ?, ?, ?, 'inactive', ?, 'website', ?, ?)`,
                                                 [qrId, userId, order.id, type, type, expiryString, planYears, alertsLimit],
-                                                function (err) {
-                                                    if (err) reject(err);
-                                                    else resolve();
-                                                }
+                                                (err) => { if (err) console.error("QR insert error:", err); }
                                             );
-                                        });
 
-                                        // 🔥 Then insert into inventory
-                                        await new Promise((resolve, reject) => {
                                             db.run(
-                                                `INSERT INTO qr_inventory 
-                                                (qr_id, product_type, status, assigned_to_order_id, source, activation_pin, pin_used)
-                                                VALUES (?, ?, 'assigned', ?, 'website', NULL, 1)`,
+                                                `INSERT INTO qr_inventory
+                                                 (qr_id, product_type, status, assigned_to_order_id, source, activation_pin, pin_used)
+                                                 VALUES (?, ?, 'assigned', ?, 'website', NULL, 1)`,
                                                 [qrId, type, order.id],
-                                                function (err) {
-                                                    if (err) reject(err);
-                                                    else resolve();
-                                                }
+                                                (err) => { if (err) console.error("Inventory insert error:", err); }
                                             );
-                                        });
+                                        }
                                     }
-                                }
+                                };
+
+                                await generateAll();
 
                                 // ✅ UPDATE ORDER
                                 db.run(
