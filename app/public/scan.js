@@ -339,7 +339,11 @@ function addBubble(who, text) {
         if (!text || !text.trim()) return;
 
         const thread = document.getElementById("convoThread");
-        const key = who + "|" + text.trim();
+
+        // Cache key scoped to current scan session + who + text
+        // messageCache is cleared on every new notification round so
+        // the same text can appear again in a fresh conversation
+        const key = (currentScanId || "") + "|" + who + "|" + text.trim();
         if (messageCache.has(key)) return;
         messageCache.add(key);
 
@@ -388,7 +392,9 @@ function sendFollowup() {
         .then(data => {
             if (data.success) {
                 document.getElementById("followupBox").style.display = "none";
-                addBubble("finder", msg);
+                // ✅ Capitalize to match server-stored text so polling cache key matches
+                const displayMsg = msg.charAt(0).toUpperCase() + msg.slice(1);
+                addBubble("finder", displayMsg);
                 showStatus("success", "✅ Follow-up sent. Waiting for owner...");
             } else {
                 // Failed — unmark so user can try again
