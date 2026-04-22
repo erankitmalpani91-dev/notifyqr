@@ -4,6 +4,30 @@ const db = require("../config/db");
 const { sendWhatsApp } = require("../services/whatsapp.service");
 const crypto = require("crypto");
 
+async function sendSyncToOtherNumber(qr_id, from, text) {
+    try {
+        const numbers = await new Promise((resolve, reject) => {
+            db.all(
+                `SELECT phone FROM qr_numbers WHERE qr_id = ?`,
+                [qr_id],
+                (err, rows) => err ? reject(err) : resolve(rows)
+            );
+        });
+
+        for (const num of numbers) {
+            if (num.phone === from) continue;
+
+            await sendWhatsApp(num.phone, {
+                text: `📢 Update from your other number:\n"${text}"`
+            });
+        }
+
+        console.log("🔄 Sync sent");
+    } catch (err) {
+        console.log("⚠️ Sync failed:", err.message);
+    }
+}
+
 // ✅ QR Info — called by scan page on load
 router.get("/qr-info/:qrId", (req, res) => {
     const { qrId } = req.params;
@@ -79,14 +103,7 @@ router.post("/send-alert", async (req, res) => {
             );
         });
 
-        // 🚫 Check expiry
-        if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
-            return res.json({
-                success: false,
-                message: "QR expired. Please renew."
-            });
-        }
-
+       
 
 
         const primaryRow = rows.find(r => r.type === "primary") || rows[0];
@@ -254,14 +271,25 @@ router.post("/send-followup", async (req, res) => {
         assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
         if (qr?.asset_label?.trim()) assetLabel = `${assetLabel} (${qr.asset_label.trim()})`;
 
-        const targetPhone = alert.reply_from || alert.owner_phone;
-
-        const followupMsgId = await sendWhatsApp(targetPhone, {
-            template: "qr_scan_alert",
-            params: [assetLabel, `Follow-up: ${finalMsg}`, "—"]
+        const numbers = await new Promise((resolve, reject) => {
+            db.all(
+                `SELECT phone FROM qr_numbers WHERE qr_id = ?`,
+                [alert.qr_id],
+                (err, rows) => err ? reject(err) : resolve(rows)
+            );
         });
 
-        // Save follow-up message ID so owner's reply2 can be matched by context
+        for (const num of numbers) {
+            try {
+                await sendWhatsApp(num.phone, {
+                    text: `💬 Follow-up:\n${finalMsg}`
+                });
+            } catch (e) {
+                console.log("Follow-up send failed:", num.phone);
+            }
+        }
+
+        /* Save follow-up message ID so owner's reply2 can be matched by context
         if (followupMsgId) {
             await new Promise((resolve, reject) => {
                 db.run(
@@ -270,7 +298,7 @@ router.post("/send-followup", async (req, res) => {
                     err => err ? reject(err) : resolve()
                 );
             });
-        }
+        }*/
 
         console.log("✅ Follow-up sent for scan_id:", scan_id);
         res.json({ success: true });
@@ -325,6 +353,11 @@ router.post("/whatsapp-webhook", (req, res) => {
 
             if (!text) return; // res already sent above
 
+            if (text.startsWith("📢 Update from your other number")) {
+                console.log("⛔ Ignoring sync message loop");
+                return;
+            }
+
             console.log("📨 Reply from:", from, "→", text);
 
             const contextId = message.context?.id;
@@ -340,6 +373,16 @@ router.post("/whatsapp-webhook", (req, res) => {
                     function (err) {
                         if (!err && this.changes > 0) {
                             console.log("✅ Matched by message ID (reply 1)");
+
+                            // 🔥 GET qr_id
+                            db.get(
+                                `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
+                                [from, from],
+                                (e, row) => {
+                                    if (row) sendSyncToOtherNumber(row.qr_id, from, text);
+                                }
+                            );
+
                             return;
                         }
                         // Try as second reply — owner replying to the follow-up message
@@ -349,11 +392,22 @@ router.post("/whatsapp-webhook", (req, res) => {
                              WHERE (wa_followup_msg_id = ? OR wa_message_id = ? OR wa_message_id_secondary = ?)
                              AND owner_reply IS NOT NULL
                              AND finder_followup IS NOT NULL
-                             AND owner_reply2 IS NULL`,
-                            [text, contextId, contextId, contextId],
+                             AND owner_reply2 IS NULL
+                             AND reply_from = ?`,
+
+                            [text, contextId, contextId, contextId, from],
                             function (err2) {
                                 if (!err2 && this.changes > 0) {
                                     console.log("✅ Matched by message ID (reply 2)");
+
+                                    db.get(
+                                        `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
+                                        [from, from],
+                                        (e, row) => {
+                                            if (row) sendSyncToOtherNumber(row.qr_id, from, text);
+                                        }
+                                    );
+
                                     return;
                                 }
                                 matchByPhone(text, from);
@@ -383,12 +437,22 @@ function matchByPhone(text, from) {
            AND owner_reply IS NOT NULL
            AND finder_followup IS NOT NULL
            AND owner_reply2 IS NULL
+           AND reply_from = ?
            ORDER BY id DESC LIMIT 1
          )`,
-        [text, from, from],
+        [text, from, from, from],
         function (err) {
             if (!err && this.changes > 0) {
                 console.log("✅ Matched as reply2 by phone:", from);
+
+                db.get(
+                    `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
+                    [from, from],
+                    (e, row) => {
+                        if (row) sendSyncToOtherNumber(row.qr_id, from, text);
+                    }
+                );
+
                 return;
             }
             // Fall through to first reply match
@@ -401,7 +465,7 @@ function matchByPhone(text, from) {
                    LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
                    WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
                    AND sa.owner_reply IS NULL
-                   AND sa.created_at >= DATETIME('now', '-30 minutes')
+                   AND sa.created_at >= DATETIME('now', '-60 minutes')
                    ORDER BY sa.id DESC LIMIT 1
                  )`,
                 [text, from, from, from],
@@ -410,6 +474,14 @@ function matchByPhone(text, from) {
                         console.error("Phone match error:", err2);
                     } else if (this.changes > 0) {
                         console.log("✅ Matched by phone:", from);
+
+                        db.get(
+                            `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
+                            [from, from],
+                            (e, row) => {
+                                if (row) sendSyncToOtherNumber(row.qr_id, from, text);
+                            }
+                        );
                     } else {
                         // No time limit fallback
                         db.run(
@@ -420,12 +492,21 @@ function matchByPhone(text, from) {
                                LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
                                WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
                                AND sa.owner_reply IS NULL
+                               AND sa.created_at >= DATETIME('now', '-60 minutes')
                                ORDER BY sa.id DESC LIMIT 1
                              )`,
                             [text, from, from, from],
                             function (err3) {
                                 if (!err3 && this.changes > 0) {
                                     console.log("✅ Matched by phone (no time limit):", from);
+
+                                    db.get(
+                                        `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
+                                        [from, from],
+                                        (e, row) => {
+                                            if (row) sendSyncToOtherNumber(row.qr_id, from, text);
+                                        }
+                                    );
                                 } else {
                                     console.log("❌ No alert found for phone:", from);
                                 }
