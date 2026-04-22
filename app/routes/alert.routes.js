@@ -324,7 +324,7 @@ router.post("/whatsapp-webhook", (req, res) => {
                      SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
                      WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
                      AND owner_reply IS NULL`,
-                    [text, contextId, contextId, from],
+                    [text, from, contextId, contextId],
                     function (err) {
                         if (!err && this.changes > 0) {
                             console.log("✅ Matched by message ID (reply 1)");
@@ -390,7 +390,7 @@ function matchByPhone(text, from) {
                    AND created_at >= DATETIME('now', '-30 minutes')
                    ORDER BY id DESC LIMIT 1
                  )`,
-                [text, from],
+                [text, from, from],
                 function (err2) {
                     if (err2) {
                         console.error("Phone match error:", err2);
@@ -406,7 +406,7 @@ function matchByPhone(text, from) {
                                AND owner_reply IS NULL
                                ORDER BY id DESC LIMIT 1
                              )`,
-                            [text, from],
+                            [text, from, from],
                             function (err3) {
                                 if (!err3 && this.changes > 0) {
                                     console.log("✅ Matched by phone (no time limit):", from);
