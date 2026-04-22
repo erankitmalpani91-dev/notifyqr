@@ -191,8 +191,7 @@ router.post("/verify-payment", async (req, res) => {
                                  END,
                                  ?
                                ),
-                               alerts_limit = alerts_limit + (? * 600),
-                               alerts_used = 0
+                               alerts_limit = alerts_limit + (? * 600)
                            WHERE user_id=?`,
                         [`+${planYears} years`, planYears, order.user_id]
                     );

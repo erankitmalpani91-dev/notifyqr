@@ -14,8 +14,14 @@ router.get("/qr-info/:qrId", (req, res) => {
         [qrId],
         (err, qr) => {
             if (err || !qr) return res.json({ success: false, message: "QR not found" });
-            if (qr.status === "inactive") return res.json({ success: false, message: "QR not activated" });
-            if (qr.status === "disabled") return res.json({ success: false, message: "QR disabled" });
+            if (qr.status === "inactive") {
+                return res.json({ success: false, message: "QR not activated" });
+            }
+
+            if (qr.status === "disabled") {
+                return res.json({ success: false, message: "QR disabled" });
+            }
+
             if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
                 return res.json({ success: false, message: "QR expired" });
             }
@@ -47,6 +53,13 @@ router.post("/send-alert", async (req, res) => {
         });
 
         if (!qr) return res.json({ success: false, message: "Invalid QR" });
+
+        if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
+            return res.json({
+                success: false,
+                message: "QR expired. Please renew."
+            });
+        }
 
         // 🚫 Check alert limit — must be inside route, after qr is fetched
         const alertsUsed = qr.alerts_used || 0;
@@ -240,7 +253,9 @@ router.post("/send-followup", async (req, res) => {
         assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
         if (qr?.asset_label?.trim()) assetLabel = `${assetLabel} (${qr.asset_label.trim()})`;
 
-        await sendWhatsApp(alert.owner_phone, {
+        const targetPhone = alert.reply_from || alert.owner_phone;
+
+        await sendWhatsApp(targetPhone, {
             template: "qr_scan_alert",
             params: [assetLabel, `Follow-up: ${finalMsg}`, "—"]
         });
@@ -306,10 +321,10 @@ router.post("/whatsapp-webhook", (req, res) => {
                 // Try exact message ID match first (owner used reply gesture)
                 db.run(
                     `UPDATE scan_alerts
-                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
                      WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
                      AND owner_reply IS NULL`,
-                    [text, contextId, contextId],
+                    [text, contextId, contextId, from],
                     function (err) {
                         if (!err && this.changes > 0) {
                             console.log("✅ Matched by message ID (reply 1)");
@@ -367,7 +382,7 @@ function matchByPhone(text, from) {
             // Fall through to first reply match
             db.run(
                 `UPDATE scan_alerts
-                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
                  WHERE id = (
                    SELECT id FROM scan_alerts
                    WHERE owner_phone = ?
@@ -384,7 +399,7 @@ function matchByPhone(text, from) {
                     } else {
                         db.run(
                             `UPDATE scan_alerts
-                             SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP
+                             SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
                              WHERE id = (
                                SELECT id FROM scan_alerts
                                WHERE owner_phone = ?
