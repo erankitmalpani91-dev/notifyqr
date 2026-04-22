@@ -98,8 +98,9 @@ router.post("/send-alert", async (req, res) => {
         await new Promise((resolve, reject) => {
             db.run(
                 `INSERT INTO scan_alerts 
-                (scan_id, qr_id, owner_phone, finder_message, location)
-                VALUES (?, ?, ?, ?, ?)`,
+                (scan_id, qr_id, owner_phone, finder_message, location,
+                 reply_from, finder_followup, owner_reply, owner_reply2)
+                VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL)`,
                 [scanId, qr_id, ownerPhone, message, location || null],
                 err => err ? reject(err) : resolve()
             );
@@ -382,7 +383,6 @@ function matchByPhone(text, from) {
            AND owner_reply IS NOT NULL
            AND finder_followup IS NOT NULL
            AND owner_reply2 IS NULL
-           AND created_at >= DATETIME('now', '-60 minutes')
            ORDER BY id DESC LIMIT 1
          )`,
         [text, from, from],
