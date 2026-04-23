@@ -25,7 +25,7 @@ async function syncToOther(qr_id, activePhone, msg, label) {
         for (const num of numbers) {
             if (num.phone === activePhone) continue;
             try {
-                const msgId = await sendWhatsAppText(num.phone, `${label}: ${msg}`);
+                const msgId = await sendWhatsAppText(num.phone, `*${label}*\n${msg}`;
                 if (msgId) syncMessageIds.add(msgId);
                 console.log(`🔄 Sync [${label}] → ${num.phone}`);
             } catch (e) {
@@ -259,7 +259,7 @@ router.post("/send-followup", async (req, res) => {
             if (num.phone === activePhone) {
                 // Active number gets the actual follow-up
                 try {
-                    const msgId = await sendWhatsAppText(num.phone, `💬 Finder Follow-up: ${finalMsg}`);
+                    const msgId = await sendWhatsAppText(num.phone, `*💬 Finder Follow-up*\n${finalMsg}`);
                     if (msgId) {
                         followupMsgId = msgId;
                         syncMessageIds.add(msgId);
