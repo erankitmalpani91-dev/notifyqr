@@ -25,11 +25,11 @@
     }
 
     // Auto slide
-    let autoSlide = setInterval(() => moveSlide(index + 1), 4000);
+    let autoSlide = setInterval(() => moveSlide(index + 1), 6000);
 
     function resetAutoSlide() {
         clearInterval(autoSlide);
-        autoSlide = setInterval(() => moveSlide(index + 1), 4000);
+        autoSlide = setInterval(() => moveSlide(index + 1), 6000);
     }
 
     // Manual navigation

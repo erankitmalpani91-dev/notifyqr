@@ -25,7 +25,7 @@ async function syncToOther(qr_id, activePhone, msg, label) {
         for (const num of numbers) {
             if (num.phone === activePhone) continue;
             try {
-                const msgId = await sendWhatsAppText(num.phone, `*${label}*\n${msg}`;
+                const msgId = await sendWhatsAppText(num.phone, `*${label}*\n${msg}`);
                 if (msgId) syncMessageIds.add(msgId);
                 console.log(`🔄 Sync [${label}] → ${num.phone}`);
             } catch (e) {
