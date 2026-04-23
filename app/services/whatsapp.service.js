@@ -66,3 +66,42 @@ async function sendWhatsApp(to, data) {
 }
 
 module.exports = { sendWhatsApp };
+
+// Send a free-text WhatsApp message (only works within 24hr window after user messaged you)
+async function sendWhatsAppText(to, text) {
+    try {
+        to = to.replace(/\D/g, "");
+        if (to.length === 10) to = "91" + to;
+
+        const response = await axios.post(
+            `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
+            {
+                messaging_product: "whatsapp",
+                to: to,
+                type: "text",
+                text: { body: text }
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        const messageId = response.data?.messages?.[0]?.id;
+        if (!messageId) {
+            console.log("⚠️ No messageId from free-text send:", response.data);
+            return null;
+        }
+        console.log("✅ FREE TEXT SENT:", to);
+        console.log("📩 MESSAGE ID:", messageId);
+        return messageId;
+
+    } catch (err) {
+        console.log("❌ FREE TEXT ERROR:", err.response?.data || err.message);
+        return null;
+    }
+}
+
+module.exports = { sendWhatsApp, sendWhatsAppText };

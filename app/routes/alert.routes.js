@@ -1,52 +1,51 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { sendWhatsApp } = require("../services/whatsapp.service");
+const { sendWhatsApp, sendWhatsAppText } = require("../services/whatsapp.service");
 const crypto = require("crypto");
 
-// Track WA message IDs we sent as sync, to ignore if they bounce back as webhook
+// ─── Sync message IDs we sent — ignore if they come back as webhook ───
 const syncMessageIds = new Set();
 
-async function sendSyncToOtherNumber(qr_id, from, text, label) {
+// ─── Send a plain-text notification to the OTHER number ───
+// Called after every DB write so the inactive number stays informed.
+// `activePhone`  = the number that just acted (do NOT send to them)
+// `msg`          = the exact text to forward
+// `label`        = human-readable prefix, e.g. "📢 Reply from your other number"
+async function syncToOther(qr_id, activePhone, msg, label) {
     try {
-        // Get all numbers for this QR
         const numbers = await new Promise((resolve, reject) => {
             db.all(
-                `SELECT phone, type FROM qr_numbers WHERE qr_id = ?`,
+                `SELECT phone FROM qr_numbers WHERE qr_id = ?`,
                 [qr_id],
                 (err, rows) => err ? reject(err) : resolve(rows)
             );
         });
 
-        // Get asset label for the template
-        const qr = await new Promise((resolve, reject) => {
-            db.get(`SELECT product_type, asset_label FROM qr_codes WHERE qr_id = ?`,
-                [qr_id], (err, row) => err ? reject(err) : resolve(row));
-        });
-
-        let assetLabel = qr?.product_type || "Item";
-        assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
-        if (qr?.asset_label?.trim()) assetLabel += ` (${qr.asset_label.trim()})`;
-
-        const syncText = `${label}: ${text}`;
-
         for (const num of numbers) {
-            if (num.phone === from) continue; // skip sender
-
+            if (num.phone === activePhone) continue;
             try {
-                const syncMsgId = await sendWhatsApp(num.phone, {
-                    template: "qr_scan_alert",
-                    params: [assetLabel, syncText, "—"]
-                });
-                if (syncMsgId) syncMessageIds.add(syncMsgId);
-                console.log("🔄 Sync sent to:", num.phone);
+                const msgId = await sendWhatsAppText(num.phone, `${label}: ${msg}`);
+                if (msgId) syncMessageIds.add(msgId);
+                console.log(`🔄 Sync [${label}] → ${num.phone}`);
             } catch (e) {
-                console.log("⚠️ Sync failed to:", num.phone, e.message);
+                console.log("⚠️ Sync failed:", num.phone, e.message);
             }
         }
     } catch (err) {
-        console.log("⚠️ Sync error:", err.message);
+        console.log("⚠️ syncToOther error:", err.message);
     }
+}
+
+// ─── Helper: look up a scan_alert by scan_id and call syncToOther ───
+function syncAfterWrite(scanId, activePhone, msg, label) {
+    db.get(
+        `SELECT qr_id FROM scan_alerts WHERE scan_id = ?`,
+        [scanId],
+        (err, row) => {
+            if (!err && row) syncToOther(row.qr_id, activePhone, msg, label);
+        }
+    );
 }
 
 // ✅ QR Info — called by scan page on load
@@ -59,14 +58,8 @@ router.get("/qr-info/:qrId", (req, res) => {
         [qrId],
         (err, qr) => {
             if (err || !qr) return res.json({ success: false, message: "QR not found" });
-            if (qr.status === "inactive") {
-                return res.json({ success: false, message: "QR not activated" });
-            }
-
-            if (qr.status === "disabled") {
-                return res.json({ success: false, message: "QR disabled" });
-            }
-
+            if (qr.status === "inactive") return res.json({ success: false, message: "QR not activated" });
+            if (qr.status === "disabled") return res.json({ success: false, message: "QR disabled" });
             if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
                 return res.json({ success: false, message: "QR expired" });
             }
@@ -100,20 +93,13 @@ router.post("/send-alert", async (req, res) => {
         if (!qr) return res.json({ success: false, message: "Invalid QR" });
 
         if (qr.expiry_date && new Date() > new Date(qr.expiry_date)) {
-            return res.json({
-                success: false,
-                message: "QR expired. Please renew."
-            });
+            return res.json({ success: false, message: "QR expired. Please renew." });
         }
 
-        // 🚫 Check alert limit — must be inside route, after qr is fetched
         const alertsUsed = qr.alerts_used || 0;
         const alertsLimit = qr.alerts_limit || 600;
         if (alertsUsed >= alertsLimit) {
-            return res.json({
-                success: false,
-                message: "🚫 Notification limit reached. Please recharge your plan."
-            });
+            return res.json({ success: false, message: "🚫 Notification limit reached. Please recharge your plan." });
         }
 
         const rows = await new Promise((resolve, reject) => {
@@ -124,18 +110,14 @@ router.post("/send-alert", async (req, res) => {
             );
         });
 
-
-
-
         const primaryRow = rows.find(r => r.type === "primary") || rows[0];
         const ownerPhone = primaryRow.phone;
-
         const scanId = crypto.randomBytes(16).toString("hex");
 
-        // Save alert first
+        // Save alert — reply_from starts NULL (no one has replied yet)
         await new Promise((resolve, reject) => {
             db.run(
-                `INSERT INTO scan_alerts 
+                `INSERT INTO scan_alerts
                 (scan_id, qr_id, owner_phone, finder_message, location,
                  reply_from, finder_followup, owner_reply, owner_reply2)
                 VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL)`,
@@ -144,47 +126,29 @@ router.post("/send-alert", async (req, res) => {
             );
         });
 
-        // Clean message
-        const cleanMessage = message
-            .replace(/\n/g, " ")
-            .replace(/\t/g, " ")
-            .replace(/\s{2,}/g, " ")
-            .trim();
-
-        const cleanLocation = (location || "Not shared")
-            .replace(/\n/g, " ")
-            .replace(/\s{2,}/g, " ")
-            .trim();
-
-        const finalMessage =
-            cleanMessage.charAt(0).toUpperCase() + cleanMessage.slice(1);
+        const cleanMessage = message.replace(/\n/g, " ").replace(/\t/g, " ").replace(/\s{2,}/g, " ").trim();
+        const cleanLocation = (location || "Not shared").replace(/\n/g, " ").replace(/\s{2,}/g, " ").trim();
+        const finalMessage = cleanMessage.charAt(0).toUpperCase() + cleanMessage.slice(1);
 
         let assetLabel = qr.product_type || "Item";
         assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
-
-        // Add owner's custom label if available e.g. "Car (Honda City RJ45 6789)"
         if (qr.asset_label && qr.asset_label.trim()) {
             assetLabel = `${assetLabel} (${qr.asset_label.trim()})`;
         }
 
-        // 🔥 Send to primary
+        // Send initial alert via template to primary (mandatory — no 24hr window yet)
         const primaryMsgId = await sendWhatsApp(ownerPhone, {
             template: "qr_scan_alert",
             params: [assetLabel, finalMessage, cleanLocation]
         });
 
         if (!primaryMsgId) {
-            return res.json({
-                success: false,
-                message: "Failed to send alert"
-            });
+            return res.json({ success: false, message: "Failed to send alert" });
         }
 
-        // 🔥 Send to secondary
+        // Send to secondary
         let secondaryMsgId = null;
-
         const secondary = rows.find(r => r.type === "secondary");
-
         if (secondary) {
             try {
                 secondaryMsgId = await sendWhatsApp(secondary.phone, {
@@ -196,12 +160,10 @@ router.post("/send-alert", async (req, res) => {
             }
         }
 
-        // 🔥 Save message IDs
+        // Save message IDs
         await new Promise((resolve, reject) => {
             db.run(
-                `UPDATE scan_alerts 
-                 SET wa_message_id = ?, wa_message_id_secondary = ?
-                 WHERE scan_id = ?`,
+                `UPDATE scan_alerts SET wa_message_id = ?, wa_message_id_secondary = ? WHERE scan_id = ?`,
                 [primaryMsgId, secondaryMsgId, scanId],
                 err => err ? reject(err) : resolve()
             );
@@ -209,9 +171,7 @@ router.post("/send-alert", async (req, res) => {
 
         await new Promise((resolve, reject) => {
             db.run(
-                `UPDATE qr_codes 
-         SET alerts_used = alerts_used + 1 
-         WHERE qr_id = ?`,
+                `UPDATE qr_codes SET alerts_used = alerts_used + 1 WHERE qr_id = ?`,
                 [qr_id],
                 err => err ? reject(err) : resolve()
             );
@@ -225,12 +185,12 @@ router.post("/send-alert", async (req, res) => {
     }
 });
 
-// ✅ Finder polls for owner reply using scan_id
+// ✅ Finder polls for owner reply
 router.get("/reply/:scanId", (req, res) => {
     const { scanId } = req.params;
 
     db.get(
-        `SELECT owner_reply, replied_at, finder_followup, followup_at, owner_reply2, replied2_at 
+        `SELECT owner_reply, replied_at, finder_followup, followup_at, owner_reply2, replied2_at
          FROM scan_alerts WHERE scan_id = ?`,
         [scanId],
         (err, row) => {
@@ -247,7 +207,7 @@ router.get("/reply/:scanId", (req, res) => {
     );
 });
 
-// ✅ Finder sends a follow-up message after owner has replied
+// ✅ Finder sends a follow-up message
 router.post("/send-followup", async (req, res) => {
     try {
         const { scan_id, message } = req.body;
@@ -256,7 +216,6 @@ router.post("/send-followup", async (req, res) => {
             return res.json({ success: false, message: "Missing data" });
         }
 
-        // Only allow follow-up if owner has already replied
         const alert = await new Promise((resolve, reject) => {
             db.get(
                 `SELECT * FROM scan_alerts WHERE scan_id = ?`,
@@ -272,7 +231,7 @@ router.post("/send-followup", async (req, res) => {
         const cleanMsg = message.replace(/\n/g, " ").replace(/\s{2,}/g, " ").trim();
         const finalMsg = cleanMsg.charAt(0).toUpperCase() + cleanMsg.slice(1);
 
-        // Save follow-up to DB
+        // Save follow-up
         await new Promise((resolve, reject) => {
             db.run(
                 `UPDATE scan_alerts SET finder_followup = ?, followup_at = CURRENT_TIMESTAMP WHERE scan_id = ?`,
@@ -281,17 +240,7 @@ router.post("/send-followup", async (req, res) => {
             );
         });
 
-        // Send to owner on WhatsApp as a free-text reply
-        // We use the same template with a "Follow-up" label so owner knows context
-        const qr = await new Promise((resolve, reject) => {
-            db.get(`SELECT * FROM qr_codes WHERE qr_id = ?`, [alert.qr_id],
-                (err, row) => err ? reject(err) : resolve(row));
-        });
-
-        let assetLabel = qr?.product_type || "Item";
-        assetLabel = assetLabel.charAt(0).toUpperCase() + assetLabel.slice(1);
-        if (qr?.asset_label?.trim()) assetLabel = `${assetLabel} (${qr.asset_label.trim()})`;
-
+        // Get all registered numbers for this QR
         const numbers = await new Promise((resolve, reject) => {
             db.all(
                 `SELECT phone, type FROM qr_numbers WHERE qr_id = ?`,
@@ -300,37 +249,49 @@ router.post("/send-followup", async (req, res) => {
             );
         });
 
-        // Send follow-up to ALL numbers using template
-        // Track message IDs so reply2 context matching works
-        let followupMsgIds = [];
+        // Determine active number (whoever replied first = reply_from, else primary)
+        const activePhone = alert.reply_from || alert.owner_phone;
+
+        // Send follow-up ONLY to the active number (free text — 24hr window open)
+        // Send sync notification to the OTHER number
+        let followupMsgId = null;
         for (const num of numbers) {
-            try {
-                const msgId = await sendWhatsApp(num.phone, {
-                    template: "qr_scan_alert",
-                    params: [assetLabel, `Follow-up: ${finalMsg}`, "—"]
-                });
-                if (msgId) {
-                    followupMsgIds.push(msgId);
-                    syncMessageIds.add(msgId); // prevent echo loop
+            if (num.phone === activePhone) {
+                // Active number gets the actual follow-up
+                try {
+                    const msgId = await sendWhatsAppText(num.phone, `💬 Finder Follow-up: ${finalMsg}`);
+                    if (msgId) {
+                        followupMsgId = msgId;
+                        syncMessageIds.add(msgId);
+                    }
+                    console.log("✅ Follow-up sent to active:", num.phone);
+                } catch (e) {
+                    console.log("⚠️ Follow-up to active failed:", num.phone);
                 }
-                console.log("✅ Follow-up sent to:", num.phone);
-            } catch (e) {
-                console.log("⚠️ Follow-up send failed:", num.phone, e.message);
+            } else {
+                // Inactive number gets a sync notification
+                try {
+                    const msgId = await sendWhatsAppText(num.phone, `💬 Finder Follow-up: ${finalMsg}`);
+                    if (msgId) syncMessageIds.add(msgId);
+                    console.log("✅ Follow-up sync to inactive:", num.phone);
+                } catch (e) {
+                    console.log("⚠️ Follow-up sync failed:", num.phone);
+                }
             }
         }
 
-        // Save follow-up message IDs for reply2 context matching
-        if (followupMsgIds.length > 0) {
+        // Save follow-up message ID for reply2 context matching
+        if (followupMsgId) {
             await new Promise((resolve, reject) => {
                 db.run(
                     `UPDATE scan_alerts SET wa_followup_msg_id = ? WHERE scan_id = ?`,
-                    [followupMsgIds[0], scan_id],
+                    [followupMsgId, scan_id],
                     err => err ? reject(err) : resolve()
                 );
             });
         }
 
-        console.log("✅ Follow-up sent for scan_id:", scan_id);
+        console.log("✅ Follow-up done for scan_id:", scan_id);
         res.json({ success: true });
 
     } catch (err) {
@@ -339,11 +300,10 @@ router.post("/send-followup", async (req, res) => {
     }
 });
 
-// ✅ WhatsApp webhook verification (GET) — required by Meta
+// ✅ WhatsApp webhook verification (GET)
 router.get("/whatsapp-webhook", (req, res) => {
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
-
     if (token === process.env.WEBHOOK_VERIFY_TOKEN) {
         console.log("WhatsApp webhook verified");
         res.send(challenge);
@@ -353,12 +313,9 @@ router.get("/whatsapp-webhook", (req, res) => {
     }
 });
 
-//Whatsapp Webhook Code
-
+// ✅ WhatsApp webhook (POST)
 router.post("/whatsapp-webhook", (req, res) => {
-
-    // ✅ FIX: Respond 200 IMMEDIATELY — Meta requires < 5s response or it retries/disables
-    res.sendStatus(200);
+    res.sendStatus(200); // Must respond immediately
 
     console.log("🔥 WEBHOOK HIT:", JSON.stringify(req.body, null, 2));
 
@@ -367,182 +324,139 @@ router.post("/whatsapp-webhook", (req, res) => {
         const changes = entry?.changes?.[0];
         const message = changes?.value?.messages?.[0];
 
-        if (message) {
-            // ✅ FIX: Normalize to 10-digit to match how owner_phone is stored in DB
-            let from = message.from.replace(/\D/g, "");
-            if (from.startsWith("91") && from.length === 12) from = from.slice(2);
-            let text = null;
+        if (!message) return;
 
-            if (message.type === "text" && message.text?.body) {
-                text = message.text.body;
-            } else if (message.type === "button") {
-                // Owner tapped Quick Reply button — ignore, wait for real text
-                console.log("Button tap from:", from, "— ignoring");
-                return; // res already sent above
-            }
+        let from = message.from.replace(/\D/g, "");
+        if (from.startsWith("91") && from.length === 12) from = from.slice(2);
 
-            if (!text) return;
-
-            // ✅ Ignore messages that were sent by us as sync notifications
-            const msgId = message.id;
-            if (msgId && syncMessageIds.has(msgId)) {
-                console.log("⛔ Ignoring our own sync message echo:", msgId);
-                syncMessageIds.delete(msgId);
-                return;
-            }
-
-            console.log("📨 Reply from:", from, "→", text);
-
-            const contextId = message.context?.id;
-
-            if (contextId) {
-                // Try exact message ID match first (owner used reply gesture)
-                db.run(
-                    `UPDATE scan_alerts
-                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
-                     WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
-                     AND owner_reply IS NULL`,
-                    [text, from, contextId, contextId],
-                    function (err) {
-                        if (!err && this.changes > 0) {
-                            console.log("✅ Matched by message ID (reply 1)");
-
-                            // 🔥 GET qr_id
-                            db.get(
-                                `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
-                                [from, from],
-                                (e, row) => {
-                                    if (row) sendSyncToOtherNumber(row.qr_id, from, text, "Reply");
-                                }
-                            );
-
-                            return;
-                        }
-                        // Try as second reply — owner replying to the follow-up message
-                        db.run(
-                            `UPDATE scan_alerts
-                             SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
-                             WHERE (wa_followup_msg_id = ? OR wa_message_id = ? OR wa_message_id_secondary = ?)
-                             AND owner_reply IS NOT NULL
-                             AND finder_followup IS NOT NULL
-                             AND owner_reply2 IS NULL`,
-                            [text, contextId, contextId, contextId],
-                            function (err2) {
-                                if (!err2 && this.changes > 0) {
-                                    console.log("✅ Matched by message ID (reply 2)");
-
-                                    db.get(
-                                        `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
-                                        [from, from],
-                                        (e, row) => {
-                                            if (row) sendSyncToOtherNumber(row.qr_id, from, text, "Reply");
-                                        }
-                                    );
-
-                                    return;
-                                }
-                                matchByPhone(text, from);
-                            }
-                        );
-                    }
-                );
-            } else {
-                matchByPhone(text, from);
-            }
+        let text = null;
+        if (message.type === "text" && message.text?.body) {
+            text = message.text.body;
+        } else if (message.type === "button") {
+            console.log("Button tap from:", from, "— ignoring");
+            return;
         }
+        if (!text) return;
+
+        // Ignore our own sync messages by ID
+        const msgId = message.id;
+        if (msgId && syncMessageIds.has(msgId)) {
+            console.log("⛔ Ignoring our own sync echo:", msgId);
+            syncMessageIds.delete(msgId);
+            return;
+        }
+
+        console.log("📨 Reply from:", from, "→", text);
+
+        const contextId = message.context?.id;
+
+        if (contextId) {
+            handleContextReply(text, from, contextId);
+        } else {
+            matchByPhone(text, from);
+        }
+
     } catch (err) {
         console.error("Webhook error:", err);
     }
-    // ✅ res.sendStatus(200) already called at top of handler
 });
 
-function matchByPhone(text, from) {
-    // First try to match as reply2 (owner already replied once, finder sent follow-up, now owner replies again)
-    // Match against BOTH owner_phone (primary) and reply_from (whoever replied first — could be secondary)
-    db.run(
-        `UPDATE scan_alerts
-         SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
-         WHERE id = (
-           SELECT id FROM scan_alerts
-           WHERE (owner_phone = ? OR reply_from = ?)
-           AND owner_reply IS NOT NULL
-           AND finder_followup IS NOT NULL
-           AND owner_reply2 IS NULL
-           AND reply_from = ?
-           ORDER BY id DESC LIMIT 1
-         )`,
-        [text, from, from, from],
-        function (err) {
-            if (!err && this.changes > 0) {
-                console.log("✅ Matched as reply2 by phone:", from);
+// ─── Handle reply with context (owner used reply gesture) ───
+function handleContextReply(text, from, contextId) {
 
-                db.get(
-                    `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
-                    [from, from],
-                    (e, row) => {
-                        if (row) sendSyncToOtherNumber(row.qr_id, from, text, "Reply");
+    // Try reply1: context matches original alert message ID, no reply yet
+    db.get(
+        `SELECT scan_id, qr_id, owner_phone, reply_from, owner_reply, finder_followup, owner_reply2
+         FROM scan_alerts
+         WHERE (wa_message_id = ? OR wa_message_id_secondary = ?)
+         LIMIT 1`,
+        [contextId, contextId],
+        (err, alert) => {
+            if (err || !alert) {
+                // Context didn't match original alert — try follow-up message
+                handleFollowupContextReply(text, from, contextId);
+                return;
+            }
+
+            if (!alert.owner_reply) {
+                // ── REPLY 1 ──
+                // Lock check: if reply_from is already set, someone else replied first — ignore
+                if (alert.reply_from && alert.reply_from !== from) {
+                    console.log("⛔ Ignored — active number already set to:", alert.reply_from);
+                    return;
+                }
+
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
+                     WHERE scan_id = ? AND owner_reply IS NULL`,
+                    [text, from, alert.scan_id],
+                    function (e) {
+                        if (!e && this.changes > 0) {
+                            console.log("✅ Reply 1 saved (context):", from);
+                            const label = (alert.owner_phone === from)
+                                ? "📢 Reply from your other number"
+                                : "📢 Reply from your other number";
+                            syncToOther(alert.qr_id, from, text, label);
+                        }
                     }
                 );
 
+            } else if (alert.finder_followup && !alert.owner_reply2) {
+                // ── REPLY 2 ──
+                // Only active number can reply2
+                if (alert.reply_from && alert.reply_from !== from) {
+                    console.log("⛔ Ignored reply2 — not the active number");
+                    return;
+                }
+
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
+                     WHERE scan_id = ? AND owner_reply2 IS NULL`,
+                    [text, alert.scan_id],
+                    function (e) {
+                        if (!e && this.changes > 0) {
+                            console.log("✅ Reply 2 saved (context on original):", from);
+                            syncToOther(alert.qr_id, from, text, "📢 Follow-up reply from your other number");
+                        }
+                    }
+                );
+            }
+        }
+    );
+}
+
+// ─── Handle reply where context points to follow-up message ID ───
+function handleFollowupContextReply(text, from, contextId) {
+    db.get(
+        `SELECT scan_id, qr_id, owner_phone, reply_from, finder_followup, owner_reply2
+         FROM scan_alerts
+         WHERE wa_followup_msg_id = ?
+         LIMIT 1`,
+        [contextId],
+        (err, alert) => {
+            if (err || !alert || !alert.finder_followup || alert.owner_reply2) {
+                // No match — fall through to phone matching
+                matchByPhone(text, from);
                 return;
             }
-            // Fall through to first reply match
-            // Match owner_phone (primary) OR secondary number via qr_numbers join
+
+            // Only active number can reply2
+            if (alert.reply_from && alert.reply_from !== from) {
+                console.log("⛔ Ignored followup reply — not the active number");
+                return;
+            }
+
             db.run(
                 `UPDATE scan_alerts
-                 SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
-                 WHERE id = (
-                   SELECT sa.id FROM scan_alerts sa
-                   LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
-                   WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
-                   AND sa.owner_reply IS NULL
-                   AND sa.created_at >= DATETIME('now', '-60 minutes')
-                   ORDER BY sa.id DESC LIMIT 1
-                 )`,
-                [text, from, from, from],
-                function (err2) {
-                    if (err2) {
-                        console.error("Phone match error:", err2);
-                    } else if (this.changes > 0) {
-                        console.log("✅ Matched by phone:", from);
-
-                        db.get(
-                            `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
-                            [from, from],
-                            (e, row) => {
-                                if (row) sendSyncToOtherNumber(row.qr_id, from, text, "Reply");
-                            }
-                        );
-                    } else {
-                        // No time limit fallback
-                        db.run(
-                            `UPDATE scan_alerts
-                             SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
-                             WHERE id = (
-                               SELECT sa.id FROM scan_alerts sa
-                               LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
-                               WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
-                               AND sa.owner_reply IS NULL
-                               AND sa.created_at >= DATETIME('now', '-60 minutes')
-                               ORDER BY sa.id DESC LIMIT 1
-                             )`,
-                            [text, from, from, from],
-                            function (err3) {
-                                if (!err3 && this.changes > 0) {
-                                    console.log("✅ Matched by phone (no time limit):", from);
-
-                                    db.get(
-                                        `SELECT qr_id FROM scan_alerts WHERE (owner_phone = ? OR reply_from = ?) ORDER BY id DESC LIMIT 1`,
-                                        [from, from],
-                                        (e, row) => {
-                                            if (row) sendSyncToOtherNumber(row.qr_id, from, text, "Reply");
-                                        }
-                                    );
-                                } else {
-                                    console.log("❌ No alert found for phone:", from);
-                                }
-                            }
-                        );
+                 SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
+                 WHERE scan_id = ? AND owner_reply2 IS NULL`,
+                [text, alert.scan_id],
+                function (e) {
+                    if (!e && this.changes > 0) {
+                        console.log("✅ Reply 2 saved (followup context):", from);
+                        syncToOther(alert.qr_id, from, text, "📢 Follow-up reply from your other number");
                     }
                 }
             );
@@ -550,5 +464,107 @@ function matchByPhone(text, from) {
     );
 }
 
+// ─── Handle free-text reply (owner typed without using reply gesture) ───
+function matchByPhone(text, from) {
+
+    // Find the most recent alert for this number where reply2 is needed
+    // (active number already replied once, finder sent follow-up, reply2 pending)
+    db.get(
+        `SELECT sa.scan_id, sa.qr_id, sa.owner_phone, sa.reply_from, sa.owner_reply2
+         FROM scan_alerts sa
+         LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
+         WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
+         AND sa.owner_reply IS NOT NULL
+         AND sa.finder_followup IS NOT NULL
+         AND sa.owner_reply2 IS NULL
+         AND sa.created_at >= DATETIME('now', '-60 minutes')
+         ORDER BY sa.id DESC LIMIT 1`,
+        [from, from],
+        (err, alert) => {
+            if (!err && alert) {
+                // Lock check for reply2
+                if (alert.reply_from && alert.reply_from !== from) {
+                    console.log("⛔ Ignored reply2 phone match — not active number:", from);
+                    return;
+                }
+
+                db.run(
+                    `UPDATE scan_alerts
+                     SET owner_reply2 = ?, replied2_at = CURRENT_TIMESTAMP
+                     WHERE scan_id = ? AND owner_reply2 IS NULL`,
+                    [text, alert.scan_id],
+                    function (e) {
+                        if (!e && this.changes > 0) {
+                            console.log("✅ Reply 2 matched by phone:", from);
+                            syncToOther(alert.qr_id, from, text, "📢 Follow-up reply from your other number");
+                        }
+                    }
+                );
+                return;
+            }
+
+            // Find most recent alert with no reply yet (reply1)
+            db.get(
+                `SELECT sa.scan_id, sa.qr_id, sa.owner_phone, sa.reply_from
+                 FROM scan_alerts sa
+                 LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
+                 WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
+                 AND sa.owner_reply IS NULL
+                 AND sa.created_at >= DATETIME('now', '-30 minutes')
+                 ORDER BY sa.id DESC LIMIT 1`,
+                [from, from],
+                (err2, alert2) => {
+                    if (err2 || !alert2) {
+                        // No time limit fallback
+                        db.get(
+                            `SELECT sa.scan_id, sa.qr_id, sa.owner_phone, sa.reply_from
+                             FROM scan_alerts sa
+                             LEFT JOIN qr_numbers qn ON sa.qr_id = qn.qr_id AND qn.phone = ?
+                             WHERE (sa.owner_phone = ? OR qn.phone IS NOT NULL)
+                             AND sa.owner_reply IS NULL
+                             ORDER BY sa.id DESC LIMIT 1`,
+                            [from, from],
+                            (err3, alert3) => {
+                                if (err3 || !alert3) {
+                                    console.log("❌ No alert found for phone:", from);
+                                    return;
+                                }
+                                saveReply1(alert3, from, text);
+                            }
+                        );
+                        return;
+                    }
+                    saveReply1(alert2, from, text);
+                }
+            );
+        }
+    );
+}
+
+// ─── Save reply1 with lock check ───
+function saveReply1(alert, from, text) {
+    // Lock check: if reply_from already set to a DIFFERENT number, ignore
+    if (alert.reply_from && alert.reply_from !== from) {
+        console.log("⛔ Ignored reply1 — active number already:", alert.reply_from);
+        return;
+    }
+
+    db.run(
+        `UPDATE scan_alerts
+         SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
+         WHERE scan_id = ? AND owner_reply IS NULL`,
+        [text, from, alert.scan_id],
+        function (e) {
+            if (!e && this.changes > 0) {
+                console.log("✅ Reply 1 saved (phone match):", from);
+                syncToOther(alert.qr_id, from, text, "📢 Reply from your other number");
+            } else if (e) {
+                console.error("Phone match error:", e);
+            } else {
+                console.log("❌ No rows updated for scan_id:", alert.scan_id);
+            }
+        }
+    );
+}
 
 module.exports = router;
