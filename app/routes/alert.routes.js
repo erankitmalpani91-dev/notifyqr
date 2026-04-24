@@ -250,7 +250,14 @@ router.post("/send-followup", async (req, res) => {
         });
 
         // Determine active number (whoever replied first = reply_from, else primary)
-        const activePhone = alert.reply_from || alert.owner_phone;
+        const activePhone = alert.reply_from;
+
+        console.log("📌 Follow-up → Active number:", activePhone, "| Scan:", scan_id);
+
+        if (!activePhone) {
+            console.log("❌ No active responder found for follow-up. Blocking.");
+            return res.json({ success: false, message: "No active responder" });
+        }
 
         // Send follow-up ONLY to the active number (free text — 24hr window open)
         // Send sync notification to the OTHER number
@@ -388,7 +395,8 @@ function handleContextReply(text, from, contextId) {
 
                 db.run(
                     `UPDATE scan_alerts
-                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP, reply_from = ?
+                     SET owner_reply = ?, replied_at = CURRENT_TIMESTAMP,
+                        reply_from = COALESCE(reply_from, ?)
                      WHERE scan_id = ? AND owner_reply IS NULL`,
                     [text, from, alert.scan_id],
                     function (e) {
