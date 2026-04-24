@@ -264,11 +264,18 @@ function changeQty(type, change) {
 }
 
 function addToCart(type) {
-  let qtyEl = document.getElementById("qty-" + type);
-  let qty = parseInt(qtyEl.innerText);
-  cart[type] += qty;
-  qtyEl.innerText = 0; // reset after adding
-  updateCart();
+    let qtyEl = document.getElementById("qty-" + type);
+    let qty = parseInt(qtyEl.innerText);
+
+    if (qty <= 0) return;
+
+    cart[type] += qty;
+    qtyEl.innerText = 0;
+
+    updateCart();
+
+    // 🔥 ADD THIS
+    showCartToast(qty);
 }
 
 
@@ -293,7 +300,7 @@ function updateCart() {
             cartHTML += `
                 <div class="cart-item">
                     ${name} QR ${cart[item]}
-                    <button onclick="removeFromCart('${item}')">−</button>
+                    <button class="remove-btn" onclick="removeFromCart('${item}')">−</button>
                 </div>
             `;
         }
@@ -301,6 +308,11 @@ function updateCart() {
 
     document.getElementById("cartItems").innerHTML = cartHTML;
     document.getElementById("cartTotal").innerText = total;
+
+    const cartCountEl = document.getElementById("cartCount");
+    if (cartCountEl) {
+        cartCountEl.innerText = total;
+    }
 }
 
 function goToCheckout() {
@@ -368,3 +380,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setInterval(nextSlide, 4000);
 });
+
+
+function showCartToast(qty) {
+    const toast = document.getElementById("cartToast");
+    if (!toast) return;
+
+    toast.innerText = `+${qty} added to cart`;
+    toast.classList.add("show");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 1500);
+}
+
+

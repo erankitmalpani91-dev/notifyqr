@@ -271,7 +271,7 @@ router.post("/send-followup", async (req, res) => {
             } else {
                 // Inactive number gets a sync notification
                 try {
-                    const msgId = await sendWhatsAppText(num.phone, `💬 Finder Follow-up: ${finalMsg}`);
+                    const msgId = await sendWhatsAppText(num.phone, `*💬 Finder Follow-up*: ${finalMsg}`);
                     if (msgId) syncMessageIds.add(msgId);
                     console.log("✅ Follow-up sync to inactive:", num.phone);
                 } catch (e) {

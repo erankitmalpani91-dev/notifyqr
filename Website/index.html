@@ -17,7 +17,10 @@
             <img src="assets/images/reachoutowner_logo.png" height="65">
             <span>ReachOutOwner</span>
         </div>
-
+        <!-- ✅ NEW: Cart icon -->
+        <div class="mobile-cart" onclick="goToCheckout()">
+            🛒<span id="cartCount">0</span>
+        </div>
     </header>
 
     <div class="mobile-menu" id="mobileMenu">
@@ -32,7 +35,7 @@
     <header class="navbar" id="navbar">
         <div class="brand">
             <img src="assets/images/reachoutowner_logo.png" alt="ReachOutOwner Logo" class="logo-img">
-            <span class="brand-name">ReachOutOwner</span>         
+            <span class="brand-name">ReachOutOwner</span>
 
         </div>
 
@@ -40,7 +43,7 @@
             <a href="#reach-section">Use Cases</a>
             <a href="#pricing-section">Pricing</a>
             <a href="#" onclick="openSalesModal()">Contact</a>
-
+            <div class="cart-icon" onclick="goToCheckout()">🛒<span id="cartCount">0</span></div>
             <div class="login-dropdown">
                 <button class="user-btn">
                     <svg width="40" height="30" fill="none" stroke="currentColor" stroke-width="2"
@@ -82,28 +85,28 @@
         <p class="how-title">How ReachOutOwner Works</p>
         <p class="how-subtitle">No app needed. No account required for the finder. Just scan, notify, done.</p>
 
-            <div class="how-steps">
-                <div class="how-step">
-                    <div class="step-circle">1</div>
-                    <span class="step-icon">📱</span>
-                    <h3>Finder Scans Your QR</h3>
-                    <p>Anyone can scan the QR on your vehicle or asset. No app needed — just a phone camera</p>
-                </div>
-
-                <div class="how-step">
-                    <div class="step-circle">2</div>
-                    <span class="step-icon">💬</span>
-                    <h3>You Get a WhatsApp Alert</h3>
-                    <p>Instant notification on WhatsApp with their message and location — within seconds.</p>
-                </div>
-
-                <div class="how-step">
-                    <div class="step-circle">3</div>
-                    <span class="step-icon">🔐</span>
-                    <h3>Reply Securely</h3>
-                    <p>You can reply through WhatsApp. Your phone number is never revealed to the finder.</p>
-                </div>
+        <div class="how-steps">
+            <div class="how-step">
+                <div class="step-circle">1</div>
+                <span class="step-icon">📱</span>
+                <h3>Finder Scans Your QR</h3>
+                <p>Anyone can scan the QR on your vehicle or asset. No app needed — just a phone camera</p>
             </div>
+
+            <div class="how-step">
+                <div class="step-circle">2</div>
+                <span class="step-icon">💬</span>
+                <h3>You Get a WhatsApp Alert</h3>
+                <p>Instant notification on WhatsApp with their message and location — within seconds.</p>
+            </div>
+
+            <div class="how-step">
+                <div class="step-circle">3</div>
+                <span class="step-icon">🔐</span>
+                <h3>Reply Securely</h3>
+                <p>You can reply through WhatsApp. Your phone number is never revealed to the finder.</p>
+            </div>
+        </div>
         </div>
     </section>
 
@@ -191,7 +194,7 @@
                 <p>Family can be reached immediately if an elderly person needs assistance.</p>
                 <span class="ripple"></span>
             </div>
-         </div>
+        </div>
     </section>
 
     <!----Alert Message----->
@@ -296,7 +299,7 @@
 
     <section id="pricing-section" class="catalog-section">
 
-        <h2 class="catalog-title">Starts @ 70 paisa/day. Less than the Price of Daily Chai</h2>
+        <h2 class="catalog-title">Starts @ ₹0.70/day. Less than the Price of your daily Chai</h2>
 
 
         <!-- CATEGORY TABS -->
@@ -651,7 +654,6 @@
                         <h4>Rajat, Gujarat</h4>
                         <p>"Feels safe knowing I stay reachable without sharing my number. ReachOutOwner truly gives confidence to every owner."</p>
                     </div>
-
                 </div>
 
                 <!-- Arrows aligned to right side -->
@@ -689,7 +691,7 @@
 
     <div class="mobile-bottom-bar">
         <div class="bottom-item center-scan">
-            <a href="scan.html" class="scan-circle">
+            <a href="scanner.html" class="scan-circle">
                 <span class="scan-icon">
                     <!-- Scanner-style icon -->
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -704,7 +706,7 @@
                     </svg>
                 </span>
             </a>
-            <span class="bottom-text">Scan to Connect</span>
+            <span class="bottom-text">Scan to ReachOut</span>
         </div>
     </div>
 
@@ -826,7 +828,7 @@
         </div>
     </div>
 
-
+    <div id="cartToast">+1 Added to cart</div>
     <script src="js/main.js"></script>
 
 </body>

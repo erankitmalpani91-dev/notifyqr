@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR</title>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: black;
+            overflow: hidden;
+        }
+
+        /* Camera container */
+        #reader {
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Overlay scanner box */
+        .scan-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 260px;
+            height: 260px;
+            transform: translate(-50%, -50%);
+            border: 3px solid #00ffcc;
+            border-radius: 16px;
+            box-shadow: 0 0 25px rgba(0,255,204,0.6);
+        }
+
+        /* Top bar */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+
+        /* Buttons */
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Bottom hint */
+        .bottom-text {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Top controls -->
+
+    <div class="top-bar">
+        <button class="btn" onclick="goBack()">← Back</button>
+        <button class="btn" onclick="toggleFlash()">🔦 Flash</button>
+    </div>
+
+    <!-- Camera -->
+
+    <div id="reader"></div>
+
+    <!-- Overlay -->
+
+    <div class="scan-box"></div>
+
+    <div class="bottom-text">
+        Point your camera at the QR code
+    </div>
+
+    <script>
+let qrScanner;
+let torchOn = false;
+
+/* Start scanner */
+function startScanner() {
+    qrScanner = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+
+        if (!devices.length) {
+            alert("No camera found");
+            return;
+        }
+
+        // Prefer back camera
+        const backCamera = devices.find(d =>
+            d.label.toLowerCase().includes("back")
+        );
+
+        const cameraId = backCamera ? backCamera.id : devices[0].id;
+
+        qrScanner.start(
+            cameraId,
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+            },
+            onScanSuccess,
+            onScanError
+        );
+
+    }).catch(err => {
+        alert("Camera access denied or error");
+        console.error(err);
+    });
+}
+
+/* On successful scan */
+function onScanSuccess(decodedText) {
+    console.log("Scanned:", decodedText);
+
+    // Stop scanner
+    qrScanner.stop();
+
+    // Vibrate (mobile)
+    if (navigator.vibrate) navigator.vibrate(100);
+
+    // Redirect logic
+    if (decodedText.startsWith("http")) {
+        window.location.href = decodedText;
+    } else {
+        window.location.href = "/scan.html?code=" + decodedText;
+    }
+}
+
+/* Ignore minor scan errors */
+function onScanError(err) {
+    // console.log(err);
+}
+
+/* Flash toggle */
+function toggleFlash() {
+    if (!qrScanner) return;
+
+    qrScanner.applyVideoConstraints({
+        advanced: [{ torch: !torchOn }]
+    }).then(() => {
+        torchOn = !torchOn;
+    }).catch(() => {
+        alert("Flash not supported on this device");
+    });
+}
+
+/* Back button */
+function goBack() {
+    window.history.back();
+}
+
+/* Start automatically */
+startScanner();
+    </script>
+
+</body>
+</html>
