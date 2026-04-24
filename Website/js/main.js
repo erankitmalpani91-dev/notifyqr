@@ -277,7 +277,7 @@ function addToCart(type) {
 
     showCartToast(qty);
 
-    document.querySelectorAll(".cart-icon").forEach(el => {
+    document.querySelectorAll(".cart-icon, .mobile-cart").forEach(el => {
         el.classList.add("bump");
         setTimeout(() => el.classList.remove("bump"), 300);
     });
