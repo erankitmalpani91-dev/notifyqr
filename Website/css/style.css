@@ -26,7 +26,7 @@ body {
     backdrop-filter: blur(14px) saturate(180%);
     -webkit-backdrop-filter: blur(14px) saturate(180%);
     background: linear-gradient( to bottom, rgba(255,255,255,0.75), rgba(255,255,255,0.6) );
-    border-bottom: 1px solid rgba(255,255,255,0.3);
+    border-bottom:1px solid #e5e7eb;
     transition: all 0.35s ease;
     z-index: 1000;
     height: 80px;
@@ -56,7 +56,7 @@ body {
         text-decoration: none;
         font-weight: 600;
         font-size: 22px;
-        color: #111827;
+        color: #0b2866;
         transition: 0.3s ease;
         position: relative;
     }
@@ -120,19 +120,8 @@ body {
     font-size: 12px;
     border-radius: 50%;
     padding: 2px 6px;
+    background: #FF6A00;
 }
-
-.cartCountDesktop {
-    position: absolute;
-    top: -6px;
-    right: -10px;
-    background: red;
-    color: white;
-    font-size: 12px;
-    border-radius: 50%;
-    padding: 2px 6px;
-}
-
 .login-dropdown {
     position: relative;
     z-index: 1000;
@@ -146,7 +135,7 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: inherit;
+    color: #0b2866;
     display: flex;
     align-items: center;
     padding: 8px;
@@ -179,13 +168,12 @@ body {
         display: block;
         padding: 12px 18px;
         text-decoration: none;
-        color: #111827;
+        color: #0b2866;
         font-weight: 500;
         transition: background 0.2s ease;
+        font-size: 15px;
     }
-    .dropdown-menu a:hover {
-        background: #f3f4f6;
-    }
+    
 /* Hide mobile header on desktop */
 .mobile-header {
     display: none;
@@ -241,7 +229,7 @@ body {
             display: block;
             padding: 14px 0;
             font-size: 16px;
-            color: #111827;
+            color: #0b2866;
             text-decoration: none;
             border-bottom: 1px solid #f1f1f1;
         }
@@ -264,9 +252,9 @@ body {
     justify-content: center;
     text-align: center;
     padding: 120px 30px 90px;
-    background: linear-gradient(135deg, #0a0f1e, #0f172a, #1a1f35);
+    background: linear-gradient(90deg, rgba(0,0,0,0.6), transparent);
     color: #fff;
-    margin-top: 60px;
+    margin-top: 50px;
     overflow: hidden;
 }
     /* Subtle background glow effect */
@@ -340,7 +328,7 @@ body {
     margin-top: 34px;
 }
 .btn-primary {
-    background: #2e5bff;
+    background: linear-gradient(90deg, #2563EB, #4F46E5);
     color: #fff;
     padding: 10px 28px;
     border-radius: 20px;
@@ -357,7 +345,6 @@ body {
 }
     .btn-primary:hover {
         transform: translateY(-2px);
-        background: #1d4aee;
         box-shadow: 0 12px 28px rgba(46,91,255,0.4);
     }
 
@@ -440,12 +427,15 @@ body {
         margin-top: 0px;
         margin-bottom: 0px;
     }
-
+        .how-title span {
+            color: #2e5bff;
+        }
     .how-subtitle {
-        font-size: 25px;
-        font-weight: 600;
+        font-size: 20px;
+        font-weight: 500;
         margin-top: 0px;
         margin-bottom: 0px;
+        color: lightslategrey;
     }
 .how-steps {
     position: relative;
@@ -491,7 +481,7 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    border: 3px solid #2e5bff;
+    border: 2px solid #2563EB;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -506,7 +496,7 @@ body {
         transform: scale(1.1);
     }
 .step-icon {
-    font-size: 28px;
+    font-size: 45px;
     margin-bottom: 12px;
     display: block;
 }
@@ -529,16 +519,18 @@ body {
 @media (max-width: 768px) {
 .how-section {
     padding: 24px 5%; /* slimmer padding */
+    margin-bottom: -50px;
 }
 .how-title {
         font-size: 25px;
         font-weight: 700;
         margin-top: 0px;
         margin-bottom: 0px;
+        
     }
 .how-subtitle {
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 500;
         margin-top: 0px;
         margin-bottom: 0px;
     }
@@ -581,7 +573,7 @@ body {
 
 .reach-section {
     position: relative;
-    padding: 80px 8%;
+    padding: 90px 8%;
     background: #f8fafc;
     text-align: center;
     padding: 20px 8% 40px 8%;
@@ -598,7 +590,7 @@ body {
         background: linear-gradient(to bottom, rgba(15,23,42,1), rgba(248,250,252,1));
     }
 .reach-title {
-    font-size: 30px;
+    font-size: 40px;
     font-weight: 700;
     margin-top: 30px;
     margin-bottom: 25px;
@@ -617,12 +609,12 @@ body {
     position: relative;
     background: #ffffff;
     border-radius: 14px;
-    padding: 12px 7px;
+    padding: 2px 0px;
     cursor: pointer;
     transition: all 0.3s ease;
     overflow: hidden;
     border: 3px solid transparent;
-    height: auto;
+    height: 120px;
 }
     .reach-card:hover {
         border: 1px solid transparent;
@@ -641,7 +633,7 @@ body {
     flex: 1;
     margin-left: 12px;
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 700;
     text-align: left;
 }
 .arrow {
@@ -732,11 +724,11 @@ card-top {
 .icon {
     font-size: 30px;
     }
-reach-card h3 {
+.reach-card h3 {
     flex: 1;
     margin-left: 12px;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
     text-align: left;
     line-height: 1.2
     }    
@@ -844,6 +836,7 @@ reach-card h3 {
         font-size: 42px;
         margin-right: 8px;
         margin-top: 5px;
+        padding: 0px 8%;
     }
         .notice-text h3 {
             font-size: 15px;
@@ -861,7 +854,7 @@ reach-card h3 {
 /* ===============BUILT FOR REAL WORLD ASSETS SECTION================= */
 
 .assets-section {
-    padding: 35px 8%;
+    padding: 35px 4%;
     background: linear-gradient(to bottom, #f8fafc, #eef2f7);
 }
 .assets-wrapper {
@@ -876,9 +869,9 @@ reach-card h3 {
     align-items: center;
 }
     .assets-image img {
-        width: 100%;
+        width: 85vh;
         max-width: 720px;
-        height: auto;
+        height: 55vh;
         animation: floatImage 4s ease-in-out infinite;
     }
 @keyframes floatImage {
@@ -899,12 +892,13 @@ reach-card h3 {
     margin-bottom: 35px;
 }
     .assets-header h2 {
-        font-size: 36px;
+        font-size: 40px;
         font-weight: 700;
         position: relative;
         display: inline-block;
         margin-bottom: 8px; /* was 15px */
         line-height: 1.2;
+       
     }
         /* Proper centered blue underline */
         .assets-header h2::after {
@@ -917,13 +911,16 @@ reach-card h3 {
             height: 4px;
             background: #2e5bff;
             border-radius: 4px;
+            
         }
     .assets-header p {
         margin-top: 24px;
-        color: #6b7280;
-        font-size: 15px;
+        color: lightslategray;
+        font-size: 20px;
         margin-top: 10;
         margin-bottom: 24px;
+        text-align: center;
+        font-weight: 500px;
     }
 .assets-grid {
     display: grid;
@@ -973,10 +970,11 @@ reach-card h3 {
         }
     /* Label inside circle */
     .asset-circle span {
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 15px;
+        font-weight: 700;
         margin-top: 10px;
         color: #111827;
+        overflow: hidden;
     }
     /*TOOLTIP*/
     .asset-circle::after {
@@ -1011,8 +1009,9 @@ reach-card h3 {
         text-align: center;
     }
         .assets-header h2 {
-            font-size: 24px; /* smaller heading */
+            font-size: 25px; /* smaller heading */
             line-height: 1.3;
+            font-weight: 700px;
         }
         .assets-header h2::after {
             width: 100px; /* shorter underline */
@@ -1022,6 +1021,7 @@ reach-card h3 {
             font-size: 15px;
             margin-bottom: -10px;
             margin-top: 10px;
+            font-weight: 500px;
         }
 
     .assets-grid {
@@ -1049,8 +1049,9 @@ reach-card h3 {
             height: 120px;
         }
         .asset-circle span {
-            font-size: 8px;
+            font-size: 12px;
             margin-top: 0px;
+            overflow: auto;
         }
         .asset-circle::after {
             content: attr(data-text);
@@ -1082,6 +1083,18 @@ reach-card h3 {
             .assets-grid {
                 overflow: visible !important;
             }
+    .assets-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .assets-image img {
+            width: 55vh;
+            max-width: 720px;
+            height: 35vh;
+            animation: floatImage 4s ease-in-out infinite;
+        }
     }
 
 
@@ -1094,7 +1107,7 @@ reach-card h3 {
     text-align: center;
 }
 .catalog-title {
-    font-size: 30px;
+    font-size: 40px;
     font-weight: 700;
     margin-bottom: 0px;
     margin-top: -35px;
@@ -1105,23 +1118,24 @@ reach-card h3 {
     margin-top: 20px;
 }
 .tab.active {
-    background: #3a5bff;
+    background: linear-gradient(90deg, #2563EB, #4F46E5);
     color: white;
     box-shadow: 0 4px 15px rgba(58, 91, 255, 0.35);
 }
 .tab {
     padding: 12px 24px;
     border: none;
-    background: #e9ecff;
+    background: linear-gradient(90deg, #2563EB, #4F46E5);
     margin: 5px;
     border-radius: 25px;
     cursor: pointer;
     font-size: 20px;
     font-weight: 500;
     transition: all 0.3s ease;
+    color:white;
 }
     .tab:hover {
-        background: #d4daff;
+        background: #60a5fa;
         transform: translateY(-2px);
     }
 .cart-wrapper {
@@ -1146,7 +1160,7 @@ reach-card h3 {
     gap: 8px;
     padding: 6px 15px;
     border-radius: 1500px;
-    background: #3a5bff;
+    background: #1976d2;
     border: 1px solid #dbeafe;
     color: #ffffff;
     font-size: 18px;
@@ -1334,7 +1348,7 @@ reach-card h3 {
         margin-bottom: -10px;
     }
     .catalog-title {
-        font-size: 22px;
+        font-size: 25px;
         font-weight: 700;
         margin-bottom: 0px;
         margin-top: -45px;
@@ -1345,15 +1359,16 @@ reach-card h3 {
         margin-top: 20px;
     }
     .tab {
-        padding: 12px 10px;
+        padding: 12px 15px;
         border: none;
-        background: #e9ecff;
+        background: linear-gradient(90deg, #2563EB, #4F46E5);
         margin: 5px;
         border-radius: 25px;
         cursor: pointer;
-        font-size: 18px;
+        font-size: 15px;
         font-weight: 500;
         transition: all 0.3s ease;
+        color: white;
     }
     .cart-wrapper {
         width: 100%;
@@ -1375,7 +1390,7 @@ reach-card h3 {
         gap: 8px;
         padding: 6px 15px;
         border-radius: 1500px;
-        background: #3a5bff;
+        background: #1976d2;
         border: 1px solid #dbeafe;
         color: #ffffff;
         font-size: 15px;
