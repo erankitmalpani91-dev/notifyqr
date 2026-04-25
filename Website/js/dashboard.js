@@ -525,15 +525,15 @@ function editSecondary(qrId) {
 /* ── LOGOUT ──────────────────────────────────── */
 
 function logout() {
-    fetch("/api/logout", { credentials: "include" })
-        .then(res => {
-            if (res.ok) {
-                window.location.href = "/login.html";
-            } else {
-                showToast("Logout failed. Please try again.", "error");
-            }
+    const btn = document.querySelector(".btn-logout");
+    if (btn) { btn.disabled = true; btn.textContent = "Signing out…"; }
+
+    fetch("/api/logout", { method: "POST", credentials: "include" })
+        .then(() => {
+            window.location.href = "/login.html";
         })
         .catch(() => {
-            showToast("Network error during logout.", "error");
+            /* Network error — redirect anyway; server session likely still cleared */
+            window.location.href = "/login.html";
         });
 }
