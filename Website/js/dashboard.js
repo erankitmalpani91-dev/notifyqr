@@ -48,7 +48,7 @@ fetch("/api/dashboard", { credentials: "include" })
           setupRows += `
                   <tr>
                     <td>${setupIndex++}</td>
-                    <td>${qr.product_type || "-"}</td>
+                    <td data-label="Type">${qr.product_type || "-"}</td>
                     <td>${qr.qr_id}</td>
                     <td>${formatDate(qr.created_at) || "-"}</td>
                     <td><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" maxlength="30" title="Max 25 characters" style="min-width:160px"></td>

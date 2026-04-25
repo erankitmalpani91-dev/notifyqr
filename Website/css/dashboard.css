@@ -257,3 +257,41 @@ button {
     color: #6b7280;
     margin-bottom: 10px;
 }
+@media (max-width: 768px) {
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        display: block;
+        background: white;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 12px;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border: none;
+    }
+
+        .table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+    input {
+        width: 60%;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
