@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS contact_sales;
 DROP TABLE IF EXISTS login_requests;
+DROP TABLE IF EXISTS scan_alerts;
 
 PRAGMA foreign_keys = ON;
 
@@ -86,12 +87,14 @@ CREATE TABLE qr_codes (
   asset_name TEXT,
   status TEXT DEFAULT 'inactive',
   expiry_date TEXT,
-  plan_years INTEGER DEFAULT 1,   -- NEW COLUMN
+  plan_years INTEGER DEFAULT 1,
   source TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   claimed_at TEXT,
   activated_at TEXT,
   asset_label TEXT,
+  alerts_used INTEGER DEFAULT 0,     -- ✅ NEW
+  alerts_limit INTEGER DEFAULT 600,  -- ✅ NEW
   FOREIGN KEY(user_id) REFERENCES users(id),
   FOREIGN KEY(order_id) REFERENCES orders(id)
 );
@@ -141,29 +144,51 @@ CREATE TABLE login_requests (
 -- SCAN ALERTS (notifications sent to owners)
 CREATE TABLE scan_alerts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  scan_id TEXT,                -- unique identifier for alert
-  qr_id TEXT,                  -- which QR triggered the alert
-  owner_phone TEXT,            -- phone number notified
-  finder_message TEXT,         -- message entered by finder
-  location TEXT,               -- optional location
+  scan_id TEXT,
+  qr_id TEXT,
+  owner_phone TEXT,
+  finder_message TEXT,
+  location TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  owner_reply TEXT,            -- reply from owner (captured via webhook)
-  replied_at TEXT,             -- timestamp of reply
+
+  -- PRIMARY REPLY
+  owner_reply TEXT,
+  replied_at TEXT,
+  reply_from TEXT,
+
+  -- SECONDARY REPLY
+  owner_reply2 TEXT,
+  replied2_at TEXT,
+  reply2_from TEXT,
+
+  -- WHATSAPP IDS
   wa_message_id TEXT,
   wa_message_id_secondary TEXT,
+
+  -- FOLLOW-UP SYSTEM
+  finder_followup TEXT,
+  followup_at DATETIME,
+  wa_followup_msg_id TEXT,
+
   FOREIGN KEY(qr_id) REFERENCES qr_codes(qr_id)
 );
 
 
 -- INDEXES
 CREATE INDEX idx_qr_id ON qr_codes(qr_id);
+
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_reference ON orders(payment_reference);
+
 CREATE INDEX idx_scan_qr ON scan_logs(qr_id);
 CREATE INDEX idx_scan_time ON scan_logs(scanned_at);
-CREATE INDEX idx_login_requests_user_time ON login_requests(user_id, requested_at);
+
+CREATE INDEX idx_login_requests_user_time 
+ON login_requests(user_id, requested_at);
+
 CREATE INDEX idx_alerts_qr ON scan_alerts(qr_id);
 CREATE INDEX idx_alerts_owner ON scan_alerts(owner_phone);
 CREATE INDEX idx_alerts_time ON scan_alerts(created_at);
+
 CREATE INDEX idx_inv_product ON qr_inventory(product_type);
 CREATE INDEX idx_inv_status ON qr_inventory(status);
