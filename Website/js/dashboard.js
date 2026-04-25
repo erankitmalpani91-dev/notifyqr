@@ -183,7 +183,7 @@ function activate(qrId) {
     .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert("QR Activated");
+                alert("QR activated successfully!");
                 location.reload();
             } else {
                 alert(data.error || "Activation failed");
