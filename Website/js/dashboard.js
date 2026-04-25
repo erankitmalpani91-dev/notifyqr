@@ -48,13 +48,13 @@ fetch("/api/dashboard", { credentials: "include" })
           setupRows += `
                   <tr>
                     <td>${setupIndex++}</td>
-                    <td data-label="Type">${qr.product_type || "-"}</td>
-                    <td>${qr.qr_id}</td>
-                    <td>${formatDate(qr.created_at) || "-"}</td>
-                    <td><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" maxlength="30" title="Max 25 characters" style="min-width:160px"></td>
-                    <td><input id="p_${qr.qr_id}" placeholder="Primary No."></td>
-                    <td><input id="s_${qr.qr_id}" placeholder="Secondary No."></td>
-                    <td><button onclick="activate('${qr.qr_id}')">Activate</button></td>
+                    <td data-label="ID">${qr.qr_id}</td>
+                    <td data-label="Asset Type Secured">${qr.product_type || "-"}</td>
+                    <td data-label="Purchased On">${formatDate(qr.created_at) || "-"}</td>
+                    <td data-label="Asset Details"><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" maxlength="30" title="Max 25 characters" style="min-width:160px"></td>
+                    <td data-label="Main WhatsApp Number"><input id="p_${qr.qr_id}" placeholder="Primary No."></td>
+                    <td data-label="Backup WhatsApp Number"><input id="s_${qr.qr_id}" placeholder="Secondary No."></td>
+                    <td data-label="Action"><button onclick="activate('${qr.qr_id}')">Activate QR</button></td>
                   </tr>`;
             } else {
         // ACTIVE / EXPIRED / DISABLED TABLE
