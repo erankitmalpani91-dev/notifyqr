@@ -354,7 +354,7 @@ body {
 .hero {
         padding: 70px 20px 60px;
         min-height: 45vh;
-        margin-top: 10px;
+        
     }
 
     /* Situation pills — scroll horizontally */
@@ -388,6 +388,7 @@ body {
         background-position: center 50%;
         background-repeat: no-repeat;
         background-position: center;
+
     }
     .hero-buttons {
         display: flex;
@@ -405,7 +406,16 @@ body {
         border-radius: 10px;
         text-align: center;
         margin-top: 30px;
-    }    
+    }
+    .hero-slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: auto%;
+        height: auto%;
+        z-index: 2px;
+        overflow: hidden;
+    }
 }
 
 
