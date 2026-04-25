@@ -46,16 +46,30 @@ fetch("/api/dashboard", { credentials: "include" })
           }[qr.product_type?.toLowerCase()] || "e.g. Describe your asset";
 
           setupRows += `
-                  <tr>
-                    <td>${setupIndex++}</td>
-                    <td data-label="ID">${qr.qr_id}</td>
-                    <td data-label="Asset Type Secured">${qr.product_type || "-"}</td>
-                    <td data-label="Purchased On">${formatDate(qr.created_at) || "-"}</td>
-                    <td data-label="Asset Details"><input id="label_${qr.qr_id}" placeholder="${labelPlaceholder}" maxlength="30" title="Max 25 characters" style="min-width:160px"></td>
-                    <td data-label="Main WhatsApp Number"><input id="p_${qr.qr_id}" placeholder="Primary No."></td>
-                    <td data-label="Backup WhatsApp Number"><input id="s_${qr.qr_id}" placeholder="Secondary No."></td>
-                    <td data-label="Action"><button onclick="activate('${qr.qr_id}')">Activate QR</button></td>
-                  </tr>`;
+                <div class="qr-setup-card">
+
+                    <div class="qr-header">
+                        <div class="qr-badge">${qr.product_type}</div>
+                        <div class="qr-id">${qr.qr_id}</div>
+                    </div>
+
+                    <div class="qr-form">
+
+                        <input class="qr-full" id="label_${qr.qr_id}" 
+                        placeholder="${labelPlaceholder}" maxlength="30">
+
+                        <input id="p_${qr.qr_id}" placeholder="Primary WhatsApp Number">
+
+                        <input id="s_${qr.qr_id}" placeholder="Backup WhatsApp Number (optional)">
+
+                    </div>
+
+                    <button class="activate-btn" onclick="activate('${qr.qr_id}')">
+                        Activate QR →
+                    </button>
+
+                </div>
+                `;
             } else {
         // ACTIVE / EXPIRED / DISABLED TABLE
         const isDisabled = qr.status === "disabled";
