@@ -35,16 +35,49 @@ router.get("/dashboard", (req, res) => {
 });
 
 /* ── AUTH ── */
-router.post("/login", (req, res) => {
-    const { username, password } = req.body;
-    db.get(`SELECT * FROM users WHERE email=? AND role='admin'`, [username], async (err, user) => {
-        if (err || !user) return res.json({ success: false });
+/* ── AUTH — replace your existing /login POST with this ── */
+
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password)
+        return res.json({ success: false, message: "Missing credentials" });
+
+    try {
+        const user = await dbGet(
+            `SELECT * FROM users WHERE email=? AND role='admin'`,
+            [email]
+        );
+
+        if (!user) {
+            console.warn(`[Admin Login] No admin found for email: ${email}`);
+            return res.json({ success: false });
+        }
+
+        if (!user.password_hash) {
+            console.error(`[Admin Login] password_hash is NULL for user: ${email}`);
+            return res.json({ success: false });
+        }
+
         const match = await bcrypt.compare(password, user.password_hash);
-        if (!match) return res.json({ success: false });
+
+        if (!match) {
+            console.warn(`[Admin Login] Wrong password for: ${email}`);
+            return res.json({ success: false });
+        }
+
         req.session.admin = { id: user.id, email: user.email };
-        if (req.body.remember) req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
-        res.json({ success: true });
-    });
+
+        if (req.body.remember)
+            req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
+
+        console.log(`[Admin Login] ✅ Login success: ${email}`);
+        return res.json({ success: true });
+
+    } catch (err) {
+        console.error("[Admin Login] DB error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
 });
 
 router.post("/logout", (req, res) => req.session.destroy(() => res.json({ success: true })));
