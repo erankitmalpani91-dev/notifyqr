@@ -1,0 +1,387 @@
+body {
+    font-family: Inter,system-ui;
+    background: #f4f6fb;
+    margin: 0;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 30px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.brand {
+    font-weight: 600;
+    font-size: 20px;
+}
+
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard {
+    padding: 30px;
+}
+
+.plan-summary {
+    margin-bottom: 30px;
+}
+
+.plan-box {
+    display: flex;
+    gap: 40px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.label {
+    display: block;
+    font-size: 13px;
+    color: #777;
+}
+
+.qr-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .qr-table th {
+        background: #f8f9fc;
+        text-align: left;
+        padding: 14px;
+    }
+
+    .qr-table td {
+        padding: 14px;
+        border-top: 1px solid #eee;
+    }
+
+.action-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    background: #4f46e5;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.alert-toggle {
+    cursor: pointer;
+}
+body {
+    font-family: Inter;
+    background: #f5f7fb;
+    margin: 0;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.logo {
+    height: 32px;
+}
+
+.container {
+    padding: 25px;
+}
+
+.owner-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+/* ===== PREMIUM QR CARD ===== */
+.qr-setup-card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+    border: 1px solid #eef2f7;
+}
+
+.qr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.qr-badge {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.qr-id {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* FORM GRID */
+.qr-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+    .qr-form input {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #fafafa;
+        font-size: 13px;
+    }
+
+        .qr-form input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: white;
+        }
+
+/* FULL WIDTH FIELD */
+.qr-full {
+    grid-column: span 2;
+}
+
+/* BUTTON */
+.activate-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#4f46e5,#6366f1);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+    .activate-btn:hover {
+        opacity: 0.95;
+    }
+.owner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+    gap: 15px;
+}
+
+label {
+    font-size: 12px;
+    color: #666;
+    display: block;
+}
+
+span {
+    font-weight: 500;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+    .table th {
+        background: #f1f3f8;
+        padding: 12px;
+        text-align: left;
+    }
+
+    .table td {
+        padding: 12px;
+        border-top: 1px solid #eee;
+    }
+
+input, select {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    background: #4f46e5;
+    color: white;
+    cursor: pointer;
+}
+.owner-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+}
+
+    .owner-grid span {
+        word-break: break-word;
+    }
+
+
+@media (max-width:768px) {
+
+    .container {
+        padding: 10px;
+    }
+
+    .owner-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .table {
+        font-size: 12px;
+        display: block;
+        overflow-x: auto;
+    }
+
+    button {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    input, select {
+        font-size: 12px;
+    }
+}
+.disabled-text {
+    opacity: 0.5;
+}
+
+.setup-guide {
+    background: #EFF6FF;
+    border: 1px solid #DBEAFE;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.steps {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+}
+
+    .step span {
+        background: #dbeafe;
+        color: #2563eb;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .step.active {
+        font-weight: 600;
+        color: #2563eb;
+    }
+
+.guide-subtext {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #6b7280;
+}
+.section-subtext {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+@media (max-width: 768px) {
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        display: block;
+        background: white;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 12px;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border: none;
+    }
+
+        .table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+    input {
+        width: 60%;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
+input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+h3 {
+    margin-top: 25px;
+    margin-bottom: 6px;
+}
+
+.section-subtext {
+    margin-bottom: 16px;
+}
+button {
+    transition: all 0.2s ease;
+}
+
+    button:active {
+        transform: scale(0.97);
+    }

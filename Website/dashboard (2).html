@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Owner Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="topbar">
+
+        <div class="brand">
+            <img src="/assets/images/reachoutowner_logo.png" class="logo">
+            <span>ReachOutOwner</span>
+        </div>
+
+        <button onclick="logout()">Logout</button>
+
+    </header>
+
+
+    <div class="container">
+        <div class="setup-guide">
+            <h3>🚀 Get Started</h3>
+
+            <div class="steps">
+                <div class="step active">
+                    <span>1</span>
+                    Add details for your QR
+                </div>
+
+                <div class="step">
+                    <span>2</span>
+                    Activate your QR
+                </div>
+            </div>
+
+            <p class="guide-subtext">
+                Once activated, anyone scanning your QR can contact you instantly.
+            </p>
+        </div>
+
+        <!-- OWNER INFO -->
+        <div class="owner-card">
+            <h3>Owner Details</h3>
+
+            <div class="owner-grid">
+                <div><label>Name</label><span id="ownerName"></span></div>
+                <div><label>Mobile</label><span id="ownerMobile"></span></div>
+                <div><label>Email</label><span id="ownerEmail"></span></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- QR SETUP -->
+        <h3>Step 1: Add Details & Activate QR</h3>
+        <p class="section-subtext">
+            Enter your vehicle/item details and click activate.
+        </p>
+
+
+        <div id="setupTable"></div>
+
+
+        <!-- ACTIVE QR -->
+        <h3>Active QR Codes</h3>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>S.N</th>
+                    <th>QR Code ID</th>
+                    <th>Details</th>
+                    <th>QR Activated On</th>
+                    <th>QR Expiry Date</th>
+                    <th>Download QR</th>
+                    <th>Deactivate QR</th>
+                </tr>
+            </thead>
+
+            <tbody id="activeTable"></tbody>
+
+        </table>
+
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+</body>
+</html>

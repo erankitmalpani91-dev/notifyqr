@@ -1,95 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Owner Dashboard</title>
+    <meta charset="UTF-8">
+    <title>ReachOutOwner — Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
-
 <body>
 
-    <!-- HEADER -->
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer"></div>
+
+    <!-- TOPBAR -->
     <header class="topbar">
-
         <div class="brand">
-            <img src="/assets/images/reachoutowner_logo.png" class="logo">
-            <span>ReachOutOwner</span>
+            <div class="brand-mark">
+                <img src="/assets/images/reachoutowner_logo.png" class="logo" alt="ReachOutOwner logo" onerror="this.style.display='none'">
+                <span class="brand-icon" aria-hidden="true">◈</span>
+            </div>
+            <span class="brand-name">ReachOut<strong>Owner</strong></span>
         </div>
-
-        <button onclick="logout()">Logout</button>
-
+        <div class="topbar-right">
+            <div class="owner-pill" id="headerOwnerName">—</div>
+            <button class="btn-logout" onclick="logout()">Sign out</button>
+        </div>
     </header>
 
+    <!-- MAIN -->
+    <main class="main">
 
-    <div class="container">
-        <div class="setup-guide">
-            <h3>🚀 Get Started</h3>
-
-            <div class="steps">
-                <div class="step active">
-                    <span>1</span>
-                    Add details for your QR
-                </div>
-
-                <div class="step">
-                    <span>2</span>
-                    Activate your QR
-                </div>
+        <!-- SKELETON (shown while loading) -->
+        <div id="skeleton">
+            <div class="skeleton-hero"></div>
+            <div class="skeleton-grid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
             </div>
-
-            <p class="guide-subtext">
-                Once activated, anyone scanning your QR can contact you instantly.
-            </p>
         </div>
 
-        <!-- OWNER INFO -->
-        <div class="owner-card">
-            <h3>Owner Details</h3>
+        <!-- REAL CONTENT (hidden until data loads) -->
+        <div id="pageContent" style="display:none">
 
-            <div class="owner-grid">
-                <div><label>Name</label><span id="ownerName"></span></div>
-                <div><label>Mobile</label><span id="ownerMobile"></span></div>
-                <div><label>Email</label><span id="ownerEmail"></span></div>
+            <!-- HERO PROGRESS BANNER -->
+            <section class="hero-banner" id="heroBanner">
+                <div class="hero-inner">
+                    <div class="hero-text">
+                        <div class="hero-eyebrow">Getting started</div>
+                        <h1 class="hero-title">One step away from<br><em>instant contact</em></h1>
+                        <p class="hero-sub">Fill in your QR details below and activate — anyone who scans your QR will reach you immediately on WhatsApp.</p>
+                    </div>
+                    <div class="hero-steps">
+                        <div class="step-pill active" id="stepPill1">
+                            <span class="step-num">1</span>
+                            <span>Add details</span>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step-pill" id="stepPill2">
+                            <span class="step-num">2</span>
+                            <span>Activate QR</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-deco" aria-hidden="true">
+                    <div class="deco-ring r1"></div>
+                    <div class="deco-ring r2"></div>
+                    <div class="deco-ring r3"></div>
+                </div>
+            </section>
 
-            </div>
+            <!-- OWNER CARD -->
+            <section class="owner-section">
+                <div class="owner-card">
+                    <div class="owner-avatar" id="ownerAvatar">—</div>
+                    <div class="owner-fields">
+                        <div class="owner-field">
+                            <span class="field-label">Name</span>
+                            <span class="field-value" id="ownerName">—</span>
+                        </div>
+                        <div class="owner-field">
+                            <span class="field-label">Mobile</span>
+                            <span class="field-value" id="ownerMobile">—</span>
+                        </div>
+                        <div class="owner-field">
+                            <span class="field-label">Email</span>
+                            <span class="field-value" id="ownerEmail">—</span>
+                        </div>
+                    </div>
+                    <div class="owner-badge-wrap">
+                        <span class="owner-badge">Verified Owner</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SETUP SECTION -->
+            <section class="content-section" id="setupSection">
+                <div class="section-header">
+                    <div class="section-label">Step 1</div>
+                    <h2 class="section-title">Activate your QR codes</h2>
+                    <p class="section-sub">Enter the details for each item below, then hit Activate.</p>
+                </div>
+                <div id="setupTable" class="setup-grid"></div>
+            </section>
+
+            <!-- ACTIVE QR SECTION -->
+            <section class="content-section" id="activeSection">
+                <div class="section-header">
+                    <div class="section-label">Live QRs</div>
+                    <h2 class="section-title">Your active QR codes</h2>
+                </div>
+                <div class="active-grid" id="activeGrid"></div>
+            </section>
 
         </div>
-
-
-        <!-- QR SETUP -->
-        <h3>Step 1: Add Details & Activate QR</h3>
-        <p class="section-subtext">
-            Enter your vehicle/item details and click activate.
-        </p>
-
-
-        <div id="setupTable"></div>
-
-
-        <!-- ACTIVE QR -->
-        <h3>Active QR Codes</h3>
-
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>S.N</th>
-                    <th>QR Code ID</th>
-                    <th>Details</th>
-                    <th>QR Activated On</th>
-                    <th>QR Expiry Date</th>
-                    <th>Download QR</th>
-                    <th>Deactivate QR</th>
-                </tr>
-            </thead>
-
-            <tbody id="activeTable"></tbody>
-
-        </table>
-
-    </div>
+    </main>
 
     <script src="/js/dashboard.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
 </body>
 </html>
