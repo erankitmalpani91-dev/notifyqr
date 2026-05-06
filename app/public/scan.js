@@ -27,24 +27,34 @@ const rendered = {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   SCAN-ONCE GATE
-   After notify is sent we store the scan_id in sessionStorage.
-   sessionStorage is cleared automatically when the tab is closed
-   or the QR is scanned fresh (new tab). If the user hits Back or
-   Refresh within the same tab, we detect the stored scan_id and
-   show "Scan Again" instead of Screen 1.
-   This replaces the 10-min rate-limit timer entirely.
+   SCAN-ONCE GATE  (localStorage + timestamp)
+   
+   Why localStorage not sessionStorage:
+   Safari iOS clears sessionStorage on page reload/back-navigation,
+   so the gate was invisible on iPhone — Screen 1 always showed.
+   localStorage persists across reloads within the same browser.
+   
+   A timestamp is stored alongside scan_id so we know when the
+   session was created. This also powers the 30-min expiry below.
 ══════════════════════════════════════════════════════════════ */
-const SESSION_KEY = "roo_scan_" + (qrId || "none");
+const GATE_KEY = "roo_gate_" + (qrId || "none");
+const EXPIRY_MS = 15 * 60 * 1000;   // 10 minutes wall-clock
 
-function getSavedScanId() {
-    return sessionStorage.getItem(SESSION_KEY) || null;
+function getGate() {
+    try {
+        const raw = localStorage.getItem(GATE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);   // { scanId, ts }
+    } catch (e) { return null; }
 }
-function saveScanId(scanId) {
-    sessionStorage.setItem(SESSION_KEY, scanId);
+function setGate(scanId) {
+    localStorage.setItem(GATE_KEY, JSON.stringify({ scanId, ts: Date.now() }));
 }
-function clearScanId() {
-    sessionStorage.removeItem(SESSION_KEY);
+function clearGate() {
+    localStorage.removeItem(GATE_KEY);
+}
+function gateIsExpired(gate) {
+    return !gate || (Date.now() - gate.ts) > EXPIRY_MS;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -56,7 +66,7 @@ const messageMap = {
     auto: ["Your auto is blocking the way", "Please move your auto", "Auto parked in a no parking zone", "Your auto lights are on", "Auto seems to have an issue"],
     CV: ["Your vehicle is blocking the way", "Please move your vehicle", "Vehicle parked in a restricted area", "Your vehicle lights are on", "Possible issue noticed in your vehicle"],
     bag: ["I found your bag", "Your bag is unattended", "Your bag was left behind", "Bag found at this location"],
-    schoolbag: ["I found a school bag", "School bag left behind", "Your child's bag is unattended"],
+    
     luggage: ["I found your luggage", "Your luggage is unattended", "Luggage found at this location"],
     laptop: ["I found your laptop", "Your laptop is unattended", "Laptop left behind at this location"],
     mobile: ["I found your mobile phone", "Mobile phone left behind", "Your phone is unattended"],
@@ -64,9 +74,8 @@ const messageMap = {
     pet: ["I found your pet", "Your pet seems lost", "Your pet is unattended", "Pet found roaming nearby"],
     kids: ["I found a child with this tag", "Child needs assistance", "Child appears lost", "Child is alone and needs help"],
     elderly: ["An elderly person needs assistance", "Elderly person seems lost", "Found elderly person with this tag", "Elderly person needs help"],
-    homedelivery: ["Delivery attempt failed", "Package could not be delivered", "Please contact regarding your delivery", "Delivery person tried to reach you"],
-    employee: ["Employee ID found", "Employee needs assistance", "ID card was found", "Please contact regarding employee ID"],
-    shop: ["Shop is closed, customer waiting", "Issue at your shop location", "Please contact regarding your shop", "Customer needs assistance at your shop"],
+    homedelivery: ["Someone standing at your house door", "Cylinder delivery boy is waiting for you", "Relative is waiting outside", "Please contact regarding your delivery", "Delivery person tried to reach you"],
+ 
     default: ["I found your item", "Your item is unattended", "Please contact me", "Item found at this location"]
 };
 
@@ -92,14 +101,17 @@ function showInfoCard(msg, isError) {
 if (!qrId) {
     showInfoCard("❌ Invalid QR Code", true);
 } else {
-    /* Check if this tab already sent a notification (Back/Refresh case) */
-    const savedId = getSavedScanId();
-    if (savedId) {
-        /* User sent notification then went back or refreshed.
-           Show "Scan Again" — don't show Screen 1 again. */
-        showScanAgain();
-    } else {
+    const gate = getGate();
+    if (!gate) {
+        // No prior notification — fresh scan, show Screen 1
         loadQR();
+    } else if (gateIsExpired(gate)) {
+        // Gate exists but 30 min elapsed — clear it, show Screen 1 fresh
+        clearGate();
+        loadQR();
+    } else {
+        // Valid gate — Back/Refresh case: show Scan Again
+        showScanAgain();
     }
 }
 
@@ -221,8 +233,8 @@ function sendAlert(message, location) {
 
             currentScanId = data.scan_id;
 
-            /* ── Gate: store scan_id so Back/Refresh shows "Scan Again" ── */
-            saveScanId(currentScanId);
+            /* ── Gate: localStorage so Back/Refresh shows "Scan Again" on all browsers ── */
+            setGate(currentScanId);
 
             /* Reset conversation state */
             rendered.ownerReply = false;
@@ -254,6 +266,25 @@ function startPolling(scanId) {
     if (pollInterval) clearInterval(pollInterval);
 
     pollInterval = setInterval(() => {
+
+        /* Wall-clock expiry: works even after phone is minimised.
+           Browser throttles setInterval when minimised, but the
+           timestamp comparison fires correctly the moment the tab
+           is foregrounded again. */
+        const gate = getGate();
+        if (gateIsExpired(gate)) {
+            clearInterval(pollInterval);
+            clearGate();
+            const hint = document.querySelector(".waiting-hint");
+            const label = document.querySelector(".waiting-label");
+            const core = document.querySelector(".ripple-core");
+            if (hint) hint.innerHTML = "This session has expired (30 min).<br><strong>Scan the QR again</strong> to send a new message.";
+            if (label) { label.innerText = "Session Expired"; label.style.color = "#e74c3c"; }
+            if (core) { core.style.background = "#e74c3c"; }
+            document.querySelectorAll(".ripple-ring").forEach(r => r.style.borderColor = "#e74c3c");
+            return;
+        }
+
         fetch("/api/alerts/reply/" + scanId)
             .then(r => r.json())
             .then(data => {
@@ -282,9 +313,7 @@ function startPolling(scanId) {
                     addBubble("owner", data.owner_reply2);
                     document.getElementById("followupArea").style.display = "none";
                     clearInterval(pollInterval);
-                    /* Clear session gate — conversation is complete.
-                       If finder scans again they'll get a fresh Screen 1. */
-                    clearScanId();
+                    clearGate();   // conversation done — next scan gets fresh Screen 1
                 }
             })
             .catch(() => { });

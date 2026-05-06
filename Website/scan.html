@@ -27,11 +27,43 @@
 
         .logo {
             text-align: center;
-            font-size: 17px;
-            font-weight: bold;
-            color: #2f80ed;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
+
+        .logo-inner {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            border-radius: 50px;
+            padding: 8px 18px 8px 10px;
+            box-shadow: 0 2px 12px rgba(47,128,237,0.15);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2f80ed, #1a5ca8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.3px;
+        }
+
+            .logo-text span {
+                color: #2f80ed;
+            }
 
         /* Info/error card (loading, scan-again, QR error) */
         .info-card {
@@ -379,7 +411,12 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo">ReachOutOwner</div>
+        <div class="logo">
+            <div class="logo-inner">
+                <div class="logo-icon">R</div>
+                <div class="logo-text">Reach<span>Out</span>Owner</div>
+            </div>
+        </div>
 
         <!-- Info card: loading state, scan-again prompt, QR errors -->
         <div class="info-card" id="infoCard">Loading...</div>
