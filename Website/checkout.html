@@ -32,7 +32,7 @@
         }
 
         /* Cards */
-        
+
         .card {
             background: #f1f4ff;
             padding: 16px;
@@ -102,6 +102,169 @@
             font-size: 15px;
             cursor: pointer;
         }
+
+        /* Order item rows */
+        .order-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e6ff;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+            .order-item:last-child {
+                border-bottom: none;
+            }
+
+        .order-item-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #222;
+            flex: 1;
+            min-width: 90px;
+        }
+
+        .order-item-price {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f3cff;
+            min-width: 54px;
+            text-align: right;
+        }
+
+        /* Qty stepper */
+        .item-qty {
+            display: flex;
+            align-items: center;
+            border: 1px solid #cdd5ff;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+            .item-qty button {
+                width: 30px;
+                height: 30px;
+                border: none;
+                background: #eef0ff;
+                font-size: 17px;
+                line-height: 1;
+                cursor: pointer;
+                color: #1f3cff;
+                font-weight: bold;
+                transition: background 0.15s;
+                padding: 0;
+            }
+
+                .item-qty button:hover {
+                    background: #d5daff;
+                }
+
+            .item-qty span {
+                min-width: 28px;
+                text-align: center;
+                font-size: 14px;
+                font-weight: 600;
+                color: #222;
+            }
+
+        .empty-cart-msg {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            padding: 12px 0;
+        }
+
+        /* Gift wrap */
+        .gift-wrap-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+            border-top: 1px solid #e0e6ff;
+            margin-top: 6px;
+            cursor: pointer;
+        }
+
+            .gift-wrap-row input[type=checkbox] {
+                width: 18px;
+                height: 18px;
+                accent-color: #1f3cff;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+
+        .gift-wrap-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .gift-wrap-price {
+            margin-left: auto;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ff7a18;
+        }
+
+        .gift-msg-box {
+            display: none;
+            margin-top: 8px;
+        }
+
+            .gift-msg-box textarea {
+                width: 100%;
+                min-height: 55px;
+                font-size: 13px;
+                border: 1px dashed #cdd5ff;
+                border-radius: 8px;
+                padding: 8px;
+                box-sizing: border-box;
+                resize: vertical;
+            }
+
+        /* Combo badge in summary */
+        .combo-badge {
+            display: inline-block;
+            font-size: 10px;
+            background: #fff3e0;
+            color: #e65100;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin-left: 4px;
+            font-weight: 700;
+        }
+
+        .combo-expands {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Notes */
+        .notes-row {
+            margin-top: 10px;
+        }
+
+            .notes-row textarea {
+                width: 100%;
+                min-height: 50px;
+                font-size: 13px;
+                border: 1px solid #e0e6ff;
+                border-radius: 8px;
+                padding: 8px;
+                box-sizing: border-box;
+                resize: vertical;
+                background: #fafafa;
+            }
+
+        .notes-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
         /* Mobile */
         @media (max-width: 768px) {
             .checkout-wrapper {
@@ -125,7 +288,6 @@
             .total {
                 font-size: 20px;
             }
-            
         }
     </style>
 </head>
@@ -167,13 +329,29 @@
 
                 <div id="orderItems"></div>
 
-                <p>Total QR: <span id="totalQty">0</span></p>
+                <!-- Gift Wrap -->
+                <label class="gift-wrap-row" for="giftWrapChk">
+                    <input type="checkbox" id="giftWrapChk" onchange="toggleGiftWrap()">
+                    <span class="gift-wrap-label">🎁 Add Gift Wrapping</span>
+                    <span class="gift-wrap-price">+₹99</span>
+                </label>
+                <div class="gift-msg-box" id="giftMsgBox">
+                    <textarea id="giftMessage" placeholder="Gift message (optional)…"></textarea>
+                </div>
+
+                <p style="margin:8px 0 2px;font-size:13px;">Total QR Tags: <strong><span id="totalQty">0</span></strong></p>
 
                 <div class="total">
                     Total ₹<span id="totalPrice">0</span>
                 </div>
 
-                <button class="pay-btn" id="payButton">
+                <!-- Order Notes -->
+                <div class="notes-row">
+                    <div class="notes-label">📝 Special instructions (optional)</div>
+                    <textarea id="orderNotes" placeholder="E.g. Boy theme for school bag, gift for birthday…"></textarea>
+                </div>
+
+                <button class="pay-btn" id="payButton" style="margin-top:14px;">
                     Proceed to Payment
                 </button>
 
@@ -183,64 +361,157 @@
             </div>
         </div>
     </div>
-   
+
     <script>
+        // ── PRICES (individual products) ──────────────────────────
+        
         const prices = {
-            car: 399,
-            bike: 249,
-            auto: 249,
-            CV: 399,
-            bag: 249,
-            laptop: 299,
-            mobile: 249,
-            schoolbag: 249,
-            kids: 299,
-            elderly: 299,
-            pet: 249,
-            homedelivery: 299,
-            key: 199,
-            employee: 249,
-            shop: 299,
+            car: 349, bike: 199, auto: 199, CV: 349,
+            bag: 199, laptop: 199, mobile: 199, luggage: 199,
+            kids: 249, elderly: 249, pet: 199,
+            homedelivery: 249, key: 199,
+            combo_vehicle: 449, combo_family: 749, combo_personal: 499, combo_home: 849,
         };
+
+
+        // ── COMBO DEFINITIONS (what each combo expands into) ──────
+        const COMBO_DEFINITIONS = {
+            combo_vehicle: ['car', 'bike', 'auto'],
+            combo_family: ['car', 'kids', 'elderly'],
+            combo_personal: ['bag', 'laptop', 'key'],
+            combo_home: ['car', 'bike', 'kids', 'key'],
+        };
+
+        // ── DISPLAY NAMES ──────────────────────────────────────────
+        const displayNames = {
+            combo_vehicle: '🚗 Vehicle Combo',
+            combo_family: '👨‍👩‍👧 Family Combo',
+            combo_personal: '💼 Personal Essentials Combo',
+            combo_home: '🏠 Complete Home Combo',
+            car: 'Car', bike: 'Bike', auto: 'Auto', CV: 'Commercial Vehicle',
+            bag: 'Bag', laptop: 'Laptop', mobile: 'Mobile',
+            schoolbag: 'School Bag', luggage: 'Luggage Bag',
+            kids: 'Kids', elderly: 'Elderly', pet: 'Pet',
+            homedelivery: 'Home & Delivery', key: 'Key',
+            fleet: 'Fleet', employee: 'Employee', shop: 'Shop',
+        };
+
         let cart = JSON.parse(localStorage.getItem("cart")) || {};
+        let giftWrapEnabled = false;
+        const GIFT_WRAP_PRICE = 99;
 
-        let totalAmount = 0;
-        let totalQty = 0;
-        let orderHTML = "";
-        let hasItems = false;
+        function toggleGiftWrap() {
+            giftWrapEnabled = document.getElementById('giftWrapChk').checked;
+            document.getElementById('giftMsgBox').style.display = giftWrapEnabled ? 'block' : 'none';
+            renderSummary();
+        }
 
-        for (let item in cart) {
-            if (cart[item] > 0) {
+        // ── Expand combos into individual QR components ───────────
+        // Returns a flat list of { type, qty } for fulfillment
+        function expandCartForFulfillment(cart) {
+            const expanded = {};
+            for (let item in cart) {
+                if (cart[item] <= 0) continue;
+                if (COMBO_DEFINITIONS[item]) {
+                    // It's a combo — explode into components
+                    COMBO_DEFINITIONS[item].forEach(component => {
+                        expanded[component] = (expanded[component] || 0) + cart[item];
+                    });
+                } else {
+                    expanded[item] = (expanded[item] || 0) + cart[item];
+                }
+            }
+            return expanded;
+        }
 
-                let qty = cart[item];
-                let price = prices[item];
-                let itemTotal = qty * price;
+        // ── Render order summary ───────────────────────────────────
+        function renderSummary() {
+            let totalAmount = 0;
+            let totalQty = 0;   // counts physical QR tags (combos expand)
+            let hasItems = false;
+            let orderHTML = "";
 
-                totalQty += qty;
+            for (let item in cart) {
+                if (cart[item] <= 0) continue;
+                hasItems = true;
+
+                const qty = cart[item];
+                const price = prices[item] || 0;
+                const itemTotal = qty * price;
+                const isCombo = !!COMBO_DEFINITIONS[item];
+                const name = displayNames[item] || item;
+
+                // Count actual physical QR tags
+                if (isCombo) {
+                    totalQty += qty * COMBO_DEFINITIONS[item].length;
+                } else {
+                    totalQty += qty;
+                }
                 totalAmount += itemTotal;
 
-                let name = item.replace("combo", " Combo");
-                name = name.charAt(0).toUpperCase() + name.slice(1);
+                const comboBadge = isCombo ? `<span class="combo-badge">COMBO</span>` : '';
+                const comboExpands = isCombo
+                    ? `<div class="combo-expands">Includes: ${COMBO_DEFINITIONS[item].map(c => displayNames[c] || c).join(' + ')} QR</div>`
+                    : '';
 
                 orderHTML += `
-                    <p>${name} QR x ${qty} = ₹${itemTotal}</p>
-                `;
-                    hasItems = true;
+                            <div class="order-item">
+                                <div style="flex:1;min-width:90px;">
+                                    <span class="order-item-name">${name}${isCombo ? '' : ' QR'}${comboBadge}</span>
+                                    ${comboExpands}
+                                </div>
+                                <div class="item-qty">
+                                    <button onclick="changeItemQty('${item}', -1)">−</button>
+                                    <span id="checkout-qty-${item}">${qty}</span>
+                                    <button onclick="changeItemQty('${item}', 1)">+</button>
+                                </div>
+                                <span class="order-item-price" id="checkout-price-${item}">₹${itemTotal}</span>
+                            </div>`;
             }
-        }
 
-        document.getElementById("orderItems").innerHTML = hasItems ? orderHTML : '<p>Your cart is empty. <a href="https://reachoutowner.com/#plans">Browse QR plans</a></p>';
-        document.getElementById("totalPrice").innerText = totalAmount;
-        document.getElementById("totalQty").innerText = totalQty;
+            // Gift wrap row
+            if (giftWrapEnabled) {
+                totalAmount += GIFT_WRAP_PRICE;
+                orderHTML += `
+                            <div class="order-item">
+                                <span class="order-item-name">🎁 Gift Wrapping</span>
+                                <span class="order-item-price">₹${GIFT_WRAP_PRICE}</span>
+                            </div>`;
+            }
 
-        if (totalAmount === 0) {
+            document.getElementById("orderItems").innerHTML = hasItems
+                ? orderHTML
+                : '<p class="empty-cart-msg">Your cart is empty. <a href="https://reachoutowner.com/#pricing-section">Browse QR plans</a></p>';
+
+            document.getElementById("totalPrice").innerText = totalAmount;
+            document.getElementById("totalQty").innerText = totalQty;
+
             const btn = document.getElementById("payButton");
-            btn.disabled = true;
-            btn.innerText = "Your cart is empty";
-            btn.style.opacity = "0.5";
-            btn.style.cursor = "not-allowed";
+            if (totalAmount === 0) {
+                btn.disabled = true;
+                btn.innerText = "Your cart is empty";
+                btn.style.opacity = "0.5";
+                btn.style.cursor = "not-allowed";
+            } else {
+                btn.disabled = false;
+                btn.innerText = "Proceed to Payment";
+                btn.style.opacity = "1";
+                btn.style.cursor = "pointer";
+            }
+
+            window._totalQty = totalQty;
+            window._totalAmount = totalAmount;
         }
-        
+
+        function changeItemQty(item, change) {
+            cart[item] = (cart[item] || 0) + change;
+            if (cart[item] <= 0) delete cart[item];
+            localStorage.setItem("cart", JSON.stringify(cart));
+            renderSummary();
+        }
+
+        renderSummary();
+
         /* Input Restrictions */
         document.getElementById("name").addEventListener("input", function () {
             this.value = this.value.replace(/[^A-Za-z ]/g, '');
@@ -274,10 +545,10 @@
             }
         });
 
-        
+
 
         /* Razorpay */
-        document.getElementById("payButton").addEventListener("click", async function() {
+        document.getElementById("payButton").addEventListener("click", async function () {
 
             const btn = document.getElementById("payButton");
             btn.disabled = true;
@@ -294,13 +565,13 @@
             const fields = [name, phone, email, address, city, state, pincode];
 
             for (let field of fields) {
-                            if (!field.checkValidity()) {
-                                field.reportValidity();
-                                btn.disabled = false;
-                                btn.innerText = "Proceed to Payment";
-                                return;
-                            }
-                        }
+                if (!field.checkValidity()) {
+                    field.reportValidity();
+                    btn.disabled = false;
+                    btn.innerText = "Proceed to Payment";
+                    return;
+                }
+            }
 
             /* Filter cart to remove zero quantity items */
             let filteredCart = {};
@@ -308,12 +579,45 @@
                 if (qty > 0) filteredCart[type] = qty;
             }
 
+            // Expand combos for backend fulfillment
+            const expandedCart = expandCartForFulfillment(filteredCart);
+            const giftMsg = document.getElementById('giftMessage').value.trim();
+            const orderNotes = document.getElementById('orderNotes').value.trim();
+
+            // ─────────────────────────────────────────────────────
+            // ✅ FIX (Bug 2 — NEW FIELDS NOT IN DB):
+            //
+            // giftWrap, giftMessage, orderNotes, expandedCart are
+            // sent below but the `orders` table doesn't have columns
+            // for them yet. Run this migration on your SQLite DB
+            // BEFORE deploying, or these fields will be silently
+            // dropped and you'll lose the data:
+            //
+            //   ALTER TABLE orders ADD COLUMN gift_wrap INTEGER DEFAULT 0;
+            //   ALTER TABLE orders ADD COLUMN gift_message TEXT DEFAULT '';
+            //   ALTER TABLE orders ADD COLUMN order_notes TEXT DEFAULT '';
+            //   ALTER TABLE orders ADD COLUMN expanded_cart TEXT DEFAULT '';
+            //
+            // On the backend (create-order route), map the fields:
+            //   gift_wrap    ← req.body.giftWrap ? 1 : 0
+            //   gift_message ← req.body.giftMessage || ''
+            //   order_notes  ← req.body.orderNotes || ''
+            //   expanded_cart← JSON.stringify(req.body.expandedCart)
+            //
+            // The existing `cart` column stores the original combo
+            // cart (for invoice). expanded_cart stores the exploded
+            // version (for QR assignment). Both are needed.
+            // ─────────────────────────────────────────────────────
             const response = await fetch("/api/order/create-order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    quantity: totalQty,
-                    cart: filteredCart,
+                    quantity: window._totalQty,
+                    cart: filteredCart,           // original (with combos) for invoice
+                    expandedCart: expandedCart,   // exploded (for QR assignment)
+                    giftWrap: giftWrapEnabled,
+                    giftMessage: giftMsg,
+                    orderNotes: orderNotes,
                     name: name.value,
                     phone: phone.value,
                     email: email.value,
@@ -322,15 +626,15 @@
                     state: state.value,
                     pincode: pincode.value
                 })
-            });        
+            });
 
             const data = await response.json();
 
             if (!data.success) {
-                    alert("Order creation failed");
-                    btn.disabled = false;
-                    btn.innerText = "Proceed to Payment";
-                    return;
+                alert("Order creation failed");
+                btn.disabled = false;
+                btn.innerText = "Proceed to Payment";
+                return;
             }
 
             const options = {
@@ -351,19 +655,9 @@
                     const btn = document.getElementById("payButton");
                     btn.innerText = "Processing...";
 
-                    const verify = await fetch("/api/order/verify-payment", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            phone: phone.value,
-                            email: email.value,
-                            name: name.value
-                        })
-                    });
-
+                    // ✅ FIX: removed duplicate verify-payment fetch that
+                    // was firing outside the try/catch and whose result was
+                    // never used. Only the one inside try/catch is correct.
                     let result;
 
                     try {

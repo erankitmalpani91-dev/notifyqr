@@ -63,63 +63,138 @@
 
     <!-- HERO -->
     <section id="hero" class="hero">
+
         <!-- Slider -->
         <div class="hero-slider">
-            <div class="slide active" style="background-image: url('assets/images/slide1.png');"></div>
-            <div class="slide" style="background-image: url('assets/images/slide2.png');"></div>
-            <div class="slide" style="background-image: url('assets/images/slide3.png');"></div>
-            <div class="slide" style="background-image: url('assets/images/slide4.png');"></div>
-            <div class="slide" style="background-image: url('assets/images/slide5.png');"></div>
+
+            <div class="slide active">
+                <picture>
+                    <source media="(max-width: 768px)" srcset="assets/images/slide1-mobile.png">
+                    <img src="assets/images/slide1-desktop.png" alt="ReachOutOwner" class="slide-img">
+                </picture>
+            </div>
         </div>
+
         <!-- Content -->
         <div class="hero-content">
             <div class="hero-buttons">
-                <a href="#pricing-section" class="btn-primary">Buy - Starts @ <br />₹249/year</a>
+                <a href="#pricing-section" class="btn-primary">Buy - Starts @ ₹199/year </a>
             </div>
         </div>
     </section>
 
 
-    <!-- How reach out owner works -->
+    <!-- How It Works — Redesigned -->
     <section id="how-section" class="how-section">
-        <p class="how-title">How ReachOutOwner <span>Works....</span></p>
-        <p class="how-subtitle">No app needed. No account required for the finder. Just scan, Notify, done.</p>
 
-        <div class="how-steps">
-            <div class="how-step">
-                <div class="step-circle">1</div>
-                <span class="step-icon">📱</span>
+        <!-- Top label -->
+        <div class="how-label">How It Works</div>
+
+        <h2 class="how-title">Scan QR. Message. <span>Done.</span></h2>
+        <p class="how-subtitle">
+            No App. No Login<br>
+            Add a QR sticker on your item — and people can reach you when needed.
+        </p>
+
+        <!-- NOT a tracker pill -->
+        <div class="how-myth-pill">✅ A Private & Secured Communication Channel</div>
+
+        <!-- Cards -->
+        <div class="how-flow">
+
+            <div class="how-card">
+                <div class="how-card-top">
+                    <span class="how-num">1</span>
+                    <span class="how-emoji">📷</span>
+                </div>
                 <h3>Finder Scans Your QR</h3>
-                <p>Anyone can scan the QR on your vehicle or asset. No app needed — just a phone camera</p>
+                <p>Someone finds your car blocking, your lost keys, your pet — they point their phone camera at the QR sticker. <strong>No app. No account. Works on any phone.</strong></p>
+                <div class="how-tag">⏱ Done in 3 seconds</div>
             </div>
 
-            <div class="how-step">
-                <div class="step-circle">2</div>
-                <span class="step-icon">💬</span>
-                <h3>You Get a WhatsApp Alert</h3>
-                <p>Instant notification on WhatsApp with their message and location — within seconds.</p>
+            <div class="how-connector">
+                <div class="how-connector-line"></div>
+                <div class="how-connector-arrow">›</div>
             </div>
 
-            <div class="how-step">
-                <div class="step-circle">3</div>
-                <span class="step-icon">🔐</span>
-                <h3>Reply Securely</h3>
-                <p>You can reply through WhatsApp. Your phone number is never revealed to the finder.</p>
+            <div class="how-card how-card-highlight">
+                <div class="how-card-top">
+                    <span class="how-num how-num-light">2</span>
+                    <span class="how-emoji">💬</span>
+                </div>
+                <h3>You Get a WhatsApp Message</h3>
+                <p>A simple form opens on the finder's phone. They type their message — you receive it <strong>instantly on WhatsApp</strong> with their note and optional location.</p>
+                <div class="how-tag how-tag-light">📲 Straight to your WhatsApp</div>
+            </div>
+
+            <div class="how-connector">
+                <div class="how-connector-line"></div>
+                <div class="how-connector-arrow">›</div>
+            </div>
+
+            <div class="how-card">
+                <div class="how-card-top">
+                    <span class="how-num">3</span>
+                    <span class="how-emoji">🔐</span>
+                </div>
+                <h3>You Reply. Your Number Stays Private.</h3>
+                <p>Chat back on WhatsApp however you like. <strong>The finder never sees your phone number</strong> at any point. You stay fully in control.</p>
+                <div class="how-tag">🛡️ 100% private</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!----Alert Message----->
+    <section class="qr-notice">
+        <div class="notice-wrapper">
+            <div class="notice-icon">🛡️</div>
+
+            <!-- Desktop Text -->
+            <div class="notice-text  desktop-text">
+                <h3>
+                    This QR is built exclusively for <span>safety communication.</span>
+                </h3>
+                <p>
+                    It is <strong>never used for payments</strong> financial transactions.
+                </p>
+            </div>
+
+            <div class="notice-text hindi desktop-text">
+                <h3>
+                    यह QR केवल <span>सुरक्षा संचार</span> के लिए बनाया गया है —
+                </h3>
+                <p>
+                    किसी भी प्रकार के भुगतान के लिए उपयोग नहीं किया जाता है।
+
+                </p>
+            </div>
+
+            <!-- Mobile Text (Hinglish) -->
+            <div class="notice-text mobile-text">
+                <h3>
+                    Yeh QR sirf <span>safety</span> ke liye hai.
+                </h3>
+                <p>
+                    Payment ke liye nahi.
+                </p>
             </div>
         </div>
         </div>
     </section>
 
-
-    <!-- Real World Scenarios -->
+    <!-- - Real World Scenarios -->
     <section id="reach-section" class="reach-section">
-        <p class="reach-title">Real World <span>Scenarios</span></p>
-        
+
+        <p class="reach-title">Where this<span>  QR helps</span></p>
+        <p class="reach-subtitle">From everyday situations to unexpected moments.</p>
+
+
         <div class="reach-grid">
             <div class="reach-card">
                 <div class="card-top">
                     <span class="icon">🚗</span>
-                    <h3>Wrong Parking</h3>
+                    <h3>Vehicle Parked Wrongly</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Instantly notify the vehicle owner without exposing your number.</p>
@@ -129,7 +204,7 @@
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">📦</div>
-                    <h3>Delivery Issue</h3>
+                    <h3>Delivery Attempt Fails</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Courier can securely contact you if delivery fails.</p>
@@ -139,7 +214,7 @@
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">🔑</div>
-                    <h3>Lost Keys</h3>
+                    <h3>Lost Keys Found</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Finder can alert you the moment they find your keys or wallet.</p>
@@ -149,7 +224,7 @@
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">📱</div>
-                    <h3>Lost Device</h3>
+                    <h3>Lost Device Found</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Finder can contact you safely if your device is found.</p>
@@ -179,7 +254,7 @@
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">🐶</div>
-                    <h3>Lost Pet</h3>
+                    <h3>Lost Pet Found</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Anyone who finds your pet can contact you without your number.</p>
@@ -189,7 +264,7 @@
             <div class="reach-card">
                 <div class="card-top">
                     <div class="icon">👴</div>
-                    <h3>Elderly Safety</h3>
+                    <h3>Elderly Assistance</h3>
                     <span class="arrow">›</span>
                 </div>
                 <p>Family can be reached immediately if an elderly person needs assistance.</p>
@@ -198,99 +273,54 @@
         </div>
     </section>
 
-    <!----Alert Message----->
-    <section class="qr-notice">
-        <div class="notice-wrapper">
-            <div class="notice-icon">🛡️</div>
-
-            <!-- Desktop Text -->
-            <div class="notice-text  desktop-text">
-                <h3>
-                    This QR is built exclusively for <span>safety communication</span>.
-                </h3>
-                <p>
-                    It is <strong>never used for payments</strong> or financial transactions.
-                </p>
-            </div>
-
-            <div class="notice-text hindi desktop-text">
-                <h3>
-                    यह QR केवल <span>सुरक्षा संचार</span> के लिए बनाया गया है —
-                </h3>
-                <p>
-                    किसी भी प्रकार के भुगतान के लिए उपयोग नहीं किया जाता है।
-
-                </p>
-            </div>
-
-            <!-- Mobile Text (Hinglish) -->
-            <div class="notice-text mobile-text">
-                <h3>
-                    Yeh QR sirf <span>safety</span> ke liye hai.
-                </h3>
-                <p>
-                    Payment ke liye nahi.
-                </p>
-            </div>
-        </div>
-        </div>
-    </section>
 
 
-    <!-- Built for real world assets -->
+
+
+
+    <!---HOW REACHOUTOWNER IS DIFFERENT--->
+
     <section id="assets-section" class="assets-section">
 
-        <div class="assets-wrapper">
-
-            <!-- LEFT IMAGE -->
-            <div class="assets-image">
-                <img src="assets/images/reachoutowner_built section.png" alt="QR Assets Illustration">
+        <div class="assets-content">
+            <div class="assets-header">
+                <h2>How ReachOutOwner is Different</h2>
+                <p>Built for privacy, speed & control</p>
             </div>
 
-            <!-- RIGHT CONTENT -->
-            <div class="assets-content">
+            <div class="assets-grid">
 
-                <div class="assets-header">
-                    <h2>Built for Real World Assets</h2>
-                    <p>Secure QR infrastructure for real-world environments.</p>
+                <div class="asset-card" data-text="Your contact details are never shared.">
+                    <div class="icon">🔒</div>
+                    <p>Private by Default</p>
                 </div>
 
-                <div class="assets-grid">
+                <div class="asset-card" data-text="No tracking, no analytics, no surveillance.">
+                    <div class="icon">🚫</div>
+                    <p>Zero Tracking</p>
+                </div>
 
-                    <div class="asset-circle" data-text="Car, Bike, Auto, Commercial Vehicle">
-                        🚗
-                        <span>Vehicles</span>
-                    </div>
+                <div class="asset-card" data-text="No app. No login. Just scan and connect.">
+                    <div class="icon">⚡</div>
+                    <p>Instant Access</p>
+                </div>
 
-                    <div class="asset-circle" data-text="Children, Elderly">
-                        👨‍👩‍👧
-                        <span>Family</span>
-                    </div>
+                <div class="asset-card" data-text="You decide when and how to respond.">
+                    <div class="icon">🛡️</div>
+                    <p>You’re in Control</p>
+                </div>
 
-                    <div class="asset-circle" data-text="Bag, Mobile, Laptop, Trolley, Identity Card">
-                        🎒
-                        <span>Valuables</span>
-                    </div>
+                <div class="asset-card" data-text="Get notified instantly on WhatsApp.">
+                    <div class="icon">💬</div>
+                    <p>WhatsApp Alerts</p>
+                </div>
 
-                    <div class="asset-circle" data-text="Dog, Cat, Cow">
-                        🐶
-                        <span>Pet</span>
-                    </div>
-
-                    <div class="asset-circle" data-text="Home, Office, Appartment">
-                        🏠
-                        <span>Home</span>
-                    </div>
-
-                    <div class="asset-circle" data-text="School, Hospital, Public institution">
-                        🏫
-                        <span>Institutions</span>
-                    </div>
-
+                <div class="asset-card" data-text="No identity or number is revealed.">
+                    <div class="icon">🕶️</div>
+                    <p>Anonymous by Design</p>
                 </div>
 
             </div>
-
         </div>
 
     </section>
@@ -300,331 +330,548 @@
 
     <section id="pricing-section" class="catalog-section">
 
-        <h2 class="catalog-title">Starts @ ₹0.70/day. Less than the Price of your daily Chai</h2>
-
+        <h2 class="catalog-title">Starts @ ₹0.55/day. Less than the Price of your daily Chai</h2>
 
         <!-- CATEGORY TABS -->
+        <!-- 👇 TAP A CATEGORY BELOW TO SEE ITS PRODUCTS -->
+        <div class="tabs-label">👇 Tap a category to browse products</div>
         <div class="category-tabs">
-            <button class="tab active" onclick="showCategory('vehicle', this)">Vehicle</button>
-            <button class="tab" onclick="showCategory('personal', this)">Personal</button>
-            <button class="tab" onclick="showCategory('family', this)">Family</button>
-            <button class="tab" onclick="showCategory('home', this)">Home</button>
-            <button class="tab" onclick="showCategory('business', this)">Business</button>
+
+            <button class="tab" onclick="showCategory('vehicle', this)">🚗 Vehicle</button>
+            <button class="tab" onclick="showCategory('personal', this)">💼 Personal</button>
+            <button class="tab" onclick="showCategory('family', this)">👨‍👩‍👧 Family</button>
+            <button class="tab" onclick="showCategory('home', this)">🏠 Home</button>
+            <button class="tab tab-bestvalue active" onclick="showCategory('bestvalue', this)">🔥 Best Value</button>
         </div>
 
-        <div class="cart-wrapper">
-            <div class="cart-items" id="cartItems"></div>
 
-            <div class="cart-summary">
-                Total <span id="cartTotal">0</span>
-                <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
-            </div>
+        <div class="cart-summary">
+            Total <span id="cartTotal">0</span>
+            <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
         </div>
 
         <!-- VEHICLE -->
-        <div class="product-slider category vehicle active">
+
+        <div class="product-slider category vehicle">
             <div class="product-card">
-                <div class="offer-ribbon">ON OFFER</div>
-                <div class="product-image">🚗</div>
+                <span class="badge-top">ON OFFER</span>
+                <div class="product-image">
+                    <img src="assets/images/products/car-qr.png" alt="Car Safety QR">
+                </div>
                 <h3>Car Safety QR</h3>
-                <p> Keep your car protected 24/7 - Let anyone notify you for accidents, parking issues, and emergencies</p>
                 <div class="price-box">
-                    <span class="original-price">₹899</span>
-                    <span class="discounted-price">₹399 / year</span>
-                    <span class="save-text">Save ₹500 (55% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹899 <small>/year</small></span>
+                        <span class="discounted-price">₹349 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹550 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('car', -1)">-</button>
                     <span id="qty-car">0</span>
                     <button onclick="changeQty('car', 1)">+</button>
                 </div>
-                <button onclick="addToCart('car')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('car')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('car')" class="cart-btn">Add</button>
+                </div>
             </div>
 
+
             <div class="product-card">
-                <div class="offer-ribbon">ON OFFER</div>
-                <div class="product-image">🏍️</div>
+                <span class="badge-top">ON OFFER</span>
+                <div class="product-image">
+                    <img src="assets/images/products/bike-qr.png" alt="Bike Safety QR">
+                </div>
                 <h3>Bike Safety QR</h3>
-                <p>Keep your bike protected 24/7 - Let anyone notify you for accidents, parking issues, and emergencies</p>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹350 (60% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹400 (66% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('bike', -1)">-</button>
                     <span id="qty-bike">0</span>
                     <button onclick="changeQty('bike', 1)">+</button>
                 </div>
-                <button onclick="addToCart('bike')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('bike')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('bike')" class="cart-btn">Add</button>
+                </div>
             </div>
 
-            <div class="product-card featured">
-                <div class="offer-ribbon">ON OFFER</div>
-                <div class="product-image">🛺</div>
-                <h3>Auto Safety QR</h3>
-                <p>Stay connected to your Auto at all times - Let anyone notify you for parking, passenger help, or emergency situations</p>
+            <div class="product-card">
+                <span class="badge-top">ON OFFER</span>
+                <div class="product-image">
+                    <img src="assets/images/products/auto-qr.png" alt="Auto Safety QR">
+                </div>
+                <h3>Auto/E-Rickshaw Safety QR</h3>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹350 (60% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹400 (66% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('auto', -1)">-</button>
                     <span id="qty-auto">0</span>
                     <button onclick="changeQty('auto', 1)">+</button>
                 </div>
-                <button onclick="addToCart('auto')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('auto')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('auto')" class="cart-btn">Add</button>
+                </div>
             </div>
 
             <div class="product-card">
-                <div class="offer-ribbon">BEST FOR FLEET</div>
-                <div class="product-image">🚚</div>
+                <span class="badge-top">ON OFFER</span>
+                <div class="product-image">
+                    <img src="assets/images/products/cv-qr.png" alt="CV Safety QR">
+                </div>
                 <h3>Commercial Vehicle Safety QR</h3>
-                <p>Ideal for fleet and business vehicles - Enable instant contact for drivers, logistics, and emergency coordination</p>
                 <div class="price-box">
-                    <span class="original-price">₹899</span>
-                    <span class="discounted-price">₹399 / year</span>
-                    <span class="save-text">Save ₹500 (55% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹899<small>/year</small></span>
+                        <span class="discounted-price">₹349 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹550 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('CV', -1)">-</button>
                     <span id="qty-CV">0</span>
                     <button onclick="changeQty('CV', 1)">+</button>
                 </div>
-                <button onclick="addToCart('CV')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('CV')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('CV')" class="cart-btn">Add</button>
+                </div>
             </div>
-
         </div>
 
 
         <!-- PERSONAL -->
         <div class="product-slider category personal">
             <div class="product-card">
-                <div class="offer-ribbon">BEST FOR GIRLS</div>
-                <div class="product-image">👝</div>
+                <span class="badge-top">BEST FOR GEN-Z</span>
+                <div class="product-image">
+                    <img src="assets/images/products/bag-qr.png" alt="Bag Safety QR">
+                </div>
                 <h3>Bag Safety QR</h3>
-                <p>Lost your bag? Let anyone contact you instantly for return — perfect for travel, school & office</p>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹350 (60% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹499<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹300 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('bag', -1)">-</button>
                     <span id="qty-bag">0</span>
                     <button onclick="changeQty('bag', 1)">+</button>
                 </div>
-                <button onclick="addToCart('bag')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('bag')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('bag')" class="cart-btn">Add</button>
+                </div>
             </div>
 
             <!-- 💻 Laptop QR -->
             <div class="product-card">
-                <div class="offer-ribbon">OFFICE ESSENTIAL</div>
-                <div class="product-image">💻</div>
+                <span class="badge-top">OFFICE ESSENTIAL</span>
+                <div class="product-image">
+                    <img src="assets/images/products/laptop-qr.png" alt="Laptop Safety QR">
+                </div>
                 <h3>Laptop Safety QR</h3>
-                <p>Protect your laptop from loss or mix-ups — get contacted instantly if found during travel or work</p>
                 <div class="price-box">
-                    <span class="original-price">₹699</span>
-                    <span class="discounted-price">₹299 / year</span>
-                    <span class="save-text">Save ₹400 (57% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹499<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹300 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('laptop', -1)">-</button>
                     <span id="qty-laptop">0</span>
                     <button onclick="changeQty('laptop', 1)">+</button>
                 </div>
-                <button onclick="addToCart('laptop')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('laptop')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('laptop')" class="cart-btn">Add</button>
+                </div>
             </div>
 
             <!-- 📱 Mobile QR -->
             <div class="product-card">
-                <div class="offer-ribbon">MOST USEFUL</div>
-                <div class="product-image">📱</div>
+                <span class="badge-top">MOST USEFUL</span>
+                <div class="product-image">
+                    <img src="assets/images/products/mobile-qr.png" alt="Mobile Safety QR">
+                </div>
                 <h3>Mobile Safety QR</h3>
-                <p>If your phone is found, anyone can contact you instantly — no unlock needed</p>
                 <div class="price-box">
-                    <span class="original-price">₹499</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹250 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹499<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹300 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('mobile', -1)">-</button>
                     <span id="qty-mobile">0</span>
                     <button onclick="changeQty('mobile', 1)">+</button>
                 </div>
-                <button onclick="addToCart('mobile')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('mobile')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('mobile')" class="cart-btn">Add</button>
+                </div>
             </div>
 
-            <!-- 🧒 School Bag QR -->
+
+            <!-- 🧒 Luggage QR -->
             <div class="product-card">
-                <div class="offer-ribbon">FOR KIDS SAFETY</div>
-                <div class="product-image">🎒</div>
-                <h3>School Bag Safety QR</h3>
-                <p>Helps anyone contact parents instantly if a child’s bag is lost — ideal for school & travel safety</p>
+                <span class="badge-top">MOST IMPORTANT</span>
+                <div class="product-image">
+                    <img src="assets/images/products/luggage-qr.png" alt="Luggage Safety QR">
+                </div>
+                <h3>Luggage Bag Safety QR</h3>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹350 (60% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹499<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹300 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
-                    <button onclick="changeQty('schoolbag', -1)">-</button>
-                    <span id="qty-schoolbag">0</span>
-                    <button onclick="changeQty('schoolbag', 1)">+</button>
+                    <button onclick="changeQty('luggage', -1)">-</button>
+                    <span id="qty-luggage">0</span>
+                    <button onclick="changeQty('luggage', 1)">+</button>
                 </div>
-                <button onclick="addToCart('schoolbag')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('luggage')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('luggage')" class="cart-btn">Add</button>
+                </div>
             </div>
         </div>
+
+
 
         <!-- FAMILY -->
         <div class="product-slider category family">
 
             <!-- 🧒 Kids Safety QR -->
             <div class="product-card">
-                <div class="offer-ribbon">MOST IMPORTANT</div>
-                <div class="product-image">🧒</div>
+                <span class="badge-top">MOST IMPORTANT</span>
+                <div class="product-image">
+                    <img src="assets/images/products/kids-qr.png" alt="Kids Safety QR">
+                </div>
                 <h3>Kids Safety QR</h3>
-                <p>Helps anyone contact parents instantly in case of emergency — perfect for school & travel</p>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹299 / year</span>
-                    <span class="save-text">Save ₹300 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹249 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹350 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('kids', -1)">-</button>
                     <span id="qty-kids">0</span>
                     <button onclick="changeQty('kids', 1)">+</button>
                 </div>
-                <button onclick="addToCart('kids')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('kids')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('kids')" class="cart-btn">Add</button>
+                </div>
             </div>
+
 
             <!-- 👴 Elderly Safety QR -->
             <div class="product-card">
-                <div class="offer-ribbon">HIGH SAFETY</div>
-                <div class="product-image">👴</div>
+                <span class="badge-top">HIGH SAFETY</span>
+                <div class="product-image">
+                    <img src="assets/images/products/elderly-qr.png" alt="Elderly Safety QR">
+                </div>
                 <h3>Elderly Safety QR</h3>
-                <p>Quickly contact family in case of medical or emergency situations — ideal for senior citizens</p>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹299 / year</span>
-                    <span class="save-text">Save ₹300 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹249 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹350 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('elderly', -1)">-</button>
                     <span id="qty-elderly">0</span>
                     <button onclick="changeQty('elderly', 1)">+</button>
                 </div>
-                <button onclick="addToCart('elderly')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('elderly')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('elderly')" class="cart-btn">Add</button>
+                </div>
             </div>
 
-            <!-- 🐶 Pet QR -->
+
+            <!-- 👴 Pet Safety QR -->
             <div class="product-card">
-                <div class="offer-ribbon">PET LOVE</div>
-                <div class="product-image">🐶</div>
+                <span class="badge-top">PET LOVE</span>
+                <div class="product-image">
+                    <img src="assets/images/products/pet-qr.png" alt="Pet Safety QR">
+                </div>
                 <h3>Pet Safety QR</h3>
-                <p>If your pet gets lost, anyone can contact you instantly — faster and safer recovery</p>
                 <div class="price-box">
-                    <span class="original-price">₹499</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹250 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹400 (66% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('pet', -1)">-</button>
                     <span id="qty-pet">0</span>
                     <button onclick="changeQty('pet', 1)">+</button>
                 </div>
-                <button onclick="addToCart('pet')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('pet')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('pet')" class="cart-btn">Add</button>
+                </div>
             </div>
-
         </div>
+
+
 
         <!-- Home -->
         <div class="product-slider category home">
 
             <!-- 🏠 Home & Delivery QR -->
+
             <div class="product-card">
-                <div class="offer-ribbon">SMART HOME</div>
-                <div class="product-image">🏠</div>
-                <h3>Home Safety & Delivery QR</h3>
-                <p>Let neighbors or delivery agent contact you for delivery, emergencies, or access issues</p>
+                <span class="badge-top">SMART HOME</span>
+                <div class="product-image">
+                    <img src="assets/images/products/homedelivery-qr.png" alt="Smart Home Safety QR">
+                </div>
+                <h3>Home Safety QR</h3>
                 <div class="price-box">
-                    <span class="original-price">₹699</span>
-                    <span class="discounted-price">₹299 / year</span>
-                    <span class="save-text">Save ₹400 (57% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹249 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹350 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('homedelivery', -1)">-</button>
                     <span id="qty-homedelivery">0</span>
                     <button onclick="changeQty('homedelivery', 1)">+</button>
                 </div>
-                <button onclick="addToCart('homedelivery')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('homedelivery')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('homedelivery')" class="cart-btn">Add</button>
+                </div>
             </div>
 
-            <!-- 🔑 Key QR -->
+
             <div class="product-card">
-                <div class="offer-ribbon">MOST USEFUL</div>
-                <div class="product-image">🔑</div>
+                <span class="badge-top">MOST USEFUL</span>
+                <div class="product-image">
+                    <img src="assets/images/products/key-qr.png" alt="Key Safety QR">
+                </div>
                 <h3>Key Safety QR</h3>
-                <p>Lost your keys? Let anyone contact you instantly for quick and easy return</p>
                 <div class="price-box">
-                    <span class="original-price">₹399</span>
-                    <span class="discounted-price">₹199 / year</span>
-                    <span class="save-text">Save ₹200 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹400 (66% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('key', -1)">-</button>
                     <span id="qty-key">0</span>
                     <button onclick="changeQty('key', 1)">+</button>
                 </div>
-                <button onclick="addToCart('key')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('key')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('key')" class="cart-btn">Add</button>
+                </div>
             </div>
         </div>
+
+        <!-- BEST VALUE / COMBOS -->
+        <div class="product-slider category bestvalue active">
+
+            <!-- Vehicle Combo -->
+            <div class="product-card combo-card">
+                <span class="badge-top badge-combo">🔥 BEST COMBO</span>
+                <div class="product-image combo-img-wrap">
+                    <div class="product-image">
+                        <img src="assets/images/products/vehiclecombo-qr.png" alt="Vehicle Combo QR">
+            
+                    </div>
+                </div>
+                <h3>Vehicle Combo</h3>
+                <p class="combo-includes">Car + Bike QR</p>
+                <div class="price-box">
+                    <div class="price-row">
+                        <span class="original-price">₹1,498<small>/year</small></span>
+                        <span class="discounted-price">₹449 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹1049 (70% OFF)</div>
+                </div>
+                <div class="qty-box">
+                    <button onclick="changeQty('combo_vehicle', -1)">-</button>
+                    <span id="qty-combo_vehicle">0</span>
+                    <button onclick="changeQty('combo_vehicle', 1)">+</button>
+                </div>
+                <div class="product-actions">
+                    <button onclick="openProductModal('combo_vehicle')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('combo_vehicle')" class="cart-btn">Add</button>
+                </div>
+            </div>
+
+            <!-- Family Combo -->
+            <div class="product-card combo-card">
+                <span class="badge-top badge-combo">🔥 BEST COMBO</span>
+                <div class="product-image combo-img-wrap">
+                    <div class="product-image">
+                        <img src="assets/images/products/familycombo-qr.png" alt="Family Combo QR">
+                        
+                    </div>
+                </div>
+                <h3>Family Combo</h3>
+                <p class="combo-includes">Car + Kids + Elderly QR</p>
+                <div class="price-box">
+                    <div class="price-row">
+                        <span class="original-price">₹2,097<small>/year</small></span>
+                        <span class="discounted-price">₹749 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹1348 (64% OFF)</div>
+                </div>
+                <div class="qty-box">
+                    <button onclick="changeQty('combo_family', -1)">-</button>
+                    <span id="qty-combo_family">0</span>
+                    <button onclick="changeQty('combo_family', 1)">+</button>
+                </div>
+                <div class="product-actions">
+                    <button onclick="openProductModal('combo_family')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('combo_family')" class="cart-btn">Add</button>
+                </div>
+            </div>
+
+            <!-- Personnel Essentials Combo -->
+            <div class="product-card combo-card">
+                <span class="badge-top badge-combo">🔥 BEST COMBO</span>
+                <div class="product-image combo-img-wrap">
+                    <div class="product-image">
+                        <img src="assets/images/products/personalcombo-qr.png" alt="Personal Combo QR">
+                       
+                    </div>
+                </div>
+                <h3>Personal Combo</h3>
+                <p class="combo-includes">Bag + Laptop + Key QR</p>
+                <div class="price-box">
+                    <div class="price-row">
+                        <span class="original-price">₹1497<small>/year</small></span>
+                        <span class="discounted-price">₹499 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹998 (66% OFF)</div>
+                </div>
+                <div class="qty-box">
+                    <button onclick="changeQty('combo_personal', -1)">-</button>
+                    <span id="qty-combo_personal">0</span>
+                    <button onclick="changeQty('combo_personal', 1)">+</button>
+                </div>
+                <div class="product-actions">
+                    <button onclick="openProductModal('combo_personal')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('combo_personal')" class="cart-btn">Add</button>
+                </div>
+            </div>
+
+            <!-- Complete Home Combo -->
+            <div class="product-card combo-card">
+                <span class="badge-top badge-combo">🔥 BEST COMBO</span>
+                <div class="product-image combo-img-wrap">
+                    <div class="product-image">
+                        <img src="assets/images/products/homecombo-qr.png" alt="Home Combo QR">
+                        
+                    </div>
+                </div>
+                <h3>Complete Home Combo</h3>
+                <p class="combo-includes">Car + Bike + Kids + Key QR</p>
+                <div class="price-box">
+                    <div class="price-row">
+                        <span class="original-price">₹2,696<small>/year</small></span>
+                        <span class="discounted-price">₹849 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹1847 (68% OFF)</div>
+                </div>
+                <div class="qty-box">
+                    <button onclick="changeQty('combo_home', -1)">-</button>
+                    <span id="qty-combo_home">0</span>
+                    <button onclick="changeQty('combo_home', 1)">+</button>
+                </div>
+                <div class="product-actions">
+                    <button onclick="openProductModal('combo_home')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('combo_home')" class="cart-btn">Add</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 🔑 Business Catgeory -->
 
         <div class="product-slider category business">
 
             <!-- 🧑‍💼 Employee QR -->
             <div class="product-card">
-                <div class="offer-ribbon">SMART ID</div>
-                <div class="product-image">🧑‍💼</div>
+                <span class="badge-top">SMART ID</span>
+                <div class="product-image">
+                    <img src="assets/images/products/employee-qr.jpg" alt="Employee Safety QR">
+                </div>
                 <h3>Employee Safety QR</h3>
-                <p>Attach to ID cards — allows quick contact in case of emergency or lost ID</p>
                 <div class="price-box">
-                    <span class="original-price">₹499</span>
-                    <span class="discounted-price">₹249 / year</span>
-                    <span class="save-text">Save ₹250 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹499<small>/year</small></span>
+                        <span class="discounted-price">₹199 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹300 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('employee', -1)">-</button>
                     <span id="qty-employee">0</span>
                     <button onclick="changeQty('employee', 1)">+</button>
                 </div>
-                <button onclick="addToCart('employee')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('employee')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('employee')" class="cart-btn">Add</button>
+                </div>
             </div>
+
+
 
             <!-- 🏪 Shop QR -->
             <div class="product-card">
-                <div class="offer-ribbon">CUSTOMER CONNECT</div>
-                <div class="product-image">🏪</div>
+                <span class="badge-top">CUSTOMER CONNECT</span>
+                <div class="product-image">
+                    <img src="assets/images/products/shop-qr.jpg" alt="Shop Safety QR">
+                </div>
                 <h3>Shop Safety QR</h3>
-                <p>Let customers contact you instantly for queries, feedback, or support</p>
                 <div class="price-box">
-                    <span class="original-price">₹599</span>
-                    <span class="discounted-price">₹299 / year</span>
-                    <span class="save-text">Save ₹300 (50% OFF)</span>
+                    <div class="price-row">
+                        <span class="original-price">₹599<small>/year</small></span>
+                        <span class="discounted-price">₹249 <small>/year</small></span>
+                    </div>
+                    <div class="save-text">Save ₹350 (60% OFF)</div>
                 </div>
                 <div class="qty-box">
                     <button onclick="changeQty('shop', -1)">-</button>
                     <span id="qty-shop">0</span>
                     <button onclick="changeQty('shop', 1)">+</button>
                 </div>
-                <button onclick="addToCart('shop')" class="add-cart-btn">Add to Cart</button>
+                <div class="product-actions">
+                    <button onclick="openProductModal('shop')" class="view-btn">View Details</button>
+                    <button onclick="addToCart('shop')" class="cart-btn">Add</button>
+                </div>
             </div>
         </div>
-
-
-
-
-
     </section>
 
     <!-- TESTIMONIALS -->
@@ -817,12 +1064,10 @@
                     <button type="button"
                             class="btn-whatsapp"
                             onclick="connectWhatsApp()">
-
-                        <img src="/assets/images/whatsapp.svg"
-                             alt="WhatsApp"
-                             class="wa-icon">
-
-                        Connect on WhatsApp
+                            <img src="/assets/images/whatsapp.svg"
+                            alt="WhatsApp"
+                            class="wa-icon">
+                            <p>Connect on WhatsApp</p>
                     </button>
                 </div>
             </form>
@@ -830,7 +1075,576 @@
     </div>
 
     <div id="cartToast">+1 Added to cart</div>
+    <!-- ── PRODUCT DETAIL MODAL ── -->
+    <div id="productModal" class="pmodal-overlay" onclick="closeProductModal(event)">
+        <div class="pmodal-box">
+
+            <button class="pmodal-close" onclick="closeProductModal()">✕</button>
+
+            <!-- Top: image + quick info -->
+            <div class="pmodal-top">
+                <div class="pmodal-img-wrap">
+                    <img id="pmodal-img" src="" alt="Product Image" onerror="this.style.display='none'; document.getElementById('pmodal-emoji').style.display='block'">
+                    <div id="pmodal-emoji" class="pmodal-emoji-fallback"></div>
+                </div>
+                <div class="pmodal-info">
+                    <div id="pmodal-ribbon" class="pmodal-ribbon"></div>
+                    <h2 id="pmodal-title"></h2>
+                    <p id="pmodal-desc" class="pmodal-desc"></p>
+
+                    <!-- What's included -->
+                    <div class="pmodal-included">
+                        <div class="pmodal-included-title">📦 What's Included</div>
+                        <ul id="pmodal-includes"></ul>
+                    </div>
+
+                    <!-- Price + CTA -->
+                    <div class="pmodal-price-row">
+                        <div>
+                            <span id="pmodal-original" class="pmodal-original-price"></span>
+                            <span id="pmodal-price" class="pmodal-discounted-price"></span>
+                            <span id="pmodal-save" class="pmodal-save"></span>
+                        </div>
+                        <div class="pmodal-cart-row">
+                            <div class="qty-box">
+                                <button onclick="changeModalQty(-1)">-</button>
+                                <span id="modal-qty">1</span>
+                                <button onclick="changeModalQty(1)">+</button>
+                            </div>
+                            <button id="pmodal-cart-btn" class="pmodal-add-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="pmodal-section">
+                <h3>✅ Key Features</h3>
+                <div id="pmodal-features" class="pmodal-features-grid"></div>
+            </div>
+
+            <!-- FAQs -->
+            <div class="pmodal-section">
+                <h3>❓ Common Questions</h3>
+                <div id="pmodal-faqs" class="pmodal-faqs"></div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+
+
+        /* ── PRODUCT DATA — all desc/includes/features/faqs based on real-world use ── */
+        const productData = {
+
+            /* ════════════════════════ COMBOS ════════════════════════ */
+
+            combo_vehicle: {
+                emoji: '🚗🏍️', ribbon: 'BEST COMBO',
+                title: 'Vehicle Combo',
+                image: 'assets/images/products/vehiclecombo-qr.png',
+                desc: 'One combo to protect both your car and bike. Whether your vehicle is wrongly parked, blocking someone, lights left on, or hit while you were away — the finder scans the QR and you get a WhatsApp alert instantly. No app needed for the finder.',
+                includes: [
+                    '1 × Car Safety QR (Weatherproof sticker)',
+                    '1 × Bike Safety QR (Weatherproof sticker)',
+                    '1 Year activation for both QRs',
+                    'Each QR independently linked & managed',
+                    'Private contact — your number never shown'
+                ],
+                originalPrice: '₹1,498', price: '₹499 / year', save: 'Save ₹1049 (70% OFF)',
+                cartKey: 'combo_vehicle',
+                features: ['2 separate QRs — one per vehicle', 'Each managed independently from dashboard', 'Instant WhatsApp alert on scan', 'No app needed for finder', 'Weatherproof stickers for outdoor use', '1 year validity for both'],
+                faqs: [
+                    { q: 'Do I get 2 separate QR stickers?', a: 'Yes. You receive 2 individual weatherproof QR stickers — one for your car and one for your bike. Each is activated and managed separately from your dashboard.' },
+                    { q: 'Can each QR be linked to a different number?', a: 'Yes. Each QR can have a different WhatsApp number linked — ideal if different family members use the car and bike.' },
+                    { q: 'What situations is this useful for?', a: 'Wrong parking complaints, car or bike blocking someone, lights left on, damage noticed while you were away, or any situation where someone needs to reach you about your vehicle urgently.' }
+                ]
+            },
+
+            combo_family: {
+                emoji: '🚗🧒👴', ribbon: 'BEST COMBO',
+                title: 'Family Combo',
+                image: 'assets/images/products/familycombo-qr.png',
+                desc: 'Complete family safety in one pack. Protect your car, your child, and your elderly family member — each with their own independent QR. Whether your car is blocking someone, your child gets separated in a crowd, or your elderly parent needs help in public — one scan reaches the right family member instantly.',
+                includes: [
+                    '1 × Car Safety QR (Weatherproof sticker)',
+                    '1 × Kids Safety QR (Wearable tag — wristband or badge)',
+                    '1 × Elderly Safety QR (Wearable tag — lanyard or wristband)',
+                    '1 Year activation for all 3 QRs',
+                    'Each QR independently linked to the right family member',
+                    'Private contact — number never shown to finder'
+                ],
+                originalPrice: '₹2,097', price: '₹749 / year', save: 'Save ₹1348 (64% OFF)',
+                cartKey: 'combo_family',
+                features: ['3 QRs covering vehicle + 2 family members', 'Car QR alerts you for vehicle issues', 'Kids QR alerts parent when child needs help', 'Elderly QR alerts family when senior needs help', 'Each linked to right person independently', '1 year validity for all 3'],
+                faqs: [
+                    { q: 'What exactly do I receive?', a: '3 separate physical QR products: a weatherproof sticker for your car, a wearable tag for your child (wristband or badge style), and a wearable tag for your elderly family member (lanyard or wristband). Each ships together and is activated separately.' },
+                    { q: 'Can each QR alert a different family member?', a: 'Yes. The car QR alerts you, the kids QR alerts the parent, and the elderly QR alerts a family member — each linked to the right person from your dashboard.' },
+                    { q: 'How does the kids QR work in real life?', a: 'If your child gets separated in a crowd, mall, or school event, any responsible adult scans the tag on the child. A simple form opens — they send a message and you receive it on WhatsApp within seconds.' }
+                ]
+            },
+
+            combo_personal: {
+                emoji: '👝💻🔑', ribbon: 'BEST COMBO',
+                title: 'Personal Combo',
+                image: 'assets/images/products/personalcombo-qr.png',
+                desc: 'Protect the three things you carry every day — your bag, laptop, and keys. If any of them are lost or left behind, whoever finds them scans the QR and you get a WhatsApp alert immediately. No phone number on the tag, no app for the finder.',
+                includes: [
+                    '1 × Bag Safety QR Tag (keyring loop attachment)',
+                    '1 × Laptop Safety QR Sticker (slim, laptop-safe adhesive)',
+                    '1 × Key Safety QR Tag (mini keyring)',
+                    '1 Year activation for all 3 QRs',
+                    'Each QR independently linked',
+                    'Private contact — number never shown'
+                ],
+                originalPrice: '₹1497', price: '₹499 / year', save: 'Save ₹998 (66% OFF)',
+                cartKey: 'combo_personal',
+                features: ['3 QRs for your daily carry items', 'Bag tag + slim laptop sticker + mini key tag', 'Instant WhatsApp alert when any is found', 'No app needed for finder', 'Each managed independently', '1 year validity for all 3'],
+                faqs: [
+                    { q: 'What form do the 3 products come in?', a: 'A small tag with a keyring loop for your bag strap, a slim sticker for your laptop lid (removable, no residue), and a mini tag that clips onto your existing keychain. All 3 ship together.' },
+                    { q: 'If I lose my laptop in a café, how does this help?', a: 'The person who finds it scans the QR sticker on the lid — they do not need to unlock or open the laptop. A message form appears on their phone. They send a message and you receive it on WhatsApp instantly.' },
+                    { q: 'Can I link all 3 to the same number?', a: 'Yes, or different numbers — your choice per QR from the dashboard. Update anytime.' }
+                ]
+            },
+
+            combo_home: {
+                emoji: '🚗🏍️🧒🔑', ribbon: 'BEST COMBO',
+                title: 'Complete Home Combo',
+                image: 'assets/images/products/homecombo-qr.png',
+                desc: 'The most complete everyday protection pack. Covers your car, bike, child, and keys — the four things that matter most daily. One purchase, four independent QRs, each linked to the right person.',
+                includes: [
+                    '1 × Car Safety QR (Weatherproof sticker)',
+                    '1 × Bike Safety QR (Weatherproof sticker)',
+                    '1 × Kids Safety QR (Wearable tag)',
+                    '1 × Key Safety QR Tag (mini keyring)',
+                    '1 Year activation for all 4 QRs',
+                    'Each QR independently linked & managed'
+                ],
+                originalPrice: '₹2,696', price: '₹849 / year', save: 'Save ₹1847 (68% OFF)',
+                cartKey: 'combo_home',
+                features: ['4 QRs — vehicles, child, and keys all covered', 'Car and bike QRs for parking/blocking alerts', 'Kids QR to reunite if child gets separated', 'Key QR so lost keys find their way back', 'Each managed independently from dashboard', '1 year validity for all 4'],
+                faqs: [
+                    { q: 'How many physical products will I receive?', a: '4 separate products: a car sticker, a bike sticker, a wearable kids tag, and a mini key tag. All shipped together, activated separately from your dashboard.' },
+                    { q: 'What is the saving vs buying individually?', a: 'Buying individually would cost ₹1,746. This combo is ₹999 — saving you ₹747, over 42% off.' }
+                ]
+            },
+
+            /* ════════════════════════ VEHICLE ════════════════════════ */
+
+            car: {
+                emoji: '🚗', ribbon: 'ON OFFER',
+                title: 'Car Safety QR',
+                image: 'assets/images/products/car-qr.png',
+                desc: 'A weatherproof QR sticker for your car. When you\'re away from your vehicle and someone needs to reach you urgently — wrong parking, blocking their way, lights left on, or damage noticed — they scan the QR and you get a WhatsApp message instantly. No app needed for the finder.',
+                includes: [
+                    '1 × Weatherproof QR Sticker (3×4 inch)',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — your number never shown to finder'
+                ],
+                originalPrice: '₹899', price: '₹349 / year', save: 'Save ₹550 (61% OFF)',
+                cartKey: 'car',
+                features: ['Instant WhatsApp alert when someone scans', 'Works on any smartphone — no app for finder', 'Your number stays 100% private', 'Weatherproof — safe for outdoor use', 'Reply directly to finder from WhatsApp', 'Update linked number anytime from dashboard'],
+                faqs: [
+                    { q: 'What will I receive?', a: 'A physical weatherproof QR sticker (3×4 inch). Stick it on your windscreen or car body, activate it from your dashboard, and it goes live immediately.' },
+                    { q: 'What situations is this most useful for?', a: 'Wrong parking complaints, your car blocking someone\'s gate or exit, headlights or hazards left on, a dent or scratch noticed while you were away, or your car alarm going off.' },
+                    { q: 'How does the finder contact me?', a: 'They point their phone camera at the sticker — no app download needed. A page opens with preset issue options and an optional message box. You receive their message on WhatsApp within seconds.' },
+                    { q: 'Is my phone number shown to the finder?', a: 'No. Your number is never revealed. The finder only sees a contact form — all communication goes through our system.' },
+                    { q: 'Can I reply to the finder?', a: 'Yes. When you receive their WhatsApp message, you can choose to reply directly. The finder sees your reply on the scan page in real time.' }
+                ]
+            },
+
+            bike: {
+                emoji: '🏍️', ribbon: 'ON OFFER',
+                title: 'Bike Safety QR',
+                image: 'assets/images/products/bike-qr.png',
+                desc: 'A weatherproof QR sticker for your bike. When your bike is parked and you\'re away — whether it\'s blocking someone, fallen over, or someone spotted damage — they scan the QR and you get a WhatsApp alert instantly. No app needed for the finder.',
+                includes: [
+                    '1 × Weatherproof QR Sticker',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — your number never shown to finder'
+                ],
+                originalPrice: '₹599', price: '₹199 / year', save: 'Save ₹400 (67% OFF)',
+                cartKey: 'bike',
+                features: ['Instant WhatsApp alert when someone scans', 'Works on any smartphone — no app for finder', 'Your number stays 100% private', 'Weatherproof — safe for outdoor use', 'Reply directly to finder from WhatsApp', 'Update linked number anytime from dashboard'],
+                faqs: [
+                    { q: 'What will I receive?', a: 'A physical weatherproof QR sticker suitable for bike surfaces. Stick it on a visible spot — side panel, fuel tank area, or number plate surrounds — activate from your dashboard, and it goes live.' },
+                    { q: 'What situations is this most useful for?', a: 'Bike blocking someone\'s gate or parking spot, bike fallen over and causing obstruction, headlight left on, or someone noticing damage or a fuel leak while you\'re away.' },
+                    { q: 'How does the finder contact me?', a: 'They scan the sticker with their phone camera — no app needed. A page opens with preset issue options. You get their message on WhatsApp within seconds.' },
+                    { q: 'Is my phone number shown to the finder?', a: 'No. Your number is never revealed. All communication goes through our system.' }
+                ]
+            },
+
+            auto: {
+                emoji: '🛺', ribbon: 'ON OFFER',
+                title: 'Auto Safety QR',
+                image: 'assets/images/products/auto-qr.png',
+                desc: 'A weatherproof QR sticker for your auto-rickshaw. When your auto is parked and you\'re away — blocking a lane, wrongly parked, or someone noticed damage — they scan the QR and you get a WhatsApp alert instantly. Keep your personal number off the vehicle while staying reachable.',
+                includes: [
+                    '1 × Weatherproof QR Sticker',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — your number never shown to finder'
+                ],
+                originalPrice: '₹599', price: '₹249 / year', save: 'Save ₹350 (58% OFF)',
+                cartKey: 'auto',
+                features: ['Instant WhatsApp alert when someone scans', 'Works on any smartphone — no app for finder', 'Your personal number stays private', 'Weatherproof sticker for outdoor use', 'Reply to finder directly from WhatsApp', 'Update linked number anytime from dashboard'],
+                faqs: [
+                    { q: 'What situations is this most useful for?', a: 'Your auto is parked and blocking a lane or gate while you stepped away. Traffic police or a nearby resident scans the QR and you get an alert to move it immediately — without your number being on the vehicle.' },
+                    { q: 'How does the finder contact me?', a: 'They scan the sticker with their phone camera — no app needed. A form opens with preset options. You receive the message on WhatsApp within seconds and can reply if needed.' },
+                    { q: 'Why keep my number off the auto?', a: 'Putting your personal number on a vehicle means anyone can call you anytime. With this QR, you stay reachable for genuine issues while keeping your number completely private.' }
+                ]
+            },
+
+            CV: {
+                emoji: '🚚', ribbon: 'BEST FOR FLEET',
+                title: 'Commercial Vehicle Safety QR',
+                image: 'assets/images/products/cv-qr.png',
+                desc: 'A heavy-duty weatherproof QR sticker for trucks, delivery vans, and fleet vehicles. When your vehicle is parked blocking a road or loading bay, or the driver has stepped away — anyone can scan and reach the owner or fleet manager instantly on WhatsApp. No personal number on the vehicle.',
+                includes: [
+                    '1 × Heavy-duty Weatherproof QR Sticker',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — driver\'s personal number never on vehicle'
+                ],
+                originalPrice: '₹899', price: '₹349 / year', save: 'Save ₹550 (61% OFF)',
+                cartKey: 'CV',
+                features: ['Heavy-duty sticker for trucks and vans', 'Instant WhatsApp alert to owner or fleet manager', 'No app needed for finder', 'Driver\'s personal number stays private', 'Linked number updatable anytime — driver changes no problem', '1 year validity'],
+                faqs: [
+                    { q: 'What situations is this most useful for?', a: 'Truck or van blocking a road, lane, or loading bay while the driver has stepped inside for a delivery. Traffic, police, or a business owner scans the QR and the fleet manager gets an immediate WhatsApp alert.' },
+                    { q: 'What if the driver changes?', a: 'Just update the linked number from your dashboard. The sticker stays on the vehicle — no reprinting needed.' },
+                    { q: 'Can I link it to a fleet manager instead of the driver?', a: 'Yes. Link it to whoever should receive alerts — driver, owner, or fleet manager. Update anytime.' }
+                ]
+            },
+
+            /* ════════════════════════ PERSONAL ════════════════════════ */
+
+            bag: {
+                emoji: '👝', ribbon: 'BEST FOR GIRLS',
+                title: 'Bag Safety QR',
+                image: 'assets/images/products/bag-qr.png',
+                desc: 'A small QR tag for your handbag, college bag, or office bag. If your bag is left behind or found by someone, they scan the tag and you get a WhatsApp alert immediately — without your phone number ever being on the bag.',
+                includes: [
+                    '1 × QR Tag with keyring loop',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — your number never on the tag'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'bag',
+                features: ['Small tag attaches to any bag handle or strap', 'Instant WhatsApp alert when someone scans', 'No app needed for finder', 'Your number stays completely private', 'Works on any smartphone camera', '1 year validity'],
+                faqs: [
+                    { q: 'What form does this come in?', a: 'A small QR tag with a keyring loop. Attach it to your bag\'s handle or strap — similar to a luggage tag.' },
+                    { q: 'If I leave my bag in a café or on a train, how does this help?', a: 'Whoever finds it scans the QR tag. A form opens on their phone — no app needed. They select "I found your bag" and you get a WhatsApp alert immediately with a way to contact them back.' },
+                    { q: 'Is my phone number visible on the tag?', a: 'No. Only the QR code is on the tag. Your number is never shown to the finder.' }
+                ]
+            },
+
+            laptop: {
+                emoji: '💻', ribbon: 'OFFICE ESSENTIAL',
+                title: 'Laptop Safety QR',
+                image: 'assets/images/products/laptop-qr.png',
+                desc: 'A slim QR sticker for your laptop lid. If your laptop is left behind in a café, airport lounge, or meeting room, whoever finds it scans the sticker and you get a WhatsApp alert instantly — without them needing to open or unlock your device.',
+                includes: [
+                    '1 × Slim QR Sticker (laptop-safe removable adhesive)',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Finder never needs to access your device'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'laptop',
+                features: ['Slim sticker fits neatly on laptop lid', 'Finder contacts you without touching your device', 'Instant WhatsApp alert when scanned', 'No app needed for finder', 'Removable adhesive — no residue', '1 year validity'],
+                faqs: [
+                    { q: 'Does the finder need to open or unlock my laptop?', a: 'No. The QR sticker is on the outside of the lid. They scan it with their phone camera and a contact form opens — your device is never touched.' },
+                    { q: 'Will the sticker damage my laptop?', a: 'No. It uses a laptop-safe removable adhesive. It can be peeled off cleanly without leaving any residue.' },
+                    { q: 'What if my laptop is left in a café and the staff find it?', a: 'They scan the sticker, select "Found your laptop", and you receive a WhatsApp alert with their message immediately. You can reply and arrange to collect it.' }
+                ]
+            },
+
+            mobile: {
+                emoji: '📱', ribbon: 'MOST USEFUL',
+                title: 'Mobile Safety QR',
+                image: 'assets/images/products/mobile-qr.png',
+                desc: 'A slim QR sticker for the back of your phone or phone case. If your phone is lost and found by someone — even if it\'s locked — they scan the sticker with their own phone and you get a WhatsApp alert on another device or number. No app needed for the finder.',
+                includes: [
+                    '1 × Slim QR Sticker for phone back or case',
+                    '1 Year Validity',
+                    'Works even when your phone is locked or off',
+                    'Private — your number never shown to finder'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'mobile',
+                features: ['Finder uses their own phone to scan — yours stays locked', 'Alert goes to a backup number you set', 'Instant WhatsApp alert when someone scans', 'No app needed for finder', 'Slim sticker — barely visible on device', '1 year validity'],
+                faqs: [
+                    { q: 'How does this work if my phone is locked?', a: 'The finder uses their own phone camera to scan the QR sticker on the back of your phone. A contact form opens on their phone. The alert goes to a backup number you set during activation — a family member\'s number, or your work phone.' },
+                    { q: 'What number gets the alert?', a: 'During activation you set a primary number and optionally a backup number. If your phone is lost, alerts go to whichever number you configured — typically a family member\'s phone.' },
+                    { q: 'Will the sticker look bad on my phone?', a: 'It\'s a slim, minimal sticker. Many people place it on the back near the bottom edge so it\'s discreet but still scannable.' }
+                ]
+            },
+
+            luggage: {
+                emoji: '🧳', ribbon: 'TRAVEL ESSENTIAL',
+                title: 'Luggage Safety QR',
+                image: 'assets/images/products/luggage-qr.png',
+                desc: 'A durable QR tag for your travel bag or suitcase. If your luggage is picked up by mistake at the baggage carousel, lost at a hotel, or left at a station — whoever finds it scans the tag and you get a WhatsApp alert immediately. No phone number needed on the bag.',
+                includes: [
+                    '1 × Durable QR Tag with luggage loop',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — your number never on the tag'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'luggage',
+                features: ['Loop attachment fits any luggage handle', 'Instant WhatsApp alert when scanned', 'Works even when you have no signal — alert waits', 'No app needed for finder', 'Durable tag for frequent travel', '1 year validity'],
+                faqs: [
+                    { q: 'How does this help at the baggage carousel?', a: 'If someone picks up your bag by mistake, they\'ll notice the QR tag and scan it. A form opens on their phone — they send a message and you get a WhatsApp alert immediately to coordinate return.' },
+                    { q: 'Is my number or address on the tag?', a: 'No personal information is on the tag — only the QR code. Your number is never shown to the finder.' },
+                    { q: 'What if I\'m in an area with no signal when it\'s scanned?', a: 'The finder\'s message is sent from their phone and arrives on your WhatsApp as soon as you get signal.' }
+                ]
+            },
+
+            /* ════════════════════════ FAMILY ════════════════════════ */
+
+            kids: {
+                emoji: '🧒', ribbon: 'MOST IMPORTANT',
+                title: 'Kids Safety QR',
+                image: 'assets/images/products/kids-qr.png',
+                desc: 'A QR tag for your child — as a badge. If your child gets separated in a mall, fair, or crowded event, any responsible adult scans the tag and you receive a WhatsApp alert instantly with their message. No stranger gets your number.',
+                includes: [
+                    '1 × Wearable QR Tag (badge style)',
+                    '1 Year Validity',
+                    'Instant WhatsApp alert to parent',
+                    'Private — parent\'s number never shown to finder'
+                ],
+                originalPrice: '₹599', price: '₹249 / year', save: 'Save ₹350 (58% OFF)',
+                cartKey: 'kids',
+                features: ['Wearable as badge', 'Instant WhatsApp alert to parent when scanned', 'Stranger never sees parent\'s number', 'No app needed for the person who helps', 'Works on any smartphone camera', '1 year validity'],
+                faqs: [
+                    { q: 'How does this work if my child gets lost in a mall?', a: 'A security guard or helpful adult spots your child, scans the QR tag on their dress. A simple form opens — they send a short message like "Found your child near Gate 2" and you receive it on WhatsApp within seconds.' },
+                    { q: 'Does the person who helps get my phone number?', a: 'No. Your number is never shown to the finder. All communication goes through our system. You can choose to reply from WhatsApp if you want to call them.' },
+                    { q: 'Can the tag be worn daily?', a: 'Yes. It\'s designed as a clip-on badge suitable for everyday wear. Durable enough for school and outdoor activities.' }
+                ]
+            },
+
+            elderly: {
+                emoji: '👴', ribbon: 'HIGH SAFETY',
+                title: 'Elderly Safety QR',
+                image: 'assets/images/products/elderly-qr.png',
+                desc: 'A QR tag for senior family members — as a badge. If your elderly parent or grandparent has dementia, gets confused, lost in public, or needs help and cannot communicate clearly — any helpful person scans the tag and your family gets a WhatsApp alert immediately.',
+                includes: [
+                    '1 × Wearable QR Tag (badge style)',
+                    '1 Year Validity',
+                    'Instant WhatsApp alert to family member',
+                    'Private — family number never shown to finder'
+                ],
+                originalPrice: '₹599', price: '₹249 / year', save: 'Save ₹350 (58% OFF)',
+                cartKey: 'elderly',
+                features: ['Wearable as badge', 'Instant WhatsApp alert to family when scanned', 'Family number never shown to finder', 'Simple for any person to use — just scan', 'No app needed for finder', '1 year validity'],
+                faqs: [
+                    { q: 'How does this help if my parent gets lost?', a: 'If your elderly parent is found confused or disoriented in public, any passerby, auto driver, or shopkeeper can scan the tag on their dress. A simple form opens — they send a message and your family gets a WhatsApp alert immediately.' },
+                    { q: 'Does the person who helps see our family\'s number?', a: 'No. Your number is never revealed to the finder. You receive their message through our system and can choose to call them back from WhatsApp.' },
+                    { q: 'Is it comfortable to wear daily?', a: 'Yes. It comes as a clip-on badge. Lightweight and designed for everyday wear by seniors.' }
+                ]
+            },
+
+            pet: {
+                emoji: '🐶', ribbon: 'PET LOVE',
+                title: 'Pet Safety QR',
+                image: 'assets/images/products/pet-qr.png',
+                desc: 'A durable QR tag for your pet\'s collar. If your pet escapes or goes missing and someone finds them, they scan the collar tag and you get a WhatsApp alert immediately — with their message and optionally their location. No phone number needed on the collar.',
+                includes: [
+                    '1 × Durable QR Tag with collar ring',
+                    '1 Year Validity',
+                    'Instant WhatsApp alert to owner',
+                    'Weatherproof — safe for outdoor pets'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'pet',
+                features: ['Collar ring fits any standard pet collar', 'Instant WhatsApp alert when pet is found', 'Finder can optionally share their location', 'No app needed for finder', 'Weatherproof for outdoor use', '1 year validity'],
+                faqs: [
+                    { q: 'How does this help if my pet runs away?', a: 'Whoever finds your pet scans the QR tag on the collar with their phone camera. A form opens — they send a message like "Found your dog near MG Road" and you get a WhatsApp alert immediately.' },
+                    { q: 'Is my phone number shown on the collar tag?', a: 'No. Only the QR code is on the tag — no personal information. The finder never sees your number directly.' },
+                    { q: 'Can the finder share their location?', a: 'Yes. The scan page asks if they\'d like to share their location. If they agree, you receive a Google Maps link along with their message.' }
+                ]
+            },
+
+            /* ════════════════════════ HOME ════════════════════════ */
+
+            homedelivery: {
+                emoji: '🏠', ribbon: 'SMART HOME',
+                title: 'Home Safety & Delivery QR',
+                image: 'assets/images/products/homedelivery-qr.png',
+                desc: 'A weatherproof QR sticker for your door or gate. When you\'re not home and a delivery agent arrives, or a neighbour needs to reach you urgently — they scan the sticker and you get a WhatsApp alert instantly. No need to put your number on the door.',
+                includes: [
+                    '1 × Outdoor Weatherproof QR Sticker (door or gate size)',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — your number never on the door'
+                ],
+                originalPrice: '₹599', price: '₹249 / year', save: 'Save ₹350 (58% OFF)',
+                cartKey: 'homedelivery',
+                features: ['Weatherproof sticker for door or gate', 'Delivery agent alerts you when you\'re not home', 'Neighbour or guest can reach you without your number', 'Instant WhatsApp alert when scanned', 'No app needed for visitor', '1 year validity'],
+                faqs: [
+                    { q: 'How does a delivery agent use this?', a: 'They scan the QR sticker on your door, select "Delivery attempt" or type a short message. You receive a WhatsApp alert immediately — even if you\'re at the office — and can reply with instructions.' },
+                    { q: 'Can my neighbour use this to reach me?', a: 'Yes. If a neighbour has an urgent issue — a water leak, a package left outside, anything — they scan and you\'re alerted instantly without your number being on the door.' },
+                    { q: 'Can I update the number it contacts?', a: 'Yes. Update anytime from your dashboard. The sticker stays the same — no replacement needed.' }
+                ]
+            },
+
+            key: {
+                emoji: '🔑', ribbon: 'MOST USEFUL',
+                title: 'Key Safety QR',
+                image: 'assets/images/products/key-qr.png',
+                desc: 'A mini QR tag for your keychain. If your keys are found by someone, they scan the tag and you get a WhatsApp alert immediately — no phone number on the keys, no personal details exposed.',
+                includes: [
+                    '1 × Mini QR Tag with keyring hole',
+                    '1 Year Validity',
+                    'Instant WhatsApp alert when found',
+                    'Private — your number never on the tag'
+                ],
+                originalPrice: '₹399', price: '₹199 / year', save: 'Save ₹200 (50% OFF)',
+                cartKey: 'key',
+                features: ['Mini tag clips onto existing keychain', 'Instant WhatsApp alert when someone scans', 'No app needed for finder', 'No personal details on the tag', 'Compact and durable', '1 year validity'],
+                faqs: [
+                    { q: 'What does this look like on my keychain?', a: 'A small, flat tag with a keyring hole — similar in size to a standard key tag. It clips onto your existing keychain without adding bulk.' },
+                    { q: 'If someone finds my keys, how do they contact me?', a: 'They scan the mini QR tag with their phone camera. A form opens — they send a message like "Found your keys outside Gate 3" and you get a WhatsApp alert immediately.' },
+                    { q: 'Is my address or number shown on the tag?', a: 'No. The tag only has the QR code — no name, number, or address. The finder can only contact you through our system.' }
+                ]
+            },
+
+            /* ════════════════════════ BUSINESS ════════════════════════ */
+
+            schoolbag: {
+                emoji: '🎒', ribbon: 'FOR KIDS',
+                title: 'School Bag Safety QR',
+                image: 'assets/images/products/schoolbag-qr.png',
+                desc: 'A QR tag for your child\'s school bag. If the bag is misplaced, left on a bus, or forgotten at school — a teacher, bus conductor, or any helpful adult scans the tag and you get a WhatsApp alert immediately. No parent\'s number needed on the bag.',
+                includes: [
+                    '1 × QR Tag with bag attachment',
+                    '1 Year Validity',
+                    'Instant WhatsApp alert to parent',
+                    'Private — parent\'s number never on bag'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'schoolbag',
+                features: ['Tag attaches to any school bag', 'Instant WhatsApp alert to parent when scanned', 'Teacher or staff can reach parent immediately', 'No app needed for finder', 'Parent\'s number stays private', '1 year validity'],
+                faqs: [
+                    { q: 'How does this help if my child\'s bag is left on the school bus?', a: 'The bus conductor or another parent finds the bag, scans the QR tag. A form opens — they send a message and you receive a WhatsApp alert immediately with their contact information.' },
+                    { q: 'Does the person who finds the bag see my number?', a: 'No. Your number is never shown. All communication goes through our system — you can choose to call them back from WhatsApp if needed.' }
+                ]
+            },
+
+            employee: {
+                emoji: '🧑‍💼', ribbon: 'SMART ID',
+                title: 'Employee Safety QR',
+                image: 'assets/images/products/employee-qr.jpg',
+                desc: 'A QR tag for employee ID cards or lanyards. If an employee has a medical emergency at work or in public, or their ID is found after being lost — anyone can scan and immediately alert the company\'s HR or emergency contact on WhatsApp.',
+                includes: [
+                    '1 × QR Tag for ID card or lanyard',
+                    '1 Year Validity',
+                    'Instant WhatsApp alert to HR or emergency contact',
+                    'Employee\'s personal number kept private'
+                ],
+                originalPrice: '₹499', price: '₹199 / year', save: 'Save ₹300 (60% OFF)',
+                cartKey: 'employee',
+                features: ['Attaches to ID card or lanyard', 'Alerts HR or emergency contact instantly', 'No app needed for finder', 'Employee\'s personal number stays private', 'Bulk pricing available for organisations', '1 year validity'],
+                faqs: [
+                    { q: 'What situations is this useful for?', a: 'If an employee collapses or has a medical emergency in public, a bystander can scan the ID tag and immediately alert the company\'s HR or emergency contact. Also useful if the ID card is found after being lost.' },
+                    { q: 'Can this be ordered in bulk for all staff?', a: 'Yes. Contact us for bulk pricing — we support enterprise and fleet orders with volume discounts.' },
+                    { q: 'What number gets the alert?', a: 'Whichever number is linked during activation — HR department, a supervisor, or a family emergency contact. Update anytime from the dashboard.' }
+                ]
+            },
+
+            shop: {
+                emoji: '🏪', ribbon: 'CUSTOMER CONNECT',
+                title: 'Shop Safety QR',
+                image: 'assets/images/products/shop-qr.jpg',
+                desc: 'A QR sticker for your shop door or counter. When your shop is closed and a customer arrives, or someone has a query or complaint — they scan the sticker and you get a WhatsApp message immediately. No need to put your personal number on the shutter.',
+                includes: [
+                    '1 × Shop-sized Weatherproof QR Sticker',
+                    '1 Year Validity',
+                    'Instant WhatsApp alerts',
+                    'Private — personal number never on shutter'
+                ],
+                originalPrice: '₹599', price: '₹249 / year', save: 'Save ₹350 (58% OFF)',
+                cartKey: 'shop',
+                features: ['Sticker for shop door, shutter, or counter', 'Customer reaches you on WhatsApp when shop is closed', 'No app needed for customer', 'Your personal number stays off the shutter', 'Reply from WhatsApp directly', '1 year validity'],
+                faqs: [
+                    { q: 'How does a customer use this when my shop is closed?', a: 'They scan the QR sticker on your shutter or door. A simple form opens — they select their need or type a message. You receive a WhatsApp alert immediately and can reply with your opening hours or arrange a callback.' },
+                    { q: 'Why not just put my number on the shutter?', a: 'A number on the shutter means anyone can call or save it — including unwanted contacts. This QR lets genuine customers reach you through WhatsApp without your personal number being public.' },
+                    { q: 'Can I link a business WhatsApp number?', a: 'Yes. Any WhatsApp-enabled number works — personal, business, or WhatsApp Business account.' }
+                ]
+            }
+
+        };
+
+        window.openProductModal = function (key) {   // globally accessible
+            const p = productData[key];
+            if (!p) return;
+
+            // Populate
+            document.getElementById('pmodal-ribbon').textContent = p.ribbon;
+            document.getElementById('pmodal-title').textContent = p.title;
+            document.getElementById('pmodal-desc').textContent = p.desc;
+            document.getElementById('pmodal-original').textContent = p.originalPrice;
+            document.getElementById('pmodal-price').textContent = p.price;
+            document.getElementById('pmodal-save').textContent = p.save;
+
+            // Image or emoji fallback
+            const img = document.getElementById('pmodal-img');
+            const emojiEl = document.getElementById('pmodal-emoji');
+            img.src = p.image;
+            img.style.display = 'block';
+            emojiEl.style.display = 'none';
+            emojiEl.textContent = p.emoji;
+
+            // Includes
+            const ul = document.getElementById('pmodal-includes');
+            ul.innerHTML = p.includes.map(i => `<li>${i}</li>`).join('');
+
+            // Features
+            const fg = document.getElementById('pmodal-features');
+            fg.innerHTML = p.features.map(f => `<div class="pmodal-feature-pill">✓ ${f}</div>`).join('');
+
+            // FAQs
+            const fq = document.getElementById('pmodal-faqs');
+            fq.innerHTML = p.faqs.map(f => `
+                                <div class="pmodal-faq">
+                                    <div class="pmodal-faq-q">Q: ${f.q}</div>
+                                    <div class="pmodal-faq-a">${f.a}</div>
+                                </div>`).join('');
+
+            // Reset modal qty counter
+            document.getElementById('modal-qty').innerText = 1;
+            document.getElementById('modal-qty').dataset.type = p.cartKey;
+
+            // Cart button uses modal qty
+            document.getElementById('pmodal-cart-btn').onclick = () => {
+                const qty = parseInt(document.getElementById('modal-qty').innerText) || 1;
+                addToCartDirect(p.cartKey, qty);
+                closeProductModal();
+            };
+
+            document.getElementById('productModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        window.closeProductModal = function (e) {
+            if (e && e.target !== document.getElementById('productModal')) return;
+            document.getElementById('productModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+
+
+
     <script src="js/main.js"></script>
+
+
+
 
 </body>
 </html>

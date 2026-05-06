@@ -31,11 +31,11 @@ router.post("/create-order", async (req, res) => {
     if (!/^[0-9]{6}$/.test(pincode)) return res.status(400).json({ error: "Invalid pincode" });
 
     const PRICES = {
-        car: 399, bike: 249, auto: 249, CV: 399,
-        bag: 249, laptop: 299, mobile: 249, schoolbag: 249,
-        kids: 299, elderly: 299, pet: 249,
-        homedelivery: 299, key: 199,
-        employee: 249, shop: 299
+        car: 349, bike: 199, auto: 199, CV: 349,
+        bag: 199, laptop: 199, mobile: 199, luggage: 199,
+        kids: 249, elderly: 249, pet: 199,
+        homedelivery: 249, key: 199,
+        combo_vehicle: 449, combo_family: 749, combo_personal: 499, combo_home: 849,
     };
 
     let amount = 0;

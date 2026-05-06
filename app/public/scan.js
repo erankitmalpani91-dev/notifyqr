@@ -1,185 +1,179 @@
+/* ═══════════════════════════════════════════════════════════════
+   scan.js  —  3-screen flow
+   
+   DESIGN RULES:
+   - No rate-limit timer. No session expiry timer.
+   - After notify is sent, Screen 2 (waiting) stays open.
+   - If user presses Back or refreshes → they see "Scan Again" card.
+     This is the natural gate against repeat sends — must re-scan QR.
+   - After full conversation (owner reply2), polling stops. Done.
+   - All backend API calls unchanged.
+═══════════════════════════════════════════════════════════════ */
+
 const params = new URLSearchParams(window.location.search);
 const qrId = params.get("qr");
 const messageCache = new Set();
-
 
 let selectedMessage = "";
 let allMessages = [];
 let pollInterval = null;
 let currentScanId = null;
 
-// Single source of truth for what has been rendered
-// Initialised here at module level so sendFollowup() can access it too
+/* Conversation render flags — prevent double-rendering on each poll tick */
 const rendered = {
     ownerReply: false,
     finderFollowup: false,
     ownerReply2: false
 };
 
-// Predefined messages per asset type
+/* ══════════════════════════════════════════════════════════════
+   SCAN-ONCE GATE
+   After notify is sent we store the scan_id in sessionStorage.
+   sessionStorage is cleared automatically when the tab is closed
+   or the QR is scanned fresh (new tab). If the user hits Back or
+   Refresh within the same tab, we detect the stored scan_id and
+   show "Scan Again" instead of Screen 1.
+   This replaces the 10-min rate-limit timer entirely.
+══════════════════════════════════════════════════════════════ */
+const SESSION_KEY = "roo_scan_" + (qrId || "none");
+
+function getSavedScanId() {
+    return sessionStorage.getItem(SESSION_KEY) || null;
+}
+function saveScanId(scanId) {
+    sessionStorage.setItem(SESSION_KEY, scanId);
+}
+function clearScanId() {
+    sessionStorage.removeItem(SESSION_KEY);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREDEFINED MESSAGES  (unchanged)
+══════════════════════════════════════════════════════════════ */
 const messageMap = {
-    car: [
-        "Your car is blocking the way",
-        "Your car lights are on",
-        "Please move your car",
-        "Car parked in a no parking zone",
-        "Car alarm is ringing",
-        "Car window is open",
-        "Smoke or fire seen in your car",
-        "Fluid leaking from your car",
-        "Your car was hit or damaged"
-    ],
-    bike: [
-        "Your bike is blocking the way",
-        "Your bike lights are on",
-        "Please move your bike",
-        "Bike parked in a no parking zone",
-        "Bike alarm is ringing",
-        "Bike has fallen or tipped over",
-        "Fuel or oil leaking from your bike"
-    ],
-    auto: [
-        "Your auto is blocking the way",
-        "Please move your auto",
-        "Auto parked in a no parking zone",
-        "Your auto lights are on",
-        "Auto seems to have an issue"
-    ],
-    CV: [
-        "Your vehicle is blocking the way",
-        "Please move your vehicle",
-        "Vehicle parked in a restricted area",
-        "Your vehicle lights are on",
-        "Possible issue noticed in your vehicle"
-    ],
-    bag: [
-        "I found your bag",
-        "Your bag is unattended",
-        "Your bag was left behind",
-        "Bag found at this location"
-    ],
-    schoolbag: [
-        "I found a school bag",
-        "School bag left behind",
-        "Your child's bag is unattended"
-    ],
-    laptop: [
-        "I found your laptop",
-        "Your laptop is unattended",
-        "Laptop left behind at this location"
-    ],
-    mobile: [
-        "I found your mobile phone",
-        "Mobile phone left behind",
-        "Your phone is unattended"
-    ],
-    key: [
-        "I found your keys",
-        "Your keys were left behind",
-        "Keys found at this location"
-    ],
-    pet: [
-        "I found your pet",
-        "Your pet seems lost",
-        "Your pet is unattended",
-        "Pet found roaming nearby"
-    ],
-    kids: [
-        "I found a child with this tag",
-        "Child needs assistance",
-        "Child appears lost",
-        "Child is alone and needs help"
-    ],
-    elderly: [
-        "An elderly person needs assistance",
-        "Elderly person seems lost",
-        "Found elderly person with this tag",
-        "Elderly person needs help"
-    ],
-    homedelivery: [
-        "Delivery attempt failed",
-        "Package could not be delivered",
-        "Please contact regarding your delivery",
-        "Delivery person tried to reach you"
-    ],
-    employee: [
-        "Employee ID found",
-        "Employee needs assistance",
-        "ID card was found",
-        "Please contact regarding employee ID"
-    ],
-    shop: [
-        "Shop is closed, customer waiting",
-        "Issue at your shop location",
-        "Please contact regarding your shop",
-        "Customer needs assistance at your shop"
-    ],
-    default: [
-        "I found your item",
-        "Your item is unattended",
-        "Please contact me",
-        "Item found at this location"
-    ]
+    car: ["Your car is blocking the way", "Your car lights are on", "Please move your car", "Car parked in a no parking zone", "Car alarm is ringing", "Car window is open", "Smoke or fire seen in your car", "Fluid leaking from your car", "Your car was hit or damaged"],
+    bike: ["Your bike is blocking the way", "Your bike lights are on", "Please move your bike", "Bike parked in a no parking zone", "Bike alarm is ringing", "Bike has fallen or tipped over", "Fuel or oil leaking from your bike"],
+    auto: ["Your auto is blocking the way", "Please move your auto", "Auto parked in a no parking zone", "Your auto lights are on", "Auto seems to have an issue"],
+    CV: ["Your vehicle is blocking the way", "Please move your vehicle", "Vehicle parked in a restricted area", "Your vehicle lights are on", "Possible issue noticed in your vehicle"],
+    bag: ["I found your bag", "Your bag is unattended", "Your bag was left behind", "Bag found at this location"],
+    schoolbag: ["I found a school bag", "School bag left behind", "Your child's bag is unattended"],
+    luggage: ["I found your luggage", "Your luggage is unattended", "Luggage found at this location"],
+    laptop: ["I found your laptop", "Your laptop is unattended", "Laptop left behind at this location"],
+    mobile: ["I found your mobile phone", "Mobile phone left behind", "Your phone is unattended"],
+    key: ["I found your keys", "Your keys were left behind", "Keys found at this location"],
+    pet: ["I found your pet", "Your pet seems lost", "Your pet is unattended", "Pet found roaming nearby"],
+    kids: ["I found a child with this tag", "Child needs assistance", "Child appears lost", "Child is alone and needs help"],
+    elderly: ["An elderly person needs assistance", "Elderly person seems lost", "Found elderly person with this tag", "Elderly person needs help"],
+    homedelivery: ["Delivery attempt failed", "Package could not be delivered", "Please contact regarding your delivery", "Delivery person tried to reach you"],
+    employee: ["Employee ID found", "Employee needs assistance", "ID card was found", "Please contact regarding employee ID"],
+    shop: ["Shop is closed, customer waiting", "Issue at your shop location", "Please contact regarding your shop", "Customer needs assistance at your shop"],
+    default: ["I found your item", "Your item is unattended", "Please contact me", "Item found at this location"]
 };
 
+/* ══════════════════════════════════════════════════════════════
+   SCREEN NAVIGATION
+══════════════════════════════════════════════════════════════ */
+function showScreen(n) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    const el = document.getElementById("screen" + n);
+    if (el) el.classList.add("active");
+}
+
+function showInfoCard(msg, isError) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    const card = document.getElementById("infoCard");
+    card.innerHTML = msg;
+    card.className = "info-card active" + (isError ? " error" : "");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════════ */
 if (!qrId) {
-    document.getElementById("title").innerText = "Invalid QR Code";
+    showInfoCard("❌ Invalid QR Code", true);
 } else {
-    loadQR();
+    /* Check if this tab already sent a notification (Back/Refresh case) */
+    const savedId = getSavedScanId();
+    if (savedId) {
+        /* User sent notification then went back or refreshed.
+           Show "Scan Again" — don't show Screen 1 again. */
+        showScanAgain();
+    } else {
+        loadQR();
+    }
 }
 
 function loadQR() {
     fetch("/api/alerts/qr-info/" + qrId)
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
             if (!data.success) {
-                document.getElementById("title").innerText = data.message || "QR Not Active";
+                showInfoCard("⚠️ " + (data.message || "QR Not Active"), true);
                 return;
             }
             const assetType = (data.product_type || "default").toLowerCase();
-            document.getElementById("title").innerText = "Notify Owner";
-            document.getElementById("mainContent").style.display = "block";
             allMessages = messageMap[assetType] || messageMap["default"];
             renderButtons(allMessages.slice(0, 3));
+            showScreen(1);
         })
-        .catch(() => {
-            document.getElementById("title").innerText = "Unable to load QR";
-        });
+        .catch(() => showInfoCard("Unable to load. Please try again.", true));
 }
 
+/* ══════════════════════════════════════════════════════════════
+   "SCAN AGAIN" card — shown on Back/Refresh after notify
+══════════════════════════════════════════════════════════════ */
+function showScanAgain() {
+    showInfoCard(
+        `<div style="font-size:32px;margin-bottom:12px">📷</div>
+         <div style="font-weight:700;font-size:16px;margin-bottom:8px;color:#1a1a2e">
+           Already notified the owner
+         </div>
+         <div style="font-size:13px;color:#666;line-height:1.6;margin-bottom:16px">
+           To send a new message,<br>please <strong>scan the QR code again</strong>.
+         </div>`,
+        false
+    );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN 1 — Issue buttons
+══════════════════════════════════════════════════════════════ */
 function renderButtons(msgs) {
-    const btnDiv = document.getElementById("buttons");
-    btnDiv.innerHTML = "";
+    const container = document.getElementById("issueButtons");
+    container.innerHTML = "";
     msgs.forEach(msg => {
         const btn = document.createElement("button");
-        btn.className = "btn";
-        btn.innerText = msg;
+        btn.className = "issue-btn";
+        btn.innerHTML = `<span>${msg}</span><span class="tick">✓</span>`;
         btn.onclick = () => {
             selectedMessage = msg;
-            document.querySelectorAll("#buttons .btn").forEach(b => b.classList.remove("selected"));
+            container.querySelectorAll(".issue-btn").forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
-            const customBox = document.getElementById("customMsg");
-            customBox.value = msg;
-            customBox.dataset.prefilled = "true";
-            updateCharCount();
+            const box = document.getElementById("customMsg");
+            box.value = msg;
+            document.getElementById("charCount").innerText = msg.length;
         };
-        btnDiv.appendChild(btn);
+        container.appendChild(btn);
     });
-    const first = btnDiv.querySelector(".btn");
+    const first = container.querySelector(".issue-btn");
     if (first) first.click();
 }
 
 function showMore() {
     renderButtons(allMessages);
-    document.getElementById("moreOptions").style.display = "none";
+    document.getElementById("moreLink").style.display = "none";
 }
 
-function updateCharCount() {
-    const val = document.getElementById("customMsg").value.length;
-    document.getElementById("charCount").innerText = val;
-    document.getElementById("customMsg").dataset.prefilled = "false";
+function onCustomInput() {
+    const val = document.getElementById("customMsg").value;
+    document.getElementById("charCount").innerText = val.length;
+    document.querySelectorAll(".issue-btn").forEach(b => b.classList.remove("selected"));
+    selectedMessage = "";
 }
 
+/* ══════════════════════════════════════════════════════════════
+   NOTIFY
+══════════════════════════════════════════════════════════════ */
 function notifyOwner() {
     const customText = document.getElementById("customMsg").value.trim();
     const finalMessage = customText || selectedMessage;
@@ -192,14 +186,11 @@ function notifyOwner() {
     const btn = document.getElementById("notifyBtn");
     btn.disabled = true;
     btn.innerText = "Sending...";
-    showStatus("sending", "Sending notification...");
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            pos => {
-                const location = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                sendAlert(finalMessage, location);
-            },
+            pos => sendAlert(finalMessage,
+                `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`),
             () => sendAlert(finalMessage, null),
             { timeout: 5000 }
         );
@@ -208,164 +199,101 @@ function notifyOwner() {
     }
 }
 
-
-// Replace existing sendAlert with this version
 function sendAlert(message, location) {
-    const btn = document.getElementById("notifyBtn");
-
     fetch("/api/alerts/send-alert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qr_id: qrId, message, location })
     })
         .then(async res => {
-            // Try to parse JSON, but handle parse errors
             let data = null;
-            try {
-                data = await res.json();
-            } catch (e) {
-                console.error("Failed to parse JSON from /send-alert:", e);
-            }
-            return { ok: res.ok, status: res.status, data };
+            try { data = await res.json(); } catch (e) { }
+            return { ok: res.ok, data };
         })
-        .then(({ ok, status, data }) => {
-            // Ensure button reference exists
+        .then(({ ok, data }) => {
             const btn = document.getElementById("notifyBtn");
-
-            if (!ok || !data) {
-                console.error("Bad response from /send-alert", status, data);
+            if (!ok || !data || !data.success) {
                 btn.disabled = false;
                 btn.innerText = "Notify Owner";
-                showStatus("error", "Network error. Please try again.");
+                alert(data?.message || "Failed to notify. Please try again.");
                 return;
             }
 
-            if (data.success) {
-                // Wrap UI updates so DOM errors don't fall into network catch
-                try {
-                    currentScanId = data.scan_id;
-                    btn.innerText = "✅ Owner Notified";
-                    showStatus("success", "Owner has been notified. Waiting for reply...");
+            currentScanId = data.scan_id;
 
-                    // ✅ Reset entire conversation thread for new round
-                    const thread = document.getElementById("convoThread");
-                    thread.innerHTML = "";
-                    messageCache.clear();
-                    thread.style.display = "flex";
+            /* ── Gate: store scan_id so Back/Refresh shows "Scan Again" ── */
+            saveScanId(currentScanId);
 
-                    // ✅ Reset follow-up box fully
-                    document.getElementById("followupBox").style.display = "none";
-                    document.getElementById("followupMsg").value = "";
-                    const followupBtn = document.getElementById("followupBtn");
-                    followupBtn.disabled = false;
-                    followupBtn.innerText = "Send Follow-up";
+            /* Reset conversation state */
+            rendered.ownerReply = false;
+            rendered.finderFollowup = false;
+            rendered.ownerReply2 = false;
+            messageCache.clear();
+            document.getElementById("convoThread").innerHTML = "";
+            document.getElementById("followupMsg").value = "";
+            document.getElementById("followupArea").style.display = "block";
+            document.getElementById("miniWaiting").style.display = "none";
 
-                    // ✅ Reset all rendered flags
-                    rendered.ownerReply = false;
-                    rendered.finderFollowup = false;
-                    rendered.ownerReply2 = false;
+            window._finderMessage = message;
 
-                    // ✅ Show finder's message in thread
-                    addBubble("finder", message);
-
-                    startPolling(currentScanId);
-                    setTimeout(() => startCooldown(), 2000);
-                } catch (uiErr) {
-                    console.error("UI update error after send-alert:", uiErr);
-                }
-            } else {
-                btn.disabled = false;
-                btn.innerText = "Notify Owner";
-                showStatus("error", data.message || "Failed to notify. Please try again.");
-            }
+            showScreen(2);
+            startPolling(currentScanId);
         })
-        .catch(err => {
-            console.error("sendAlert fetch error:", err);
+        .catch(() => {
             const btn = document.getElementById("notifyBtn");
-            if (btn) {
-                btn.disabled = false;
-                btn.innerText = "Notify Owner";
-            }
-            showStatus("error", "Network error. Please try again.");
+            btn.disabled = false;
+            btn.innerText = "Notify Owner";
+            alert("Network error. Please try again.");
         });
 }
 
+/* ══════════════════════════════════════════════════════════════
+   POLLING  (5s, unchanged API)
+══════════════════════════════════════════════════════════════ */
 function startPolling(scanId) {
     if (pollInterval) clearInterval(pollInterval);
 
     pollInterval = setInterval(() => {
         fetch("/api/alerts/reply/" + scanId)
-            .then(res => res.json())
+            .then(r => r.json())
             .then(data => {
                 if (!data.success) return;
 
-                // Owner's first reply
+                /* Owner reply 1 → move to Screen 3 */
                 if (data.reply && !rendered.ownerReply) {
                     rendered.ownerReply = true;
+                    addBubble("finder", window._finderMessage || "");
                     addBubble("owner", data.reply);
-                    showStatus("success", "✅ Owner has responded!");
-                    // Only show follow-up box if finder hasn't sent one yet
-                    if (!rendered.finderFollowup) {
-                        document.getElementById("followupBox").style.display = "block";
-                    }
+                    showScreen(3);
                 }
 
-                // Finder's follow-up — add bubble if not already shown
+                /* Finder follow-up rendered in thread */
                 if (data.finder_followup && !rendered.finderFollowup) {
                     rendered.finderFollowup = true;
-                    document.getElementById("followupBox").style.display = "none";
-                    // addBubble is safe here — messageCache prevents duplicates
-                    // if sendFollowup() already added it, the cache key blocks re-render
+                    document.getElementById("followupArea").style.display = "none";
                     addBubble("finder", data.finder_followup);
-                    showStatus("success", "✅ Follow-up delivered. Waiting for owner...");
+                    document.getElementById("miniWaiting").style.display = "block";
                 }
 
-                // Owner's second reply
+                /* Owner reply 2 → conversation complete */
                 if (data.owner_reply2 && !rendered.ownerReply2) {
                     rendered.ownerReply2 = true;
+                    document.getElementById("miniWaiting").style.display = "none";
                     addBubble("owner", data.owner_reply2);
-                    showStatus("success", "✅ Owner replied again!");
+                    document.getElementById("followupArea").style.display = "none";
                     clearInterval(pollInterval);
+                    /* Clear session gate — conversation is complete.
+                       If finder scans again they'll get a fresh Screen 1. */
+                    clearScanId();
                 }
             })
             .catch(() => { });
     }, 5000);
-
-    setTimeout(() => clearInterval(pollInterval), 900000);
 }
 
-function addBubble(who, text) {
-    try {
-        if (!text || !text.trim()) return;
-
-        const thread = document.getElementById("convoThread");
-        const key = who + "|" + text.trim();
-        if (messageCache.has(key)) return;
-        messageCache.add(key);
-
-        const wrapper = document.createElement("div");
-        wrapper.style.display = "flex";
-        wrapper.style.flexDirection = "column";
-        wrapper.style.alignItems = who === "owner" ? "flex-end" : "flex-start";
-
-        const label = document.createElement("div");
-        label.className = "bubble-label" + (who === "owner" ? " right" : "");
-        label.innerText = who === "owner" ? "Owner" : "You";
-
-        const bubble = document.createElement("div");
-        bubble.className = "bubble bubble-" + who;
-        bubble.innerText = text.trim();
-
-        wrapper.appendChild(label);
-        wrapper.appendChild(bubble);
-        thread.appendChild(wrapper);
-        wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    } catch (err) {
-        console.error("addBubble error:", err);
-    }
-}
-
-
+/* ══════════════════════════════════════════════════════════════
+   FOLLOW-UP  (unchanged logic)
+══════════════════════════════════════════════════════════════ */
 function sendFollowup() {
     const msg = document.getElementById("followupMsg").value.trim();
     if (!msg) { alert("Please type a follow-up message"); return; }
@@ -374,9 +302,6 @@ function sendFollowup() {
     const btn = document.getElementById("followupBtn");
     btn.disabled = true;
     btn.innerText = "Sending...";
-
-    // Mark as rendered IMMEDIATELY before the fetch
-    // so polling can never add it even if it fires during the request
     rendered.finderFollowup = true;
 
     fetch("/api/alerts/send-followup", {
@@ -384,14 +309,13 @@ function sendFollowup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scan_id: currentScanId, message: msg })
     })
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
             if (data.success) {
-                document.getElementById("followupBox").style.display = "none";
+                document.getElementById("followupArea").style.display = "none";
                 addBubble("finder", msg);
-                showStatus("success", "✅ Follow-up sent. Waiting for owner...");
+                document.getElementById("miniWaiting").style.display = "block";
             } else {
-                // Failed — unmark so user can try again
                 rendered.finderFollowup = false;
                 btn.disabled = false;
                 btn.innerText = "Send Follow-up";
@@ -406,31 +330,30 @@ function sendFollowup() {
         });
 }
 
-function startCooldown() {
-    const btn = document.getElementById("notifyBtn");
-    const timer = document.getElementById("timer");
+/* ══════════════════════════════════════════════════════════════
+   BUBBLE HELPER  (unchanged)
+══════════════════════════════════════════════════════════════ */
+function addBubble(who, text) {
+    if (!text || !text.trim()) return;
+    const thread = document.getElementById("convoThread");
+    const key = who + "|" + text.trim();
+    if (messageCache.has(key)) return;
+    messageCache.add(key);
 
-    let time = 180;
-    btn.disabled = true;
-    btn.style.background = "#95a5a6";
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "display:flex;flex-direction:column;align-items:" +
+        (who === "owner" ? "flex-end" : "flex-start");
 
-    const interval = setInterval(() => {
-        const min = Math.floor(time / 60);
-        const sec = time % 60;
-        timer.innerText = `Can notify again in ${min}:${sec < 10 ? "0" + sec : sec}`;
-        time--;
-        if (time < 0) {
-            clearInterval(interval);
-            btn.disabled = false;
-            btn.innerText = "Notify Again";
-            btn.style.background = "#27ae60";
-            timer.innerText = "";
-        }
-    }, 1000);
-}
+    const label = document.createElement("div");
+    label.className = "bubble-label" + (who === "owner" ? " right" : "");
+    label.innerText = who === "owner" ? "Owner" : "You";
 
-function showStatus(type, message) {
-    const box = document.getElementById("statusBox");
-    box.className = "status-box " + type;
-    box.innerHTML = message;
+    const bubble = document.createElement("div");
+    bubble.className = "bubble bubble-" + who;
+    bubble.innerText = text.trim();
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(bubble);
+    thread.appendChild(wrapper);
+    wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }

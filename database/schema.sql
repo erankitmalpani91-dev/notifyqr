@@ -46,6 +46,10 @@ CREATE TABLE orders (
   plan_years INTEGER DEFAULT 1,   -- NEW COLUMN
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   payment_id TEXT,
+  gift_wrap INTEGER DEFAULT 0,
+  gift_message TEXT DEFAULT '',
+  order_notes TEXT DEFAULT '',
+  expanded_cart TEXT DEFAULT '',
   FOREIGN KEY(user_id) REFERENCES users(id)
 );
 

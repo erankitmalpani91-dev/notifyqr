@@ -3,133 +3,290 @@
 <head>
     <title>Notify Owner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #f5f6fa;
+            background: #f0f4ff;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
         }
 
         .container {
+            width: 100%;
             max-width: 420px;
-            margin: auto;
-            padding: 15px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
         }
 
         .logo {
-            font-size: 20px;
+            text-align: center;
+            font-size: 17px;
             font-weight: bold;
             color: #2f80ed;
+            margin-bottom: 12px;
         }
 
-        .card {
+        /* Info/error card (loading, scan-again, QR error) */
+        .info-card {
+            display: none;
             background: white;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        }
-
-        h2 {
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+            padding: 30px 20px;
             text-align: center;
-            font-size: 18px;
-            margin: 0 0 16px;
+            font-size: 14px;
+            color: #555;
         }
 
-        .section-label {
+            .info-card.active {
+                display: block;
+            }
+
+            .info-card.error {
+                border-left: 4px solid #e74c3c;
+                color: #c0392b;
+            }
+
+        /* Screens */
+        .screen {
+            display: none;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+            padding: 22px 20px 24px;
+        }
+
+            .screen.active {
+                display: block;
+            }
+
+        .screen-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .screen-sub {
             font-size: 13px;
-            color: #666;
-            margin: 12px 0 6px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 18px;
         }
 
-        .btn {
+        /* Step dots */
+        .step-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #dde3f0;
+            transition: background 0.3s;
+        }
+
+            .dot.active {
+                background: #2f80ed;
+            }
+
+            .dot.done {
+                background: #27ae60;
+            }
+
+        /* Issue buttons */
+        .issue-btn {
             width: 100%;
-            padding: 13px;
-            margin: 6px 0;
-            border: 1.5px solid #2f80ed;
+            padding: 13px 14px;
+            margin-bottom: 8px;
+            border: 1.5px solid #dde3f0;
             border-radius: 12px;
             background: white;
-            color: #2f80ed;
+            color: #333;
             font-size: 14px;
             text-align: left;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             transition: 0.15s;
         }
 
-            .btn:active {
+            .issue-btn:active {
                 transform: scale(0.98);
             }
 
-            .btn.selected {
+            .issue-btn.selected {
                 background: #2f80ed;
                 color: white;
+                border-color: #2f80ed;
             }
 
-        .more {
+            .issue-btn .tick {
+                display: none;
+                margin-left: auto;
+                font-size: 15px;
+            }
+
+            .issue-btn.selected .tick {
+                display: block;
+            }
+
+        .more-link {
             text-align: center;
             color: #2f80ed;
-            margin: 6px 0 12px;
+            font-size: 13px;
             cursor: pointer;
-            font-size: 14px;
+            margin: 4px 0 14px;
         }
 
-        .custom-box {
+        /* Textarea */
+        .detail-box {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
+            padding: 11px 12px;
+            border: 1.5px solid #dde3f0;
             border-radius: 10px;
             font-size: 14px;
-            resize: none;
             font-family: Arial, sans-serif;
-            margin-top: 10px;
+            resize: none;
+            outline: none;
+            margin-top: 4px;
         }
 
-            .custom-box:focus {
-                outline: none;
+            .detail-box:focus {
                 border-color: #2f80ed;
             }
 
         .char-count {
             text-align: right;
             font-size: 12px;
-            color: #999;
+            color: #bbb;
             margin-top: 3px;
         }
 
-        .notify-btn {
+        /* Primary button */
+        .action-btn {
             width: 100%;
             padding: 15px;
-            margin-top: 14px;
+            margin-top: 16px;
             border: none;
             border-radius: 12px;
             background: #27ae60;
             color: white;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             transition: 0.2s;
         }
 
-            .notify-btn:disabled {
-                background: #95a5a6;
+            .action-btn:disabled {
+                background: #b2bec3;
                 cursor: not-allowed;
             }
 
-        /* ── Conversation thread ── */
+            .action-btn.blue {
+                background: #2f80ed;
+            }
+
+        /* Screen 2 — ripple */
+        .waiting-center {
+            text-align: center;
+            padding: 10px 0 4px;
+        }
+
+        .ripple-wrap {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 18px;
+        }
+
+        .ripple-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #27ae60;
+            z-index: 2;
+        }
+
+        .ripple-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2.5px solid #27ae60;
+            opacity: 0;
+            animation: ripple 2s infinite;
+        }
+
+            .ripple-ring:nth-child(1) {
+                width: 36px;
+                height: 36px;
+                animation-delay: 0s;
+            }
+
+            .ripple-ring:nth-child(2) {
+                width: 54px;
+                height: 54px;
+                animation-delay: 0.5s;
+            }
+
+            .ripple-ring:nth-child(3) {
+                width: 70px;
+                height: 70px;
+                animation-delay: 1s;
+            }
+
+        @keyframes ripple {
+            0% {
+                opacity: 0.6;
+                transform: translate(-50%,-50%) scale(0.8);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%,-50%) scale(1.1);
+            }
+        }
+
+        .waiting-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+
+        .waiting-hint {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        /* Screen 3 — conversation */
         .convo-thread {
-            margin-top: 16px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 14px;
+            max-height: 260px;
+            overflow-y: auto;
         }
 
         .bubble {
@@ -165,160 +322,138 @@
                 text-align: right;
             }
 
-        .followup-box {
-            margin-top: 14px;
-            padding: 14px;
-            background: #f0f4ff;
-            border: 1.5px solid #2f80ed;
-            border-radius: 12px;
+        /* Mini waiting pulse (after follow-up sent) */
+        .mini-waiting {
+            display: none;
+            text-align: center;
+            font-size: 13px;
+            color: #27ae60;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
 
-            .followup-box p {
-                font-size: 13px;
-                color: #2f80ed;
-                margin: 0 0 10px;
-                font-weight: 600;
+        .mini-pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #27ae60;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+            animation: blink 1.4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
             }
+
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        /* Follow-up */
+        .followup-label {
+            font-size: 13px;
+            color: #2f80ed;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
 
         .followup-input {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #c5d5f5;
+            border: 1.5px solid #c5d5f5;
             border-radius: 8px;
             font-size: 14px;
             font-family: Arial, sans-serif;
             resize: none;
             outline: none;
-            background: white;
         }
 
             .followup-input:focus {
                 border-color: #2f80ed;
             }
-
-        .followup-send-btn {
-            width: 100%;
-            margin-top: 10px;
-            padding: 11px;
-            background: #2f80ed;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-            .followup-send-btn:disabled {
-                background: #95a5a6;
-                cursor: not-allowed;
-            }
-
-        .status-box {
-            margin-top: 14px;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            text-align: center;
-            display: none;
-        }
-
-            .status-box.sending {
-                background: #eaf3ff;
-                color: #2f80ed;
-                display: block;
-            }
-
-            .status-box.success {
-                background: #eafaf1;
-                color: #27ae60;
-                display: block;
-            }
-
-            .status-box.error {
-                background: #fdecea;
-                color: #c0392b;
-                display: block;
-            }
-
-            .status-box.replied {
-                background: #eafaf1;
-                color: #1a5c38;
-                display: block;
-                border: 1.5px solid #27ae60;
-            }
-
-        .timer {
-            text-align: center;
-            color: #999;
-            font-size: 13px;
-            margin-top: 10px;
-        }
-
-        .divider {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 14px 0;
-        }
     </style>
 </head>
-
 <body>
-
     <div class="container">
+        <div class="logo">ReachOutOwner</div>
 
-        <div class="header">
-            <div class="logo">ReachOutOwner</div>
+        <!-- Info card: loading state, scan-again prompt, QR errors -->
+        <div class="info-card" id="infoCard">Loading...</div>
+
+        <!-- ── SCREEN 1: Select issue ── -->
+        <div class="screen" id="screen1">
+            <div class="step-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <div class="screen-title">What is the issue?</div>
+            <div class="screen-sub">Tap one — or write your own below</div>
+
+            <div id="issueButtons"></div>
+            <div class="more-link" id="moreLink" onclick="showMore()">+ More options</div>
+
+            <textarea id="customMsg" class="detail-box" rows="2"
+                      placeholder="Add details (optional)..."
+                      maxlength="200" oninput="onCustomInput()"></textarea>
+            <div class="char-count"><span id="charCount">0</span>/200</div>
+
+            <button class="action-btn" id="notifyBtn" onclick="notifyOwner()">Notify Owner</button>
         </div>
 
-        <div class="card">
-
-            <h2 id="title">Loading...</h2>
-
-            <div id="mainContent" style="display:none">
-
-                <p class="section-label">Select issue:</p>
-                <div id="buttons"></div>
-                <div id="moreOptions" class="more" onclick="showMore()">+ More options</div>
-
-                <hr class="divider">
-
-                <p class="section-label">Add details (optional):</p>
-                <textarea id="customMsg" class="custom-box" rows="3"
-                          placeholder="e.g. I found your bag near Gate 3, call me at 98765..."
-                          maxlength="200" oninput="updateCharCount()"></textarea>
-                <div class="char-count"><span id="charCount">0</span>/200</div>
-
-                <button class="notify-btn" id="notifyBtn" onclick="notifyOwner()">
-                    Notify Owner
-                </button>
-
-                <div id="statusBox" class="status-box"></div>
-
-                <!-- Conversation thread — built dynamically by scan.js -->
-                <div id="convoThread" class="convo-thread" style="display:none"></div>
-
-                <!-- Follow-up box — shown after owner's first reply -->
-                <div id="followupBox" class="followup-box" style="display:none">
-                    <p>💬 Send a follow-up to the owner:</p>
-                    <textarea id="followupMsg" class="followup-input" rows="2"
-                              placeholder="e.g. I'm at Gate 2, please hurry..."
-                              maxlength="200"></textarea>
-                    <button class="followup-send-btn" id="followupBtn" onclick="sendFollowup()">
-                        Send Follow-up
-                    </button>
+        <!-- ── SCREEN 2: Waiting for owner reply ── -->
+        <div class="screen" id="screen2">
+            <div class="step-dots">
+                <div class="dot done"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div>
+            </div>
+            <div class="waiting-center">
+                <div class="ripple-wrap">
+                    <div class="ripple-ring"></div>
+                    <div class="ripple-ring"></div>
+                    <div class="ripple-ring"></div>
+                    <div class="ripple-core"></div>
                 </div>
+                <div class="waiting-label">Owner Notified ✓</div>
+                <div class="waiting-hint">
+                    Keep this page open.<br>
+                    The owner's reply will appear here automatically.
+                </div>
+            </div>
+        </div>
 
-                <div id="timer" class="timer"></div>
+        <!-- ── SCREEN 3: Conversation ── -->
+        <div class="screen" id="screen3">
+            <div class="step-dots">
+                <div class="dot done"></div>
+                <div class="dot done"></div>
+                <div class="dot active"></div>
+            </div>
+            <div class="screen-title">Owner Replied</div>
+            <div class="screen-sub">You can send one follow-up message</div>
 
+            <div class="convo-thread" id="convoThread"></div>
+
+            <div class="mini-waiting" id="miniWaiting">
+                <span class="mini-pulse"></span> Waiting for owner's reply...
             </div>
 
+            <div id="followupArea">
+                <div class="followup-label">💬 Send a follow-up:</div>
+                <textarea id="followupMsg" class="followup-input" rows="2"
+                          placeholder="e.g. I'm at Gate 2..." maxlength="200"></textarea>
+                <button class="action-btn blue" id="followupBtn"
+                        onclick="sendFollowup()" style="margin-top:10px;">
+                    Send Follow-up
+                </button>
+            </div>
         </div>
-
     </div>
-
     <script src="/app/scan.js"></script>
-
 </body>
 </html>
